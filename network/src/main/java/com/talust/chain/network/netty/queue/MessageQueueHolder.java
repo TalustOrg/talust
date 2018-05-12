@@ -7,6 +7,7 @@ import com.talust.chain.common.model.Message;
 import com.talust.chain.common.model.MessageChannel;
 import com.talust.chain.common.model.MessageType;
 import com.talust.chain.common.tools.StringUtils;
+import com.talust.chain.common.tools.ThreadPool;
 import com.talust.chain.network.MessageHandler;
 import com.talust.chain.network.MessageValidator;
 import com.talust.chain.network.model.MyChannel;
@@ -15,7 +16,10 @@ import com.talust.chain.network.netty.ConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 消息队列处理器,针对底层通讯层的处理器
@@ -34,8 +38,7 @@ public class MessageQueueHolder {
     protected ConnectionManager cm = ConnectionManager.get();
     private MessageQueue mq = MessageQueue.get();
     //构造一个线程池,此线程池用于通讯层收发消息所用
-    private ThreadPoolExecutor threadPool = new ThreadPoolExecutor(2, 20, 5,
-            TimeUnit.SECONDS, new LinkedTransferQueue(), new ThreadPoolExecutor.CallerRunsPolicy());
+    private ThreadPoolExecutor threadPool = ThreadPool.get().threadPool;
 
     public void start() {
         int threadNo = 2;
