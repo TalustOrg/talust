@@ -1,5 +1,6 @@
 package com.talust.chain.common.tools;
 
+import com.talust.chain.common.crypto.Hex;
 import com.talust.chain.common.model.DepositAccount;
 
 import java.util.*;
@@ -60,6 +61,28 @@ public class CacheManager {
      */
     public <T> void put(String key, T data, int expire) {
         mapDt.put(key, new CacheData(data, expire));
+    }
+
+    /**
+     * 检验消息是否重复接收过,如果没有接收过,则加入缓存中,同时在timeOut中指明的时间点失效
+     *
+     * @param identifier
+     * @param timeOut
+     * @return
+     */
+    public boolean checkRepeat(String identifier, int timeOut) {
+        CacheData cacheData = mapDt.get(identifier);
+        if (cacheData != null) {//表明之前接收到过同样的消息
+            if (cacheData.getExpire() > 0 && cacheData.getSaveTime() < System.currentTimeMillis()) {
+                mapDt.remove(identifier);
+                return false;
+            }
+            return true;
+        }
+
+        //将消息放于缓存中,当超过一定时间时,将会被消除掉
+        put(identifier, null, timeOut);//不需要数据,只需要标识在即可
+        return false;
     }
 
     /**

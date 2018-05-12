@@ -41,8 +41,7 @@ public class MessageQueueHolder {
     private ThreadPoolExecutor threadPool = ThreadPool.get().threadPool;
 
     public void start() {
-        int threadNo = 2;
-        ExecutorService executorService = Executors.newFixedThreadPool(threadNo);//处理的线程数
+        ExecutorService executorService = Executors.newFixedThreadPool(1);//处理的线程数
         executorService.execute(() -> {
             MessageQueue messageQueue = MessageQueue.get();
             while (true) {//不断地从消息队列中取出消息进行处理
@@ -56,20 +55,6 @@ public class MessageQueueHolder {
                     }
                 } catch (Throwable e) {
                     log.error("消息处理错误:", e);
-                }
-            }
-        });
-        executorService.execute(() -> {//该线程用于清除一些任务,目前主要清除用于判断接收到的消息是否之前有接收到过
-            while (true) {
-                long st = System.currentTimeMillis();
-                clearOutData();
-                long ed = System.currentTimeMillis();
-                long sc = sleepTime - (ed - st);
-                if (sc > 0) {
-                    try {
-                        Thread.sleep(sc);
-                    } catch (Exception e) {
-                    }
                 }
             }
         });
@@ -109,45 +94,6 @@ public class MessageQueueHolder {
         mapValidators.put(messageType.getType(), validator);
     }
 
-    /**
-     * 检验消息是否重复接收过
-     *
-     * @param identifier
-     * @return
-     */
-    public synchronized boolean checkRepeat(byte[] identifier) {
-        String id = Hex.encode(identifier);
-        Long aLong = dataInTime.get(id);
-        if (aLong != null) {//表明之前接收到过同样的消息
-            return true;
-        }
-
-        //将消息放于缓存中,当超过一定时间时,将会被消除掉
-        dataInTime.put(id, System.currentTimeMillis());
-        return false;
-    }
-
-    private int sleepTime = 5000;
-    private int timeOutTime = 10000;
-    //用于存储某条消息在本节点发送的时间,以防止其他节点发送相同的信息进入
-    public Map<String, Long> dataInTime = new ConcurrentHashMap<>();
-
-    private void clearOutData() {
-        List<String> deletedDt = new ArrayList<>();
-        Iterator<Map.Entry<String, Long>> it = dataInTime.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, Long> next = it.next();
-            String key = next.getKey();
-            Long value = next.getValue();
-            long nt = System.currentTimeMillis();
-            if (nt - value > timeOutTime) {//超过了设定时间,则可以删除
-                deletedDt.add(key);
-            }
-        }
-        for (String aLong : deletedDt) {
-            dataInTime.remove(aLong);
-        }
-    }
 
     /**
      * 检测签名

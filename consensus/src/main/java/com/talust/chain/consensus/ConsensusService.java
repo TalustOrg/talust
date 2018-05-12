@@ -95,30 +95,11 @@ public class ConsensusService {
                     int ct = cu.getCurrentBlockTime();
                     if (ct > 0) {
                         if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {//未收到区块响应
-//                            //向每一个超级节点请求加入结果
-//                            List<String> superIps = new ArrayList<>();
-//                            Collection<MyChannel> superChannels = ChannelContain.get().getSuperChannels();
-//                            for (MyChannel superChannel : superChannels) {
-//                                superIps.add(superChannel.getRemoteIp());
-//                            }
-//                            superIps.add(ConnectionManager.get().selfIp);//将自身ip也加上
-//                            Collections.sort(superIps);
-//                            String selectMaster = superIps.get(0);//需要新换的的master节点
-//                            boolean selOk = false;
-//                            for (String superIp : superIps) {
-//                                if (selOk) {
-//                                    selectMaster = superIp;
-//                                    break;
-//                                } else {
-//                                    if (superIp.equals(Conference.get().getMaster().getMemberIp())) {
-//                                        selOk = true;
-//                                    }
-//                                }
-//                            }
-//                            conference.changeMaster(selectMaster);
+                            conference.changeMaster();
                         }
                     }
                 } catch (Throwable e) {
+                    log.error("error:",e);
                 }
             }
         }).start();

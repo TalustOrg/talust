@@ -1,6 +1,8 @@
 package com.talust.chain.client.validator;
 
 import com.talust.chain.common.model.MessageChannel;
+import com.talust.chain.common.tools.CacheManager;
+import com.talust.chain.common.tools.Configure;
 import com.talust.chain.network.MessageValidator;
 import com.talust.chain.network.netty.queue.MessageQueueHolder;
 
@@ -8,14 +10,13 @@ import com.talust.chain.network.netty.queue.MessageQueueHolder;
  * 节点退出时的验证
  */
 public class NodeExitValidator implements MessageValidator {
-    private MessageQueueHolder mqHolder = MessageQueueHolder.get();
 
     @Override
     public boolean check(MessageChannel messageChannel) {
         String ip = new String(messageChannel.getMessage().getContent());
         String time = messageChannel.getMessage().getTime().toString();
-        byte[] identifier = (ip + time).getBytes();
-        boolean checkRepeat = mqHolder.checkRepeat(identifier);
+        String identifier = ip + time;
+        boolean checkRepeat = CacheManager.get().checkRepeat(identifier, Configure.BLOCK_GEN_TIME);
         if (!checkRepeat) {//消息无重复
             return true;
         }

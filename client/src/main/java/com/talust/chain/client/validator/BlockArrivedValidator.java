@@ -7,6 +7,8 @@ import com.talust.chain.block.model.TranType;
 import com.talust.chain.block.model.Transaction;
 import com.talust.chain.common.model.Message;
 import com.talust.chain.common.model.MessageChannel;
+import com.talust.chain.common.tools.CacheManager;
+import com.talust.chain.common.tools.Configure;
 import com.talust.chain.common.tools.SerializationUtil;
 import com.talust.chain.network.MessageValidator;
 import com.talust.chain.network.netty.queue.MessageQueueHolder;
@@ -29,7 +31,7 @@ public class BlockArrivedValidator implements MessageValidator {
         Block block = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), Block.class);
         BlockHead head = block.getHead();
         int height = head.getHeight();
-        boolean checkRepeat = MessageQueueHolder.get().checkRepeat(("block_height:" + height).getBytes());
+        boolean checkRepeat = CacheManager.get().checkRepeat(("block_height:" + height), Configure.BLOCK_GEN_TIME);
         if (checkRepeat) {//说明本节点接收到过同样的消息,则直接将该消息扔掉
             return false;
         }
