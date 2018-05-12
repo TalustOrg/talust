@@ -115,16 +115,6 @@ public class CacheManager {
 
     private List<DepositAccount> deposits = new ArrayList<>();
 
-    /**
-     * 获取当前的储蓄用户
-     *
-     * @return
-     */
-    public List<DepositAccount> getDeposits() {
-        return deposits;
-    }
-
-
     public int getCurrentBlockTime() {
         return currentBlockTime;
     }

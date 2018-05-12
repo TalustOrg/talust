@@ -9,8 +9,10 @@ import com.talust.chain.common.crypto.Sha256Hash;
 import com.talust.chain.common.model.Message;
 import com.talust.chain.common.model.MessageChannel;
 import com.talust.chain.common.tools.CacheManager;
+import com.talust.chain.common.tools.Configure;
 import com.talust.chain.common.tools.Constant;
 import com.talust.chain.common.tools.SerializationUtil;
+import com.talust.chain.consensus.Conference;
 import com.talust.chain.network.MessageHandler;
 import com.talust.chain.network.netty.queue.MessageQueueHolder;
 import com.talust.chain.storage.BlockStorage;
@@ -30,17 +32,18 @@ public class BlockArrivedHandler implements MessageHandler {
         log.info("接收到远端ip:{} 发送过来的区块数据", messageChannel.getFromIp());
         mqHolder.broadMessage(messageChannel);
         //log.info("区块数据验证没有问题...");
-        saveBlock(messageChannel.getMessage().getContent());
+        saveBlock(messageChannel);
         return true;
     }
 
     /**
      * 保存区块
      *
-     * @param blockBytes 区块序列化后的数据
+     * @param messageChannel
      * @return
      */
-    public byte[] saveBlock(byte[] blockBytes) {
+    public byte[] saveBlock(MessageChannel messageChannel) {
+        byte[] blockBytes = messageChannel.getMessage().getContent();
         Block block = SerializationUtil.deserializer(blockBytes, Block.class);
         byte[] hash = Sha256Hash.of(blockBytes).getBytes();
         blockStorage.put(hash, blockBytes);//存储区块
@@ -51,6 +54,7 @@ public class BlockArrivedHandler implements MessageHandler {
         cu.setCurrentBlockHeight(block.getHead().getHeight());
         cu.setCurrentBlockTime(block.getHead().getTime());
         cu.setCurrentBlockHash(hash);
+        cu.setCurrentBlockGenIp(Conference.get().getMaster().getIp());//设置收到的块时最新的master节点ip
         log.info("成功存储区块数据,当前hash:{},height:{},time:{}", Hex.encode(hash), block.getHead().getHeight(), block.getHead().getTime());
 
         List<byte[]> data = block.getBody().getData();
