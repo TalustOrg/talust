@@ -141,6 +141,9 @@ public class Conference {
             }
         }
         this.master = nextMaster;
+        if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
+            ConsensusService.get().startGenBlock();
+        }
     }
 
     public SuperNode getMaster() {
