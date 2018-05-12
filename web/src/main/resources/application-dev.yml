@@ -1,0 +1,28 @@
+server:
+  port: 8081
+
+connection:
+  max: 3
+  max_to: 2
+  super_max: 3
+
+logging:
+  config: classpath:logback-spring.xml
+  path: ./logs
+  level:
+    root: info
+
+node:
+  server:
+    address: http://dev.talust.com:18004/ip.txt
+    gensisip: 192.168.16.1
+account:
+  root:
+    pubkey: 03f9ec5465755067f872d29ba6e9aa72fed73d5d2198e9e4a521bfa81b576b67c9
+    sign: 3045022100d7043c75a30600360506122f1d5a09bd2b5b4487ba654f413826961eb3cb667802201ac14b50c3f4eed7273fa95d78e61debd72aaab178a9e8f47fe97106ad552a07
+  talust:
+    pubkey: 0300c65cdd05d851108c58ff7b572214109acc887abc765768cbf875ee93459c93
+    sign: 3045022100d35dc510ffbca2461763c57256cadb318a53fb6db6fea176303604c5788e8cd70220540afb007fc849b5eb36190cccbfc5ffad42afe8d1b391aec275b218e8156b20
+  mining:
+    pubkey: 038f2409c2649c5cd2da4680a3956b8e99f8234ca7b603d3bcac6c372d8b368c7d
+    sign: 3044022011325e7f2c8c2261e5b5a1ab06def8f9b26c5b6dd42920e6d1712032baecdac10220433276c9cefb4f410e2104c880b283288b2df196befada69bbe4948eecc66c9f

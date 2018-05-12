@@ -1,0 +1,9 @@
+server:
+  port: 80
+  tomcat:
+    max-threads: 600
+
+connection:
+  max: 10
+  max_to: 6
+  super_max: 100

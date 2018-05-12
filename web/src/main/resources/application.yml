@@ -1,0 +1,24 @@
+spring.profiles.active: @profileActive@
+server:
+  address: 0.0.0.0
+  context-path: /${virtual.directory}
+  compression.min-response-size: 1024
+  compression.enabled: true
+  compression.mime-types: application/xhtml+xml,application/json,application/xml,text/html,text/xml,text/plain,text/css,application/x-javascript,text/javascript,image/jpeg,image/gif,image/png
+  tomcat.uri-encoding: UTF-8
+  tomcat.remote_ip_header: X-Forwarded-For
+  tomcat.protocol_header: X-Forwarded-Proto
+  use-forward-headers: true
+spring:
+  application:
+    name: talust-block-chain
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  http:
+    encoding.charset: UTF-8
+    encoding.enable: true
+    encoding.force: true
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
