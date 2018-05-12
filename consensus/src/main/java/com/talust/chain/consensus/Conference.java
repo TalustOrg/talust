@@ -121,19 +121,26 @@ public class Conference {
      * 改变当前master节点
      */
     public void changeMaster() {
-        byte[] currentBlockHash = CacheManager.get().getCurrentBlockHash();
-        if (currentBlockHash != null) {
-            byte[] bytes = BlockStorage.get().get(currentBlockHash);
-            Block block = SerializationUtil.deserializer(bytes, Block.class);
-            int code = block.getHead().getPackNodeCode();//注意,节点编号是从1开始的
-            Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
-            boolean selOk = false;
-            for (SuperNode superNode : superNodes) {
-
-            }
-
-
+        String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();
+        Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
+        List<SuperNode> sns = new ArrayList<>();
+        for (SuperNode superNode : superNodes) {
+            sns.add(superNode);
         }
+        Collections.sort(sns, Comparator.comparing(SuperNode::getIp));
+
+        boolean selOk = false;
+        SuperNode nextMaster = sns.get(0);
+        for (SuperNode superNode : sns) {
+            if (selOk) {
+                nextMaster = superNode;
+                break;
+            }
+            if (superNode.getIp().equals(currentBlockGenIp)) {
+                selOk = true;
+            }
+        }
+        this.master = nextMaster;
     }
 
     public SuperNode getMaster() {
