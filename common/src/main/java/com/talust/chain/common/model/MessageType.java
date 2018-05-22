@@ -16,6 +16,8 @@ public enum MessageType {
     TRANSACTION(14),//接收到交易数据
     MASTER_REQ(17),//master请求
     MASTER_RESP(18),//master响应
+    NEW_MASTER_REQ(19),//切换新的master请求d
+    NEW_MASTER_RESP(20),//切换新的master响应
     END(10000)//结束,主要是为了开发时新增消息类型方便/
     ;
 

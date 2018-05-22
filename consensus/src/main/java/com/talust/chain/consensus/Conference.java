@@ -1,22 +1,21 @@
 package com.talust.chain.consensus;
 
-import com.talust.chain.block.model.Block;
+import com.talust.chain.common.model.Message;
 import com.talust.chain.common.model.MessageChannel;
+import com.talust.chain.common.model.MessageType;
 import com.talust.chain.common.model.SuperNode;
 import com.talust.chain.common.tools.CacheManager;
-import com.talust.chain.common.tools.SerializationUtil;
 import com.talust.chain.common.tools.ThreadPool;
-import com.talust.chain.network.netty.ConnectionManager;
-import com.talust.chain.common.model.Message;
-import com.talust.chain.common.model.MessageType;
 import com.talust.chain.network.model.MyChannel;
 import com.talust.chain.network.netty.ChannelContain;
+import com.talust.chain.network.netty.ConnectionManager;
 import com.talust.chain.network.netty.SynRequest;
-import com.talust.chain.storage.BlockStorage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Slf4j //进入共识的会议,里面含有各个会议成员
 public class Conference {
@@ -33,6 +32,10 @@ public class Conference {
     private SuperNode master;
     //构造一个线程池
     private ThreadPoolExecutor threadPool = ThreadPool.get().threadPool;
+
+    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
+    private int voteState = VoteStatus.NOT_NEED.getType();
 
     /**
      * 获取当前的master节点
@@ -121,29 +124,91 @@ public class Conference {
      * 改变当前master节点
      */
     public void changeMaster() {
-        String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();
-        Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
-        List<SuperNode> sns = new ArrayList<>();
-        for (SuperNode superNode : superNodes) {
-            sns.add(superNode);
-        }
-        Collections.sort(sns, Comparator.comparing(SuperNode::getIp));
+        lock.writeLock().lock();
+        try {
+            String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();
+            if (this.master.equals(currentBlockGenIp)) {//说明需要改变master节点
+                Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
+                List<SuperNode> sns = new ArrayList<>();
+                for (SuperNode superNode : superNodes) {
+                    sns.add(superNode);
+                }
+                Collections.sort(sns, Comparator.comparing(SuperNode::getIp));
 
-        boolean selOk = false;
-        SuperNode nextMaster = sns.get(0);
-        for (SuperNode superNode : sns) {
-            if (selOk) {
-                nextMaster = superNode;
+                boolean selOk = false;
+                SuperNode nextMaster = sns.get(0);
+                for (SuperNode superNode : sns) {
+                    if (selOk) {
+                        nextMaster = superNode;
+                        break;
+                    }
+                    if (superNode.getIp().equals(currentBlockGenIp)) {
+                        selOk = true;
+                    }
+                }
+                this.master = nextMaster;
+                if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
+                    ConsensusService.get().startGenBlock();
+                }
+            } else {//说明已经改变完成
+
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * 校验新的masterip是否合法
+     *
+     * @param newMasterIp
+     * @return
+     */
+    public boolean checkNewMaster(String newMasterIp) {
+        if (newMasterIp.equals(master)) {//说明当前节点已经成功切换了,所以直接验证其ok
+            return true;
+        }
+        boolean haveIp = false;//用于判断要切换的ip是否在本地存储有
+        Collection<MyChannel> superChannels = ChannelContain.get().getSuperChannels();
+        for (MyChannel superChannel : superChannels) {
+            String remoteIp = superChannel.getRemoteIp();
+            if (remoteIp.equals(newMasterIp)) {
+                haveIp = true;
                 break;
             }
-            if (superNode.getIp().equals(currentBlockGenIp)) {
-                selOk = true;
+        }
+        if (haveIp) {
+            if (voteState == VoteStatus.LOOKING.getType()) {//当前节点也在更新master节点
+                String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();
+                Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
+                List<SuperNode> sns = new ArrayList<>();
+                for (SuperNode superNode : superNodes) {
+                    sns.add(superNode);
+                }
+                Collections.sort(sns, Comparator.comparing(SuperNode::getIp));
+
+                boolean selOk = false;
+                SuperNode nextMaster = sns.get(0);
+                for (SuperNode superNode : sns) {
+                    if (selOk) {
+                        nextMaster = superNode;
+                        break;
+                    }
+                    if (superNode.getIp().equals(currentBlockGenIp)) {
+                        selOk = true;
+                    }
+                }
+                if (nextMaster.equals(newMasterIp)) {//说明当前节点认同此更新
+                    return true;
+                }
+            } else {
+                changeMaster();
+                if (newMasterIp.equals(master)) {
+                    return true;
+                }
             }
         }
-        this.master = nextMaster;
-        if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
-            ConsensusService.get().startGenBlock();
-        }
+        return false;
     }
 
     public SuperNode getMaster() {
