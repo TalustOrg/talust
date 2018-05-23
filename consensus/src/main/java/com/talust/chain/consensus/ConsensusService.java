@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -26,7 +27,8 @@ public class ConsensusService {
 
     private CacheManager cu = CacheManager.get();
     private Conference conference = Conference.get();
-    private ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    private  ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
+
     private PackBlockTool packBlockTool = new PackBlockTool();
     private AtomicBoolean genRunning = new AtomicBoolean(false);
     private int checkSecond;//检测区块是否正常的时长

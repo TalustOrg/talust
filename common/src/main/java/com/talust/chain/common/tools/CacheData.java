@@ -6,7 +6,7 @@ public class CacheData<T> {
     CacheData(T t, int expire) {
         this.data = t;
         this.expire = expire <= 0 ? 0 : expire * 1000;
-        this.saveTime = new Date().getTime() + this.expire;
+        this.saveTime = System.currentTimeMillis() + this.expire;
     }
 
     private T data;

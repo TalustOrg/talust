@@ -202,8 +202,9 @@ public class ConnectionManager {
                 Enumeration<?> e2 = ni.getInetAddresses();
                 while (e2.hasMoreElements()) {
                     InetAddress ia = (InetAddress) e2.nextElement();
-                    if (ia instanceof Inet6Address)
+                    if (ia instanceof Inet6Address){
                         continue;
+                    }
                     myIps.add(ia.getHostAddress());
                 }
             }

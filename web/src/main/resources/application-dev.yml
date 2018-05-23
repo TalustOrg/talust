@@ -15,7 +15,7 @@ logging:
 node:
   server:
     address: http://dev.talust.com:18004/ip.txt
-    gensisip: 192.168.16.1
+    gensisip: 192.168.0.150
 account:
   root:
     pubkey: 03f9ec5465755067f872d29ba6e9aa72fed73d5d2198e9e4a521bfa81b576b67c9

@@ -60,7 +60,7 @@ public final class Configure {
     /**
      * 创世块ip
      */
-    public static String GENESIS_IP = "192.168.16.128";
+    public static String GENESIS_IP = "192.168.0.150";
 
     /**
      * 根证书公钥,需要在实际情况下进行修改

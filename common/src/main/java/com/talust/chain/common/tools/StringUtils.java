@@ -17,11 +17,13 @@ import java.util.regex.Pattern;
  * 字符操作常用方法集
  */
 public class StringUtils {
+   public  static final Pattern p = Pattern.compile("\\s*|\t*|\r*|\n*");
 
     /**
      * 编译后的正则表达式缓存
      */
     private static final Map<String, Pattern> PATTERN_CACHE = new ConcurrentHashMap<String, Pattern>();
+   private static final Pattern regex = Pattern.compile("^(13\\d{9})|(14[579]\\d{8})|(15[0-35-9]\\d{8})|(17[15678]\\d{8})|(18\\d{9})|(19\\d{9})$");
 
 
     /**
@@ -412,7 +414,9 @@ public class StringUtils {
      * @return 转换后的字符串
      */
     public static String toString(Object object, String defaultValue) {
-        if (object == null) return defaultValue;
+        if (object == null){
+            return defaultValue;
+        }
         return String.valueOf(object);
     }
 
@@ -444,7 +448,7 @@ public class StringUtils {
     }
 
     public static boolean isMessyCode(String strName) {
-        Pattern p = Pattern.compile("\\s*|\t*|\r*|\n*");
+
         Matcher m = p.matcher(strName);
         String after = m.replaceAll("");
         String temp = after.replaceAll("\\p{P}", "");
@@ -485,7 +489,7 @@ public class StringUtils {
     }
 
     public static byte[] hexStringToBytes(String hexString) {
-        if (hexString == null || hexString.equals("")) {
+        if (hexString == null || "".equals(hexString)) {
             return null;
         }
         hexString = hexString.toUpperCase();
@@ -733,7 +737,7 @@ public class StringUtils {
         boolean flag = false;
         try {
             // Pattern regex = Pattern.compile("^(((13[0-9])|(15([0-3]|[5-9]))|(18[0,5-9]))\\d{8})|(0\\d{2}-\\d{8})|(0\\d{3}-\\d{7})$");
-            Pattern regex = Pattern.compile("^(13\\d{9})|(14[579]\\d{8})|(15[0-35-9]\\d{8})|(17[15678]\\d{8})|(18\\d{9})|(19\\d{9})$");
+
             Matcher matcher = regex.matcher(mobileNumber);
             flag = matcher.matches();
         } catch (Exception e) {

@@ -4,10 +4,7 @@ import com.talust.chain.common.crypto.Hex;
 import com.talust.chain.common.model.DepositAccount;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * 缓存工具,内存缓存
@@ -15,8 +12,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class CacheManager {
     private static CacheManager instance = new CacheManager();
-    private ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 
+    private  ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
     private CacheManager() {
         service.scheduleAtFixedRate(() -> {//每10秒检测一下是否有超时的,有的则直接删除
             long nowTime = System.currentTimeMillis();

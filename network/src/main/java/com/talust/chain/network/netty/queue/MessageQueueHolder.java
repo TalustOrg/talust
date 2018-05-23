@@ -16,10 +16,7 @@ import com.talust.chain.network.netty.ConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 /**
  * 消息队列处理器,针对底层通讯层的处理器
@@ -41,7 +38,7 @@ public class MessageQueueHolder {
     private ThreadPoolExecutor threadPool = ThreadPool.get().threadPool;
 
     public void start() {
-        ExecutorService executorService = Executors.newFixedThreadPool(1);//处理的线程数
+        ExecutorService executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
         executorService.execute(() -> {
             MessageQueue messageQueue = MessageQueue.get();
             while (true) {//不断地从消息队列中取出消息进行处理

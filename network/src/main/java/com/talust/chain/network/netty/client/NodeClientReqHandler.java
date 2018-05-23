@@ -67,6 +67,8 @@ public class NodeClientReqHandler extends SimpleChannelInboundHandler<Message> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel channel = ctx.channel();
         cc.removeChannel(ctx.channel());
-        if (channel.isActive()) ctx.close();
+        if (channel.isActive()){
+            ctx.close();
+        }
     }
 }
