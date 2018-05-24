@@ -147,7 +147,7 @@ public class SynBlock {
                         int selectChannel = rand.nextInt(ac.size());//所选中的块所在的channel进行获取块,选中的channel是随机选择的
                         String scId = ac.get(selectChannel);
                         while (true) {
-                            log.info("当前请求的通道id:{},整个通道数量情况:{}", scId, channelBlockHeight);
+                            //log.info("当前请求的通道id:{},整个通道数量情况:{}", scId, channelBlockHeight);
                             Integer bh = channelBlockHeight.get(scId);//选中的通道拥有的块的高度
                             if (bh < idx) {//选中的通道拥有的块高度不满足要求所取的块高度,则将此通道从备选通道中移除
                                 ac.remove(scId);

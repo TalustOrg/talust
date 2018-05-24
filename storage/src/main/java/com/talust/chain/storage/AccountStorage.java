@@ -5,6 +5,7 @@ import com.talust.chain.common.exception.AccountFileEmptyException;
 import com.talust.chain.common.exception.AccountFileNotExistException;
 import com.talust.chain.common.exception.EncryptedExistException;
 import com.talust.chain.common.exception.ErrorPasswordException;
+import com.talust.chain.common.tools.Configure;
 import com.talust.chain.common.tools.FileUtil;
 import com.talust.chain.common.tools.SerializationUtil;
 import com.talust.chain.common.crypto.AESEncrypt;
@@ -37,9 +38,9 @@ public class AccountStorage {
      * @throws IOException
      */
     public void init() throws IOException {
-        //String dataDir = Configure.DATA_DIR;
+        String dataDir = Configure.DATA_ACCOUNT;
 //        String dataDir = "/app";//为了测试方便,先写死
-        String dataDir = "D:/account";//为了测试方便,先写死
+//        String dataDir = "D:/account";//为了测试方便,先写死
         String filePath = dataDir;// Configure.DATA_ACCOUNT;
         File fp = new File(filePath);
         if (!fp.exists()) {

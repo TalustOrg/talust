@@ -23,16 +23,20 @@ import java.util.List;
 @Slf4j//其他节点广播出来的区块数据
 public class BlockArrivedHandler implements MessageHandler {
     private BlockStorage blockStorage = BlockStorage.get();
-    private MessageQueueHolder mqHolder = MessageQueueHolder.get();
+    //    private MessageQueueHolder mqHolder = MessageQueueHolder.get();
     private CacheManager cu = CacheManager.get();
     private TransactionHandler transactionHandler = new TransactionHandler();
 
     @Override
     public boolean handle(MessageChannel messageChannel) {
         log.info("接收到远端ip:{} 发送过来的区块数据", messageChannel.getFromIp());
-        mqHolder.broadMessage(messageChannel);
+//        mqHolder.broadMessage(messageChannel);
         //log.info("区块数据验证没有问题...");
-        saveBlock(messageChannel);
+        try {
+            saveBlock(messageChannel);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
@@ -54,7 +58,9 @@ public class BlockArrivedHandler implements MessageHandler {
         cu.setCurrentBlockHeight(block.getHead().getHeight());
         cu.setCurrentBlockTime(block.getHead().getTime());
         cu.setCurrentBlockHash(hash);
-        cu.setCurrentBlockGenIp(Conference.get().getMaster().getIp());//设置收到的块时最新的master节点ip
+        if(Conference.get().getMaster()!=null){
+            cu.setCurrentBlockGenIp(Conference.get().getMaster().getIp());//设置收到的块时最新的master节点ip
+        }
         log.info("成功存储区块数据,当前hash:{},height:{},time:{}", Hex.encode(hash), block.getHead().getHeight(), block.getHead().getTime());
 
         List<byte[]> data = block.getBody().getData();

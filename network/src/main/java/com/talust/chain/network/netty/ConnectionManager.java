@@ -86,11 +86,14 @@ public class ConnectionManager {
                     MessageChannel message = SynRequest.get().synReq(nm, remoteIp);
                     if (message != null) {//说明有数据返回,即请求成功
                         AllNodes allNodes = SerializationUtil.deserializer(message.getMessage().getContent(), AllNodes.class);
-                        nodes = allNodes.getNodes();
-                        log.info("节点ip:{} 返回当前网络的所有节点数:{}", node, nodes.size());
-                        break;
+                        if(allNodes!=null){
+                            nodes = allNodes.getNodes();
+                            log.info("节点ip:{} 返回当前网络的所有节点数:{}", node, nodes.size());
+                            break;
+                        }
                     }
                 } catch (Throwable e) {
+//                    e.printStackTrace();
                     log.info("连接ip:{} 失败,未能成功连接该节点...", node);
                 }
                 //如果到此处则说明当前的节点是有问题的,则重新选择另外一个节点
@@ -202,9 +205,8 @@ public class ConnectionManager {
                 Enumeration<?> e2 = ni.getInetAddresses();
                 while (e2.hasMoreElements()) {
                     InetAddress ia = (InetAddress) e2.nextElement();
-                    if (ia instanceof Inet6Address){
+                    if (ia instanceof Inet6Address)
                         continue;
-                    }
                     myIps.add(ia.getHostAddress());
                 }
             }
@@ -215,7 +217,7 @@ public class ConnectionManager {
             genesisIp = true;//说明当前节点是创世块产生的ip
         }
 
-        String ips = getIps(Configure.NODE_SERVER_ADDR);
+        String ips = "1|192.168.16.1|aaa,2|192.168.16.130|dddd";//getIps(Configure.NODE_SERVER_ADDR);//@TODO 测试用,实际需要取消
         if (ips != null && ips.length() > 0) {
             String[] nodeServerAddr = ips.split(",");
             for (String sin : nodeServerAddr) {

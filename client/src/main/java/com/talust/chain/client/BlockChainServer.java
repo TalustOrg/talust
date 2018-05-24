@@ -79,6 +79,7 @@ public class BlockChainServer {
     private void initHandlers() {
         addHandler(MessageType.NODES_REQ, new NetNodesReqHandler());
         addHandler(MessageType.NODES_RESP, new NetNodesRespHandler());
+        addHandler(MessageType.BLOCK_ARRIVED, new BlockArrivedBroadHandler());
         addHandler(MessageType.BLOCK_ARRIVED, new BlockArrivedHandler());
         addHandler(MessageType.HEIGHT_REQ, new BlockHeightReqHandler());
         addHandler(MessageType.HEIGHT_RESP, new BlockHeightRespHandler());
@@ -90,6 +91,8 @@ public class BlockChainServer {
         addHandler(MessageType.TRANSACTION, new TransactionHandler());
         addHandler(MessageType.MASTER_REQ, new MasterReqHandler());
         addHandler(MessageType.MASTER_RESP, new MasterRespHandler());
+        addHandler(MessageType.NEW_MASTER_REQ, new NewMasterReqHandler());
+        addHandler(MessageType.NEW_MASTER_RESP, new NewMasterRespHandler());
     }
 
     public void addValidator(MessageType messageType, MessageValidator validator) {
@@ -120,7 +123,6 @@ public class BlockChainServer {
                 //将区块的最新打包时间写入缓存
                 CacheManager.get().setCurrentBlockTime(block.getHead().getTime());
                 CacheManager.get().setCurrentBlockHeight(block.getHead().getHeight());
-                CacheManager.get().setCurrentBlockHash(nowBlockHash);
             }
         }
     }
