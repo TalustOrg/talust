@@ -1,12 +1,11 @@
 package com.talust.chain.network.netty;
 
-import com.talust.chain.common.tools.SerializationUtil;
 import com.talust.chain.common.model.Message;
+import com.talust.chain.common.tools.SerializationUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
-import sun.rmi.runtime.Log;
 
 import java.util.List;
 

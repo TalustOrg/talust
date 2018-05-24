@@ -86,7 +86,7 @@ public class ConnectionManager {
                     MessageChannel message = SynRequest.get().synReq(nm, remoteIp);
                     if (message != null) {//说明有数据返回,即请求成功
                         AllNodes allNodes = SerializationUtil.deserializer(message.getMessage().getContent(), AllNodes.class);
-                        if(allNodes!=null){
+                        if (allNodes != null && allNodes.getNodes() != null) {
                             nodes = allNodes.getNodes();
                             log.info("节点ip:{} 返回当前网络的所有节点数:{}", node, nodes.size());
                             break;
