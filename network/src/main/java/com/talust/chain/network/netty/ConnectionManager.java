@@ -236,6 +236,9 @@ public class ConnectionManager {
                 superNodes.put(ip, snode);
             }
         }
+        if(null==selfIp){
+            selfIp=  myIps.iterator().next();
+        }
         log.info("获得超级节点数为:{}", superIps.size());
     }
 

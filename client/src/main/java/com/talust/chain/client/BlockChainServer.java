@@ -123,6 +123,7 @@ public class BlockChainServer {
                 //将区块的最新打包时间写入缓存
                 CacheManager.get().setCurrentBlockTime(block.getHead().getTime());
                 CacheManager.get().setCurrentBlockHeight(block.getHead().getHeight());
+                CacheManager.get().setCurrentBlockHash(nowBlockHash);
             }
         }
     }

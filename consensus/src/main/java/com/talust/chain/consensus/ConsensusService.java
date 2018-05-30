@@ -64,15 +64,13 @@ public class ConsensusService {
         service.scheduleAtFixedRate(() -> {
             if (genRunning.get()) {
                 byte[] currentBlockHash = CacheManager.get().getCurrentBlockHash();
-                if (currentBlockHash == null) {
+                if (ConnectionManager.get().genesisIp && currentBlockHash == null) {
+                    log.info("当前节点创建创世块...");
                     log.info("当前缓存中没有最新块的hash值");
-                    if (ConnectionManager.get().genesisIp) {
-                        log.info("当前节点创建创世块...");
-                        try {
-                            genGenesis();//当前节点是创世块ip
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                    try {
+                        genGenesis();//当前节点是创世块ip
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 } else {
                     log.info("打包ip:{}", ConnectionManager.get().selfIp);

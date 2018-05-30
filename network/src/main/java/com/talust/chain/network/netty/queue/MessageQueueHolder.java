@@ -127,6 +127,7 @@ public class MessageQueueHolder {
                 MessageChannel mc = new MessageChannel();
                 mc.setMessage(message.getMessage());
                 mc.setToIp(channel.getRemoteIp());
+                mc.setFromIp(selfIp);
                 mq.addMessage(mc);
             }
         }
