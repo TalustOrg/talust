@@ -1,5 +1,6 @@
 package com.talust.chain.client;
 
+import com.talust.chain.account.MiningAddress;
 import com.talust.chain.block.SynBlock;
 import com.talust.chain.block.model.Block;
 import com.talust.chain.client.handler.*;
@@ -25,7 +26,9 @@ import com.talust.chain.storage.ChainStateStorage;
 import com.talust.chain.storage.TransactionStorage;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 public class BlockChainServer {
@@ -116,8 +119,18 @@ public class BlockChainServer {
 
         log.info("初始化缓存...");
         byte[] nowBlockHash = blockStorage.get(Constant.NOW_BLOCK_HASH);
+
         if (nowBlockHash != null) {
             byte[] nowBlock = blockStorage.get(nowBlockHash);
+            byte[] addrBytes = blockStorage.get(Constant.MINING_ADDRESS);
+            List<String>  miningAddress = new ArrayList<>();
+            if(addrBytes!=null){
+                MiningAddress miningAddres = SerializationUtil.deserializer(addrBytes, MiningAddress.class);
+                if (miningAddres != null) {
+                    miningAddress = miningAddres.getAddress();
+                }
+                CacheManager.get().put(new String(Constant.MINING_ADDRESS), miningAddress);
+            }
             if (nowBlock != null) {
                 Block block = SerializationUtil.deserializer(nowBlock, Block.class);
                 //将区块的最新打包时间写入缓存
@@ -126,5 +139,6 @@ public class BlockChainServer {
                 CacheManager.get().setCurrentBlockHash(nowBlockHash);
             }
         }
+
     }
 }

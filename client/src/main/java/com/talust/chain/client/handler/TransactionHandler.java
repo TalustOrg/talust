@@ -147,8 +147,6 @@ public class TransactionHandler implements MessageHandler {
         madress.add(accountAddress);
         Collections.sort(madress);
         CacheManager.get().put(cacheKey, madress);
-
-        blockStorage.put(Constant.MINING_ADDRESS, SerializationUtil.serializer(adres));
     }
 
     /**

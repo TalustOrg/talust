@@ -54,6 +54,12 @@ public class SynBlock {
 
     private void synBlock() {
         log.info("进行数据块的同步...");
+        try {
+            //TODO
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         int selfBlockHeight = CacheManager.get().getCurrentBlockHeight();
         List<Future<MessageChannel>> results = new ArrayList<>();
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
@@ -93,10 +99,10 @@ public class SynBlock {
             }
         }
         log.info("当前节点高度:{},网络最新区块高度:{}", selfBlockHeight, maxBlockHeight);
-        if (selfBlockHeight >= maxBlockHeight) {
+        if (selfBlockHeight >= maxBlockHeight-1) {
             return;
         }
-        downBlock(selfBlockHeight, maxBlockHeight, channelBlockHeight);
+        downBlock(selfBlockHeight, maxBlockHeight-1, channelBlockHeight);
     }
 
     /**

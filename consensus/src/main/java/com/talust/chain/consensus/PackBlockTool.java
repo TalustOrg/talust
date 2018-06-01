@@ -1,6 +1,7 @@
 package com.talust.chain.consensus;
 
 import com.talust.chain.account.Account;
+import com.talust.chain.account.MiningAddress;
 import com.talust.chain.block.data.DataContainer;
 import com.talust.chain.block.mining.MiningRule;
 import com.talust.chain.block.model.*;
@@ -30,12 +31,13 @@ import java.util.List;
  */
 @Slf4j
 public class PackBlockTool {
+    private BlockStorage blockStorage = BlockStorage.get();
     private DataContainer dataContainer = DataContainer.get();
     private ChainStateStorage chainStateStorage = ChainStateStorage.get();
     private CacheManager cu = CacheManager.get();
 
     //打包
-    public void pack(int packageTime) {
+    public void  pack(int packageTime) {
         try {
             Account account = AccountStorage.get().getAccount();
 
@@ -77,6 +79,7 @@ public class PackBlockTool {
 
             MessageChannel mc = new MessageChannel();
             mc.setMessage(message);
+            mc.setFromIp(ConnectionManager.get().selfIp);
             //log.info("完成本次打包,打包区块hash:{},区块高度:{},区块时间:{}", Hex.encode(hash), height, packageTime);
             MessageQueue.get().addMessage(mc);
         } catch (Throwable e) {
@@ -105,11 +108,10 @@ public class PackBlockTool {
         coinBase.setTranType(TranType.COIN_BASE.getType());
         coinBase.setTranNumber(chainStateStorage.newTranNumber());//设置交易号
         List<TransactionOut> outs = new ArrayList<>();
-        List<String> miningAddress = CacheManager.get().get(new String(Constant.MINING_ADDRESS));
+        List<String>  miningAddress = CacheManager.get().get(new String(Constant.MINING_ADDRESS));
         if (miningAddress == null) {
             return null;
         }
-
         int size = miningAddress.size();
         int idx = height % size;//当前获得收益的区块
         String sn = miningAddress.get(idx);
