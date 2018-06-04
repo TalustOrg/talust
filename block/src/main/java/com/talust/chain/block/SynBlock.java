@@ -56,7 +56,7 @@ public class SynBlock {
         log.info("进行数据块的同步...");
         try {
             //TODO
-            Thread.sleep(4000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -99,10 +99,10 @@ public class SynBlock {
             }
         }
         log.info("当前节点高度:{},网络最新区块高度:{}", selfBlockHeight, maxBlockHeight);
-        if (selfBlockHeight >= maxBlockHeight-1) {
+        if (selfBlockHeight >= maxBlockHeight) {
             return;
         }
-        downBlock(selfBlockHeight, maxBlockHeight-1, channelBlockHeight);
+        downBlock(selfBlockHeight, maxBlockHeight, channelBlockHeight);
     }
 
     /**

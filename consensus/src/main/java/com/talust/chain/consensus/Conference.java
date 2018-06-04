@@ -127,7 +127,7 @@ public class Conference {
         lock.writeLock().lock();
         try {
             String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();
-            if (this.master.equals(currentBlockGenIp)) {//说明需要改变master节点
+            if (this.master.getIp().equals(currentBlockGenIp)) {//说明需要改变master节点
                 Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
                 List<SuperNode> sns = new ArrayList<>();
                 for (SuperNode superNode : superNodes) {
