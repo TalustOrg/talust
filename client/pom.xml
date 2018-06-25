@@ -3,8 +3,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>blockchain-parent</artifactId>
-        <groupId>com.talust</groupId>
+        <artifactId>talust</artifactId>
+        <groupId>org.talust</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -28,12 +28,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.talust</groupId>
+            <groupId>org.talust</groupId>
             <artifactId>account</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.talust</groupId>
+            <groupId>org.talust</groupId>
             <artifactId>consensus</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

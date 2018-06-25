@@ -1,0 +1,69 @@
+package org.talust.chain.storage;
+
+import org.talust.chain.common.tools.Configure;
+import lombok.extern.slf4j.Slf4j;
+import org.rocksdb.*;
+import org.rocksdb.util.SizeUnit;
+
+import java.io.File;
+
+//区块存储
+@Slf4j
+public class BlockStorage {
+    private static BlockStorage instance = new BlockStorage();
+
+    private BlockStorage() {
+    }
+
+    public static BlockStorage get() {
+        return instance;
+    }
+
+    private RocksDB db;
+    final Options options = new Options()
+            .setCreateIfMissing(true)
+            .setWriteBufferSize(8 * SizeUnit.KB)
+            .setMaxWriteBufferNumber(3)
+            .setMaxBackgroundCompactions(10);
+    //.setCompressionType(CompressionType.SNAPPY_COMPRESSION)
+    //.setCompactionStyle(CompactionStyle.UNIVERSAL);
+
+    static {
+        try {
+            RocksDB.loadLibrary();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void init() {
+        try {
+            String dataBlock = Configure.DATA_BLOCK;
+            File file = new File(dataBlock);
+            if (!file.exists()) {
+                file.mkdirs();
+            }
+            log.info("保存块数据路径为:{}", dataBlock);
+            db = RocksDB.open(options, dataBlock);
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void put(byte[] key, byte[] value) {
+        try {
+            db.put(key, value);
+        } catch (Exception e) {
+        }
+    }
+
+    public byte[] get(byte[] key) {
+        try {
+            return db.get(key);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+}

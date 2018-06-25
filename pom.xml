@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.talust</groupId>
+    <groupId>org.talust</groupId>
     <artifactId>talust</artifactId>
     <version>1.0-SNAPSHOT</version>
     <modules>
@@ -18,7 +18,7 @@
     </modules>
     <packaging>pom</packaging>
 
-    <name>blockchain-parent</name>
+    <name>talust</name>
     <url>http://maven.apache.org</url>
 
     <properties>
