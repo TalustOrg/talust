@@ -13,9 +13,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * 应用程序入口
  */
 @ComponentScan(basePackages = {
-        "com.talust.chain.**.configuration",
-        "com.talust.chain.**.controller",
-        "com.talust.chain.**.swagger2"})
+        "org.talust.chain.**.configuration",
+        "org.talust.chain.**.controller",
+        "org.talust.chain.**.swagger2"})
 @EnableAutoConfiguration
 @EnableConfigurationProperties
 @SpringBootApplication

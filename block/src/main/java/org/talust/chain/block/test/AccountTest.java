@@ -3,9 +3,9 @@ package org.talust.chain.block.test;
 
 import org.talust.chain.account.Account;
 import org.talust.chain.account.AccountType;
-import com.talust.chain.storage.AccountStorage;
 import org.talust.chain.common.crypto.Base58;
 import org.talust.chain.common.crypto.Hex;
+import org.talust.chain.storage.AccountStorage;
 
 //对一些帐户进行初始化
 public class AccountTest {

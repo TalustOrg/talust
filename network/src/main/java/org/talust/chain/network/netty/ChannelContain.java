@@ -2,8 +2,7 @@ package org.talust.chain.network.netty;
 
 import org.talust.chain.common.model.MessageChannel;
 import org.talust.chain.common.model.MessageType;
-import com.talust.chain.network.model.MyChannel;
-import com.talust.chain.network.netty.queue.MessageQueue;
+
 import org.talust.chain.common.model.Message;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;

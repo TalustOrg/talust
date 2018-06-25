@@ -1,12 +1,12 @@
 package org.talust.chain.consensus;
 
+import lombok.extern.slf4j.Slf4j;
 import org.talust.chain.block.data.Genesis;
 import org.talust.chain.common.model.SuperNode;
 import org.talust.chain.common.tools.CacheManager;
 import org.talust.chain.common.tools.Configure;
 import org.talust.chain.common.tools.DateUtil;
-import com.talust.chain.network.netty.ConnectionManager;
-import lombok.extern.slf4j.Slf4j;
+import org.talust.chain.network.netty.ConnectionManager;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;

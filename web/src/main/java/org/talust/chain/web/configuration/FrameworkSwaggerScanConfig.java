@@ -1,10 +1,10 @@
 package org.talust.chain.web.configuration;
 
-import com.talust.chain.swagger2.SwaggerScanPackageConfig;
+import org.talust.chain.swagger2.SwaggerScanPackageConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.talust.chain.swagger2.SwaggerScanPackageConfig;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,6 @@ import java.util.List;
 /**
  * 系统框架swagger扫描配置参数
  *
- * @author zhoubo
  * @date 2018-03-19
  */
 @Configuration

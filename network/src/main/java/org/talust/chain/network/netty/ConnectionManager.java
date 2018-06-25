@@ -1,19 +1,15 @@
 package org.talust.chain.network.netty;
 
+import io.netty.channel.Channel;
+import io.netty.util.internal.ConcurrentSet;
+import lombok.extern.slf4j.Slf4j;
+import org.talust.chain.common.model.Message;
 import org.talust.chain.common.model.MessageChannel;
+import org.talust.chain.common.model.MessageType;
 import org.talust.chain.common.model.SuperNode;
 import org.talust.chain.common.tools.Configure;
 import org.talust.chain.common.tools.Constant;
 import org.talust.chain.common.tools.SerializationUtil;
-import com.talust.chain.network.model.MyChannel;
-import com.talust.chain.network.netty.queue.MessageQueue;
-import com.talust.chain.network.model.AllNodes;
-import org.talust.chain.common.model.MessageType;
-import org.talust.chain.common.model.Message;
-import com.talust.chain.network.netty.client.NodeClient;
-import io.netty.channel.Channel;
-import io.netty.util.internal.ConcurrentSet;
-import lombok.extern.slf4j.Slf4j;
 import org.talust.chain.network.model.AllNodes;
 import org.talust.chain.network.model.MyChannel;
 import org.talust.chain.network.netty.client.NodeClient;

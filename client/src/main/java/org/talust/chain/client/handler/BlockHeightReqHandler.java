@@ -1,12 +1,12 @@
 package org.talust.chain.client.handler;
 
-import org.talust.chain.common.model.MessageChannel;
-import org.talust.chain.common.tools.CacheManager;
-import org.talust.chain.common.model.MessageType;
-import org.talust.chain.common.model.Message;
-import com.talust.chain.network.MessageHandler;
-import com.talust.chain.network.netty.queue.MessageQueue;
 import lombok.extern.slf4j.Slf4j;
+import org.talust.chain.common.model.Message;
+import org.talust.chain.common.model.MessageChannel;
+import org.talust.chain.common.model.MessageType;
+import org.talust.chain.common.tools.CacheManager;
+import org.talust.chain.network.MessageHandler;
+import org.talust.chain.network.netty.queue.MessageQueue;
 
 @Slf4j//远端区块高度请求处理
 public class BlockHeightReqHandler implements MessageHandler {

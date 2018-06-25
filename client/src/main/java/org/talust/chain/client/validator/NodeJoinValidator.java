@@ -3,7 +3,8 @@ package org.talust.chain.client.validator;
 import org.talust.chain.common.model.MessageChannel;
 import org.talust.chain.common.tools.CacheManager;
 import org.talust.chain.common.tools.Configure;
-import com.talust.chain.network.MessageValidator;
+import org.talust.chain.network.MessageValidator;
+
 
 /**
  * 节点加入时的验证

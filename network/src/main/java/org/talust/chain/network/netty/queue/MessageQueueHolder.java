@@ -1,5 +1,6 @@
 package org.talust.chain.network.netty.queue;
 
+import lombok.extern.slf4j.Slf4j;
 import org.talust.chain.common.crypto.ECKey;
 import org.talust.chain.common.crypto.Sha256Hash;
 import org.talust.chain.common.model.Message;
@@ -7,18 +8,17 @@ import org.talust.chain.common.model.MessageChannel;
 import org.talust.chain.common.model.MessageType;
 import org.talust.chain.common.tools.StringUtils;
 import org.talust.chain.common.tools.ThreadPool;
-import com.talust.chain.network.MessageHandler;
-import com.talust.chain.network.MessageValidator;
-import com.talust.chain.network.model.MyChannel;
-import com.talust.chain.network.netty.ChannelContain;
-import com.talust.chain.network.netty.ConnectionManager;
-import lombok.extern.slf4j.Slf4j;
 import org.talust.chain.network.MessageHandler;
 import org.talust.chain.network.MessageValidator;
 import org.talust.chain.network.model.MyChannel;
+import org.talust.chain.network.netty.ChannelContain;
+import org.talust.chain.network.netty.ConnectionManager;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 消息队列处理器,针对底层通讯层的处理器

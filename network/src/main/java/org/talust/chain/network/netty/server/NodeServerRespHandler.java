@@ -1,11 +1,6 @@
 package org.talust.chain.network.netty.server;
 
 
-import org.talust.chain.common.model.MessageChannel;
-import com.talust.chain.network.netty.queue.MessageQueue;
-import org.talust.chain.common.model.Message;
-import org.talust.chain.common.model.MessageType;
-import com.talust.chain.network.netty.ChannelContain;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -13,6 +8,11 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.talust.chain.common.model.Message;
+import org.talust.chain.common.model.MessageChannel;
+import org.talust.chain.common.model.MessageType;
+import org.talust.chain.network.netty.ChannelContain;
+import org.talust.chain.network.netty.queue.MessageQueue;
 
 import java.net.InetSocketAddress;
 

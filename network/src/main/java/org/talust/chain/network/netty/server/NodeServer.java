@@ -1,7 +1,5 @@
 package org.talust.chain.network.netty.server;
 
-import com.talust.chain.network.netty.DecodeHandler;
-import com.talust.chain.network.netty.EncodeHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -12,8 +10,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.talust.chain.network.netty.DecodeHandler;
+import org.talust.chain.network.netty.EncodeHandler;
 
-import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j

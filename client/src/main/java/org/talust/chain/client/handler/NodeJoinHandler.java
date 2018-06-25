@@ -1,15 +1,15 @@
 package org.talust.chain.client.handler;
 
+import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
 import org.talust.chain.common.model.MessageChannel;
 import org.talust.chain.common.tools.Configure;
 import org.talust.chain.common.tools.Constant;
-import com.talust.chain.network.MessageHandler;
-import com.talust.chain.network.netty.ConnectionManager;
-import com.talust.chain.network.netty.ChannelContain;
-import com.talust.chain.network.netty.client.NodeClient;
-import com.talust.chain.network.netty.queue.MessageQueueHolder;
-import io.netty.channel.Channel;
-import lombok.extern.slf4j.Slf4j;
+import org.talust.chain.network.MessageHandler;
+import org.talust.chain.network.netty.ChannelContain;
+import org.talust.chain.network.netty.ConnectionManager;
+import org.talust.chain.network.netty.client.NodeClient;
+import org.talust.chain.network.netty.queue.MessageQueueHolder;
 
 @Slf4j //节点加入到网络
 public class NodeJoinHandler implements MessageHandler {

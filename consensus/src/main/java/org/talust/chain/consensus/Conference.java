@@ -1,16 +1,16 @@
 package org.talust.chain.consensus;
 
+import lombok.extern.slf4j.Slf4j;
 import org.talust.chain.common.model.Message;
 import org.talust.chain.common.model.MessageChannel;
 import org.talust.chain.common.model.MessageType;
 import org.talust.chain.common.model.SuperNode;
 import org.talust.chain.common.tools.CacheManager;
 import org.talust.chain.common.tools.ThreadPool;
-import com.talust.chain.network.model.MyChannel;
-import com.talust.chain.network.netty.ChannelContain;
-import com.talust.chain.network.netty.ConnectionManager;
-import com.talust.chain.network.netty.SynRequest;
-import lombok.extern.slf4j.Slf4j;
+import org.talust.chain.network.model.MyChannel;
+import org.talust.chain.network.netty.ChannelContain;
+import org.talust.chain.network.netty.ConnectionManager;
+import org.talust.chain.network.netty.SynRequest;
 
 import java.util.*;
 import java.util.concurrent.Future;

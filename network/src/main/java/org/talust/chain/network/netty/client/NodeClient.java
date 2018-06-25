@@ -1,8 +1,6 @@
 package org.talust.chain.network.netty.client;
 
 
-import com.talust.chain.network.netty.DecodeHandler;
-import com.talust.chain.network.netty.EncodeHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -12,6 +10,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import org.talust.chain.network.netty.DecodeHandler;
+import org.talust.chain.network.netty.EncodeHandler;
 
 import java.util.concurrent.TimeUnit;
 

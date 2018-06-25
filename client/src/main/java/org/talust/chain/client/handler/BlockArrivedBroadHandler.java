@@ -1,8 +1,9 @@
 package org.talust.chain.client.handler;
-import org.talust.chain.common.model.MessageChannel;
-import com.talust.chain.network.MessageHandler;
-import com.talust.chain.network.netty.queue.MessageQueueHolder;
+
 import lombok.extern.slf4j.Slf4j;
+import org.talust.chain.common.model.MessageChannel;
+import org.talust.chain.network.MessageHandler;
+import org.talust.chain.network.netty.queue.MessageQueueHolder;
 
 @Slf4j//其他节点广播出来的区块数据用于广播的
 public class BlockArrivedBroadHandler implements MessageHandler {

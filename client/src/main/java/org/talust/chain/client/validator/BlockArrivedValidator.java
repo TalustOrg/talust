@@ -1,5 +1,6 @@
 package org.talust.chain.client.validator;
 
+import lombok.extern.slf4j.Slf4j;
 import org.talust.chain.block.SynBlock;
 import org.talust.chain.block.model.Block;
 import org.talust.chain.block.model.BlockHead;
@@ -8,9 +9,8 @@ import org.talust.chain.common.model.MessageChannel;
 import org.talust.chain.common.tools.CacheManager;
 import org.talust.chain.common.tools.Configure;
 import org.talust.chain.common.tools.SerializationUtil;
-import com.talust.chain.network.MessageValidator;
-import com.talust.chain.storage.BlockStorage;
-import lombok.extern.slf4j.Slf4j;
+import org.talust.chain.network.MessageValidator;
+import org.talust.chain.storage.BlockStorage;
 
 import java.util.List;
 
