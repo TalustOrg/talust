@@ -79,5 +79,5 @@ talust > mvn clean package
 * [talust.io](https://talust.io) | [talust.org](https://talust.org)
 * [@twitter](https://twitter.com/TalustOrg)  
 * [facebook](https://www.facebook.com/TalustOrg)
-* Telegram [Nuls Community](https://t.me/Talust_en)
-* Telegram [Nuls 中文社区](https://t.me/Talust)
+* Telegram [Talust Community](https://t.me/Talust_en)
+* Telegram [Talust 中文社区](https://t.me/Talust)
