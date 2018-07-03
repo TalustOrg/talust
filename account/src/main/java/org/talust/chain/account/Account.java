@@ -1,9 +1,6 @@
 package org.talust.chain.account;
 
 import io.protostuff.Tag;
-import org.talust.chain.common.crypto.Utils;
-
-import java.util.Arrays;
 
 //用户账号信息
 public class Account {
@@ -109,13 +106,4 @@ public class Account {
         this.amount = amount;
     }
 
-    @Override
-    public String toString() {
-        return "{" +
-                "  'account'='" + account + '\'' +
-                ", 'publicKey'=" + publicKey.toString() +
-                ", 'address'=" +  Utils.showAddress(address) +
-                ", 'privateKey'=" + privateKey.toString() +
-                '}';
-    }
 }
