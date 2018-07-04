@@ -74,6 +74,8 @@ talust > mvn clean package
 
 > Using IDE run or debug need execute command "mvn install" first.
 
+## License
+The Talust project is licensed under the [MIT license](LICENSE).
 
 ## Community
 * [talust.io](https://talust.io) | [talust.org](https://talust.org)
