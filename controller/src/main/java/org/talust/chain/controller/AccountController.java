@@ -26,7 +26,6 @@ public class AccountController {
         if (usrAcc != null) {//说明用户已经登录了
             return ResponseMessage.error("当前系统已启用!");
         }
-
         try {
             AccountStorage.get().login(account);
             BlockChainServer.get().start();
@@ -52,9 +51,8 @@ public class AccountController {
         if (usrAcc != null) {//说明用户已经登录了
             return ResponseMessage.error("当前系统已启用!");
         }
-
         try {
-            AccountStorage.get().createAccount(account);
+            AccountStorage.get().createAccount(account.getAccPwd());
             BlockChainServer.get().start();
         } catch (Exception e) {
             if (e instanceof ErrorPasswordException) {

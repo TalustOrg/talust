@@ -1,20 +1,18 @@
 package org.talust.chain.storage;
 
+import com.alibaba.fastjson.JSONObject;
 import org.talust.chain.account.Account;
+import org.talust.chain.common.crypto.*;
 import org.talust.chain.common.exception.AccountFileEmptyException;
 import org.talust.chain.common.exception.AccountFileNotExistException;
-import org.talust.chain.common.exception.EncryptedExistException;
 import org.talust.chain.common.exception.ErrorPasswordException;
 import org.talust.chain.common.tools.Configure;
 import org.talust.chain.common.tools.FileUtil;
-import org.talust.chain.common.tools.SerializationUtil;
-import org.talust.chain.common.crypto.AESEncrypt;
-import org.talust.chain.common.crypto.ECKey;
-import org.talust.chain.common.crypto.Utils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.util.*;
 
 @Slf4j //帐户存储服务器
 public class AccountStorage {
@@ -28,7 +26,7 @@ public class AccountStorage {
     }
 
     private ECKey ecKey;
-    private String accPath;
+    private String filePath = Configure.DATA_ACCOUNT;
     private Account account;
 
     /**
@@ -37,88 +35,71 @@ public class AccountStorage {
      * @throws IOException
      */
     public void init() throws IOException {
-        String dataDir = Configure.DATA_ACCOUNT;
-//        String dataDir = "/app";//为了测试方便,先写死
-//        String dataDir = "D:/account";//为了测试方便,先写死
-        String filePath = dataDir;// Configure.DATA_ACCOUNT;
         File fp = new File(filePath);
         if (!fp.exists()) {
             fp.mkdirs();
         }
-
-        filePath = filePath + File.separator + "account.dat";
-        File accFile = new File(filePath);
-        if (!accFile.exists()) {
-            accFile.createNewFile();
-        }
-        this.accPath = filePath;
         log.info("帐户信息存储路径文件:{}", filePath);
     }
 
     /**
-     * 判断当前是否已经存在帐户了,返回为真则表示此前已经存在一个帐户信息,是否是删除还是登录由用户自行决定
-     *
-     * @return
-     */
-    public boolean hadAccount() {
-        File accFile = new File(accPath);
-        if (accFile.exists()) {
-            byte[] bytes = FileUtil.fileToBytes(accPath);
-            if (bytes != null && bytes.length > 0) {//说明已经有账户信息
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 创建新帐户,会产生一对密钥对,以即会生成一个地址
-     *
-     * @param account
+     * 创建新帐户,会产生一对密钥对,以即会生成一个地址。
+     * 缺少无密码账户创建。
      * @throws Exception
      */
-    public void createAccount(Account account) throws Exception {
+    public  void createAccount(String accPs) throws Exception{
+        Account account = new Account();
+        account.setAccPwd(accPs);
+        ecKey = new ECKey();
+        account.setPublicKey(ecKey.getPubKey());
+        byte[] privKeyBytes = ecKey.getPrivKeyBytes();
+        byte[] encryptPkb = AESEncrypt.encrypt(privKeyBytes, accPs);
+        account.setPrivateKey(encryptPkb);
+        account.setAddress(Utils.getAddress(ecKey.getPubKey()));
+        JSONObject fileJson =  new JSONObject();
+        fileJson.put("version",getVersion());
+        fileJson.put("privateKey",encryptPkb);
+        fileJson.put("address", Utils.showAddress(account.getAddress()));
+        String  accPath = filePath + File.separator +Utils.showAddress(account.getAddress());
         log.info("帐户保存路径为:{}", accPath);
         File accFile = new File(accPath);
         if (!accFile.exists()) {
-            throw new AccountFileNotExistException();
+            accFile.createNewFile();
         }
-        //只要是创建,就会破坏性写入,之前的帐户信息将会被
-        ecKey = new ECKey();
-        String accPwd = account.getAccPwd();
-        account.setAccPwd(null);
-        account.setPublicKey(ecKey.getPubKey());
-        byte[] privKeyBytes = ecKey.getPrivKeyBytes();
-        byte[] encryptPkb = AESEncrypt.encrypt(privKeyBytes, accPwd);
-        account.setPrivateKey(encryptPkb);
-        account.setAddress(Utils.getAddress(ecKey.getPubKey()));
-        byte[] serializer = SerializationUtil.serializer(account);
-        FileUtil.bytesToFile(serializer, accPath);
+        FileOutputStream  fos= new FileOutputStream(accFile);
+        fos.write(fileJson.toJSONString().getBytes());
+        fos.flush();
+        if (fos!=null) {
+            try {
+                fos.close();
+            } catch (IOException e) {
+                System.err.println("文件流关闭失败");
+            }
+        }
         this.account = account;
     }
 
+    public String getVersion() throws IOException {
+        return Account.class.getProtectionDomain().getCodeSource().getLocation().getFile().split("account")[1].split(".jar")[0].substring(1);
+    }
     /**
-     * 登录
+     * 默认登录
      *
      * @param acc
      * @throws Exception
      */
     public void login(Account acc) throws Exception {
-        File file = new File(accPath);
+        List<String> list = getAllFile(filePath,true);
+        File file = new File(list.get(0));
         if (file.exists()) {
-            byte[] bytes = FileUtil.fileToBytes(accPath);
-            if (bytes != null && bytes.length > 0) {//说明已经有账户信息
+            String bytes = FileUtil.fileToTxt(file.getPath());
+            if (bytes != null && bytes.length() > 0) {//说明已经有账户信息
                 try {
-                    account = SerializationUtil.deserializer(bytes, Account.class);
-                    if (acc.getAccount().equals(account.getAccount())) {
-                        byte[] decrypt = AESEncrypt.decrypt(account.getPrivateKey(), acc.getAccPwd());//解密
-                        //解密成功,将密钥对信息放入ecKey对象中
-                        ecKey = ECKey.fromPrivate(new BigInteger(decrypt));
-                        acc.setAddress(account.getAddress());
-                        account.setPrivateKey(null);
-                    } else {
-                        throw new EncryptedExistException();
-                    }
+                    JSONObject fileJson = JSONObject.parseObject(bytes);
+                    byte[] decrypt = AESEncrypt.decrypt( fileJson.getBytes("privateKey"), acc.getAccPwd());//解密
+                    //解密成功,将密钥对信息放入ecKey对象中
+                    ecKey = ECKey.fromPrivate(new BigInteger(decrypt));
+                    acc.setAddress(Utils.deShowAddress((String) fileJson.get("address")));
                 } catch (Exception e) {
                     throw new ErrorPasswordException();
                 }
@@ -129,7 +110,35 @@ public class AccountStorage {
             throw new AccountFileNotExistException();
         }
     }
+    /**
+     * 导入文件登录
+     *
+     * @param acc
+     * @throws Exception
+     */
 
+    /**
+     * 获取路径下的所有文件/文件夹
+     */
+    public static List<String> getAllFile(String directoryPath,boolean isAddDirectory) {
+        List<String> list = new ArrayList<String>();
+        File baseFile = new File(directoryPath);
+        if (baseFile.isFile() || !baseFile.exists()) {
+            return list;
+        }
+        File[] files = baseFile.listFiles();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                if(isAddDirectory){
+                    list.add(file.getAbsolutePath());
+                }
+                list.addAll(getAllFile(file.getAbsolutePath(),isAddDirectory));
+            } else {
+                list.add(file.getAbsolutePath());
+            }
+        }
+        return list;
+    }
     public ECKey getEcKey() {
         return ecKey;
     }
