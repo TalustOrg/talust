@@ -40,7 +40,7 @@ public class Account {
     private byte[] parentPub;
     @Tag(6)//帐户状态,默认可用
     private int status = AccountStatus.ENABLE.getType();
-    @Tag(7)//帐号,用于用户使用客户端时生成密钥对有用
+    @Tag(7)//别名
     private String account;
     @Tag(8)//帐号密码,用于用户使用客户端时生成密钥对有用
     private String accPwd;

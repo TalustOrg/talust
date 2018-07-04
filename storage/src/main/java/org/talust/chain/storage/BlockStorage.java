@@ -25,8 +25,6 @@ public class BlockStorage {
             .setWriteBufferSize(8 * SizeUnit.KB)
             .setMaxWriteBufferNumber(3)
             .setMaxBackgroundCompactions(10);
-    //.setCompressionType(CompressionType.SNAPPY_COMPRESSION)
-    //.setCompactionStyle(CompactionStyle.UNIVERSAL);
 
     static {
         try {

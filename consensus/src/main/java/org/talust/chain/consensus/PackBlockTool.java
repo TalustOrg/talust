@@ -38,13 +38,11 @@ public class PackBlockTool {
     //打包
     public void  pack(int packageTime) {
         try {
-            Account account = AccountStorage.get().getAccount();
-
+            Account account = AccountStorage.get().getAccounts().get(0);
             List<byte[]> batchRecord = dataContainer.getBatchRecord();//批量获取需要打包的数据
             if (batchRecord == null) {
                 batchRecord = new ArrayList<>();
             }
-
             int height = cu.getCurrentBlockHeight();
             height++;
             byte[] coinBase = getCoinBase(packageTime, height);
@@ -160,7 +158,7 @@ public class PackBlockTool {
         message.setTime(DateUtil.getTimeSecond());
         byte[] hash = Sha256Hash.of(cbase).getBytes();
         byte[] sign = AccountStorage.get().getEcKey().sign(hash);
-        message.setSigner(AccountStorage.get().getAccount().getPublicKey());
+        message.setSigner(AccountStorage.get().getAccounts().get(0).getPublicKey());
         message.setSignContent(sign);
         return SerializationUtil.serializer(message);
     }

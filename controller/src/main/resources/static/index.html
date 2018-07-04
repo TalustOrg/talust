@@ -178,30 +178,15 @@
 <script type="text/javascript">
 function check_login()
 {
- var name=$("#user_name").val();
- var pass=$("#password").val();
- if(name!="" && pass!="")
- {
-  var formValues = {"account":name,"accPwd":pass};
   $.ajax({
             url: 'api/user/login',
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json',
-            data: JSON.stringify(formValues),
             success: function (data) {
                 alert(data.message);
             }
         });
- }
- else
- {
-  $("#login_form").removeClass('shake_effect');
-  setTimeout(function()
-  {
-   $("#login_form").addClass('shake_effect')
-  },1);
- }
 }
 
 $(function(){

@@ -49,8 +49,6 @@ public class AccountTest {
 //        }else{
 //            accountStorage.createAccount(account);
 //        }
-
-        accountStorage.login(account);
         System.out.println("public:"+ Hex.encode(account.getAddress()));
         System.out.println("address:"+ Base58.encode(account.getAddress()));
 

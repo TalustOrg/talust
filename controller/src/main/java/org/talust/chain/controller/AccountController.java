@@ -14,20 +14,19 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/user")
 @Api("帐户相关的Api")
 public class AccountController {
 
     @ApiOperation(value = "登录帐户", notes = "帐户信息已经存在的情况下,登录")
-    @PostMapping(value = "login", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseMessage login(@RequestBody Account account) {
-        Account usrAcc = AccountStorage.get().getAccount();
-        if (usrAcc != null) {//说明用户已经登录了
-            return ResponseMessage.error("当前系统已启用!");
-        }
+    @PostMapping(value = "login")
+    ResponseMessage login() {
+        String addrs ="";
         try {
-            AccountStorage.get().login(account);
+            addrs = AccountStorage.get().walletLogin();
             BlockChainServer.get().start();
         } catch (Exception e) {
             if (e instanceof ErrorPasswordException) {
@@ -41,18 +40,16 @@ public class AccountController {
         }
         JSONObject json = new JSONObject();
         json.put("success", true);
-        return ResponseMessage.ok("登录成功,服务已启动!");
+        json.put("addrs", addrs);
+        return ResponseMessage.ok(addrs);
     }
 
     @ApiOperation(value = "创建帐户", notes = "新创建帐户")
-    @PostMapping(value = "register", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseMessage register(@RequestBody Account account) {
-        Account usrAcc = AccountStorage.get().getAccount();
-        if (usrAcc != null) {//说明用户已经登录了
-            return ResponseMessage.error("当前系统已启用!");
-        }
+    @PostMapping(value = "register")
+    ResponseMessage register(@RequestParam String  accPassword) {
+        String address = "";
         try {
-            AccountStorage.get().createAccount(account.getAccPwd());
+           address =   AccountStorage.get().createAccount(accPassword);
             BlockChainServer.get().start();
         } catch (Exception e) {
             if (e instanceof ErrorPasswordException) {
@@ -65,15 +62,19 @@ public class AccountController {
         }
         JSONObject json = new JSONObject();
         json.put("success", true);
-        return ResponseMessage.ok("创建成功,服务已启动!");
+        return ResponseMessage.ok(address);
     }
 
     @ApiOperation(value = "查看地址", notes = "查看当前登录用户的地址信息")
     @GetMapping(value = "showAddr", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseMessage showAddr() {
-        Account usrAcc = AccountStorage.get().getAccount();
-        if (usrAcc != null) {//说明用户已经登录了
-            return ResponseMessage.ok(Utils.showAddress(usrAcc.getAddress()));
+        List<Account> usrAccs = AccountStorage.get().getAccounts();
+        if (usrAccs != null) {
+            String addrs = "";
+            for(Account account: usrAccs){
+                addrs = addrs+Utils.showAddress(account.getAddress())+",";
+            }
+            return ResponseMessage.ok(addrs);
         }
         return ResponseMessage.error("当前无登录用户");
     }
