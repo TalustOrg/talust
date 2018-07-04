@@ -23,8 +23,8 @@
  *
  */
 
-package org.talust.chain.common.exception;
+package org.talust.rpc;
 
-//错误登录密码
-public class ErrorPasswordException extends Exception{
+
+public class RpcServer {
 }

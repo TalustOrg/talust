@@ -22,9 +22,9 @@
  * SOFTWARE.
  *
  */
+package org.talust.rpc;
 
-package org.talust.chain.common.exception;
 
-//错误登录密码
-public class ErrorPasswordException extends Exception{
+
+public class RpcClient {
 }
