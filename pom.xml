@@ -15,6 +15,7 @@
         <module>controller</module>
         <module>client</module>
         <module>web</module>
+        <module>tools</module>
     </modules>
     <packaging>pom</packaging>
 
