@@ -27,20 +27,6 @@ public class AccountStorage {
     public static AccountStorage get() {
         return instance;
     }
-    private RocksDB db;
-    final Options options = new Options()
-            .setCreateIfMissing(true)
-            .setWriteBufferSize(8 * SizeUnit.KB)
-            .setMaxWriteBufferNumber(3)
-            .setMaxBackgroundCompactions(10);
-
-    static {
-        try {
-            RocksDB.loadLibrary();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
     private ECKey ecKey;
     private String filePath = Configure.DATA_ACCOUNT;
     private List<Account> accounts = new ArrayList<>();
