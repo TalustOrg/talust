@@ -1,13 +1,6 @@
-package org.talust.chain.storage;
+package org.talust;
 
-import java.lang.IllegalArgumentException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
-
-import org.rocksdb.*;
-import org.rocksdb.util.SizeUnit;
+import org.rocksdb.RocksDB;
 
 public class RocksDBSample {
     static {
