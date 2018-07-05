@@ -18,6 +18,10 @@ public final class Configure {
      */
     public static String DATA_DIR = SERVER_HOME + File.separator + "data";
     /**
+     * 数据存储目录
+     */
+    public static String TEST = SERVER_HOME + File.separator + "test";
+    /**
      * 账户存储目录
      */
     public static String DATA_ACCOUNT = DATA_DIR + File.separator + "account";

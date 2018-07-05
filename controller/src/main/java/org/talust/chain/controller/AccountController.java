@@ -49,7 +49,7 @@ public class AccountController {
     ResponseMessage register(@RequestParam String  accPassword) {
         String address = "";
         try {
-           address =   AccountStorage.get().createAccount(accPassword);
+           address =   AccountStorage.get().createAccount(accPassword,0);
             BlockChainServer.get().start();
         } catch (Exception e) {
             if (e instanceof ErrorPasswordException) {

@@ -20,7 +20,7 @@ public interface SwaggerScanPackageConfig {
     @Bean
     default List<String> scanPackageName() {
         List<String> scanPackageName = new ArrayList<String>();
-        scanPackageName.add("com.talust");
+        scanPackageName.add("org.talust");
         return scanPackageName;
     }
 }

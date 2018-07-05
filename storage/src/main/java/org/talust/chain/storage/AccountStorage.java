@@ -46,8 +46,19 @@ public class AccountStorage {
     }
 
     /**
-     * 创建新帐户,会产生一对密钥对,以即会生成一个地址。
-     * @throws Exception
+
+     *@methodName createAccount
+
+     *@params  [accPs, accType]
+
+     *@return  java.lang.String
+
+     *@creator  Axe Liu
+
+     *@createDate  2018/7/5
+
+     *@descript
+
      */
     public  String  createAccount(String accPs,int accType) throws Exception{
         Account account = new Account();
@@ -95,14 +106,44 @@ public class AccountStorage {
         return Utils.showAddress(address);
     }
 
+    /**
+
+     *@methodName getVersion
+
+     *@params  []
+
+     *@return  java.lang.String
+
+     *@creator  Axe Liu
+
+     *@createDate  2018/7/5
+
+     *@descript
+
+     */
     public String getVersion() throws IOException {
+
         return Account.class.getProtectionDomain().getCodeSource().getLocation().getFile().split("account")[1].split(".jar")[0].substring(1);
     }
+
+
     /**
-     * walletLogin
-     * @throws Exception
+
+     *@methodName walletLogin
+
+     *@params  []
+
+     *@return  java.lang.String
+
+     *@creator  Axe Liu
+
+     *@createDate  2018/7/5
+
+     *@descript
+
      */
     public String walletLogin() throws Exception {
+
         List<String> list = getAllFile(filePath,true);
         String addrs = "";
         for(String path : list ){
@@ -112,6 +153,11 @@ public class AccountStorage {
                 if (content != null && content.length() > 0) {//说明已经有账户信息
                     try {
                         JSONObject fileJson = JSONObject.parseObject(content);
+                        //TODO need return address and filePath
+                        account = new Account();
+                        account.setPublicKey(fileJson.getBytes("privateKey"));
+                        account.setAccType(fileJson.getInteger("t"));
+                        account.setAddress(fileJson.getBytes("address"));
                         addrs= addrs + fileJson.get("address") +",";
                         //TODO less amount total
                     } catch (Exception e) {
@@ -126,18 +172,43 @@ public class AccountStorage {
         }
         return addrs;
     }
+
+
     /**
-     * accountLogin
+
+     *@methodName accountLogin
+
+     *@params  [filePath, accPassword]
+
+     *@return  org.talust.chain.account.Account
+
+     *@creator  Axe Liu
+
+     *@createDate  2018/7/5
+
+     *@descript
+
      */
+
     public Account accountLogin(String filePath , String accPassword) throws Exception {
+
         File file =  new File(filePath);
         if(file.exists()){
             String content = FileUtil.fileToTxt(file);
             if (content != null && content.length() > 0) {
                 try {
                     JSONObject fileJson = JSONObject.parseObject(content);
-                    if(null==accPassword){
-                        accPassword="";
+                    boolean isNeedPassword = Boolean.parseBoolean(fileJson.getString("Crypto"));
+                    if(!isNeedPassword){
+                        if(null==accPassword||"".equals(accPassword)){
+                            accPassword="";
+                        }else{
+                            throw new ErrorPasswordException();
+                        }
+                    }else{
+                        if(accPassword.equals("")){
+                            throw new ErrorPasswordException();
+                        }
                     }
                     byte[] decrypt = AESEncrypt.decrypt( fileJson.getBytes("privateKey"), accPassword);
                     account = new Account();
@@ -146,6 +217,7 @@ public class AccountStorage {
                     account.setAccType(fileJson.getInteger("t"));
                     account.setAddress(fileJson.getBytes("address"));
                     account.setAccPwd(accPassword);
+                    accounts.add(account);
                     //解密成功,将密钥对信息放入ecKey对象中
                     ecKey = ECKey.fromPrivate(new BigInteger(decrypt));
                     //TODO less amount total
@@ -159,18 +231,24 @@ public class AccountStorage {
         return account;
     }
 
-
     /**
-     * 导入文件登录
-     *
-     * @param acc
-     * @throws Exception
+
+     *@methodName getAllFile
+
+     *@params  [directoryPath, isAddDirectory]
+
+     *@return  java.util.List<java.lang.String>
+
+     *@creator  Axe Liu
+
+     *@createDate  2018/7/5
+
+     *@descript
+
      */
 
-    /**
-     * 获取路径下的所有文件/文件夹
-     */
     public static List<String> getAllFile(String directoryPath,boolean isAddDirectory) {
+
         List<String> list = new ArrayList<String>();
         File baseFile = new File(directoryPath);
         if (baseFile.isFile() || !baseFile.exists()) {
