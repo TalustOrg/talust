@@ -1,21 +1,48 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017-2018 talust.org talust.io
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
 package org.talust.chain.storage;
 
 import com.alibaba.fastjson.JSONObject;
-import org.rocksdb.Options;
-import org.rocksdb.RocksDB;
-import org.rocksdb.util.SizeUnit;
+import lombok.extern.slf4j.Slf4j;
 import org.talust.chain.account.Account;
-import org.talust.chain.common.crypto.*;
+import org.talust.chain.common.crypto.AESEncrypt;
+import org.talust.chain.common.crypto.ECKey;
+import org.talust.chain.common.crypto.Utils;
 import org.talust.chain.common.exception.AccountFileEmptyException;
 import org.talust.chain.common.exception.AccountFileNotExistException;
 import org.talust.chain.common.exception.ErrorPasswordException;
 import org.talust.chain.common.tools.Configure;
 import org.talust.chain.common.tools.FileUtil;
-import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j //帐户存储服务器
 public class AccountStorage {

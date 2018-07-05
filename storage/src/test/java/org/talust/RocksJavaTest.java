@@ -1,4 +1,4 @@
-package org.talust.chain.storage;
+package org.talust;
 
 import org.rocksdb.*;
 import org.talust.chain.common.tools.Configure;
@@ -11,7 +11,7 @@ import java.util.Map;
  * Created by Axe-Liu on 2018/7/5.
  */
 public class RocksJavaTest {
-    private static final String dbPath = Configure.TEST;
+    private static final String dbPath = Configure.TEST_DIR;
     static {
         RocksDB.loadLibrary();
     }
@@ -126,7 +126,7 @@ public class RocksJavaTest {
 
     public static void main(String[] args) throws RocksDBException {
         RocksJavaTest test = new RocksJavaTest();
-   //     test.testDefaultColumnFamily();
+       // test.testDefaultColumnFamily();
         test.testCertainColumnFamily();
     }
 
