@@ -122,6 +122,12 @@ public class AccountStorage {
         return Utils.showAddress(address);
     }
 
+
+    //TODO: liubc@talust.org
+    public  String  createAccount(String accPs){
+        return "liubc";
+    }
+
     public String getVersion() throws IOException {
         return Account.class.getProtectionDomain().getCodeSource().getLocation().getFile().split("account")[1].split(".jar")[0].substring(1);
     }
