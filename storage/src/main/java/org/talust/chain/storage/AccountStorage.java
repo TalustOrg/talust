@@ -182,6 +182,8 @@ public class AccountStorage {
                     //解密成功,将密钥对信息放入ecKey对象中
                     ecKey = ECKey.fromPrivate(new BigInteger(decrypt));
                     //TODO less amount total
+                    //TODO  find this addr  in accountStorage , if this aaddr is exist and  the blockHeght is the highest , so this value is the real amount
+                    //TODO  if we can't find this addr in accountStorage , we need to  reload the blocks , and get all addr to reload  this addr's amount and save into accountStorage
                 } catch (Exception e) {
                     throw new ErrorPasswordException();
                 }
