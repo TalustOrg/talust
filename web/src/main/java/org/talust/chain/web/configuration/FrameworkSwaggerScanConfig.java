@@ -46,7 +46,7 @@ public class FrameworkSwaggerScanConfig implements SwaggerScanPackageConfig {
     @Bean
     public List<String> scanPackageName() {
         List<String> scanPackageName = new ArrayList<>();
-        scanPackageName.add("com.talust");
+        scanPackageName.add("org.talust");
         return scanPackageName;
     }
 }
