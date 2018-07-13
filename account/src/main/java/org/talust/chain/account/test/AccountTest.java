@@ -56,6 +56,9 @@ public class AccountTest {
         String s = Utils.showAddress(kk);
         System.out.println(s);
 
+
+
+
 //        byte[] bytes = Utils.sha256hash160(key.getPubKey());
 //        byte xor = getXor(bytes);
 //        byte[] base58bytes = new byte[23];

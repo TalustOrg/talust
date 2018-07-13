@@ -100,7 +100,7 @@ public class AccountStorage {
         byte[] address = Utils.getAddress(ecKey.getPubKey());
         account.setPrivateKey(encryptPkb);
         account.setAddress(address);
-        fileJson.put("version",getVersion());
+        fileJson.put("version",getVersion() );
         fileJson.put("privateKey",encryptPkb);
         fileJson.put("address", Utils.showAddress(address));
         String  accPath = filePath + File.separator +Utils.showAddress(account.getAddress());

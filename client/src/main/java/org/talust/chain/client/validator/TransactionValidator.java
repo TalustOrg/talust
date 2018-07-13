@@ -246,7 +246,8 @@ public class TransactionValidator implements MessageValidator {
                             int item = in.getItem();
                             TransactionCache.get().disableOut(tranNumber, item);
                         }
-                        //TODO if transfer success ,we need  got the addrs in accountStorage , and  save the transfer in an local cache
+                        //TODO if transfer success ,we need  got the addrs in accountStorage
+                        // TODO  save the transfer in an local cache
                         return true;
                     }
                 }

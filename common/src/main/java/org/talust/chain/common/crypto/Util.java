@@ -19,7 +19,7 @@ public class Util {
     public static int byteToInt(byte[] bytes) {
         int num = 0;
         int temp;
-        temp = (0x000000ff & (bytes[0])) << 0;
+        temp = (0x000000ff & (bytes[0])) << 0 ;
         num = num | temp;
         temp = (0x000000ff & (bytes[1])) << 8;
         num = num | temp;

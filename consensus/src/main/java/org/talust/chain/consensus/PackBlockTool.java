@@ -103,7 +103,7 @@ public class PackBlockTool {
         //添加coinbase
         Transaction coinBase = new Transaction();
         coinBase.setTranType(TranType.COIN_BASE.getType());
-        coinBase.setTranNumber(chainStateStorage.newTranNumber());//设置交易号
+        coinBase.setTranNumber(chainStateStorage.newTranNumber() );//设置交易号
         List<TransactionOut> outs = new ArrayList<>();
         List<String>  miningAddress = CacheManager.get().get(new String(Constant.MINING_ADDRESS));
         if (miningAddress == null) {

@@ -76,7 +76,7 @@ public class SynRequest {
         mq.addMessage(mch);
         MessageChannel retMsg = sync.get(3, TimeUnit.SECONDS);
         synMap.remove(mc);
-        return retMsg;//返回的要么为空,要么有值
+        return retMsg; //返回的要么为空,要么有值
     }
 
     //异步响应

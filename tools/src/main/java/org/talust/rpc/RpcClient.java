@@ -27,5 +27,5 @@ package org.talust.rpc;
 
 
 
-public class RpcClient {
+public class RpcClient   {
 }
