@@ -36,7 +36,7 @@ public class BlockArrivedBroadHandler implements MessageHandler {
 
     @Override
     public boolean handle(MessageChannel messageChannel) {
-        log.info("接收到远端ip:{} 发送过来的区块数据,准备进行广播...", messageChannel.getFromIp());
+        log.info("接收到远端ip:{}  发送过来的区块数据,准备进行广播...", messageChannel.getFromIp());
         mqHolder.broadMessage(messageChannel);
         return true;
     }
