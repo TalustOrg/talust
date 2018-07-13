@@ -44,7 +44,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-//同步块
+
 @Slf4j
 public class SynBlock {
     private final int THREAD_POOL_SIZE = 20;
