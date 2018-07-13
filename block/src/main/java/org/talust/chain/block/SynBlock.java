@@ -80,7 +80,6 @@ public class SynBlock {
     private void synBlock() {
         log.info("进行数据块的同步...");
         try {
-            //TODO
             Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
