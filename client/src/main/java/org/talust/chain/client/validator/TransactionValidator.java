@@ -48,6 +48,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static javax.swing.UIManager.get;
+
 /**
  * 交易数据校验,是指的一条一条的交易数据
  */
@@ -185,10 +187,15 @@ public class TransactionValidator implements MessageValidator {
                             double depositCoin = MiningRule.getDepositCoin(currentBlockHeight + 1);
                             double amount = out.getAmount();
                             if (Math.abs(depositCoin - amount) > nearZero) {//说明本次挖矿所得数量没有问题
+                                Double addrAmt = stateStorage.getAddressAmount(address);
+                                //TODO
+                                addrAmt = addrAmt + amount;
+                                stateStorage.saveAddressAmount(address,amount);
                                 result = false;
                                 break;
                             }
                         } else {//含有储蓄地址 @TODO,实现时需要判断数量的合理性,即本次应该获得的总的挖矿奖励以及当前目标地址的储蓄占有多少
+                            //TODO   关于储蓄地址的获取与存储  是一个问题 ， 占比与金额总数 存储是个问题 ， 尝试用 挖矿地址 +  MAP<ADDR, AMOUNT > 去存储总数等
 
                         }
                     }
