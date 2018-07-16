@@ -35,10 +35,7 @@ import org.talust.chain.block.model.*;
 import org.talust.chain.common.crypto.*;
 import org.talust.chain.common.model.Message;
 import org.talust.chain.common.model.MessageChannel;
-import org.talust.chain.common.tools.CacheManager;
-import org.talust.chain.common.tools.Configure;
-import org.talust.chain.common.tools.Constant;
-import org.talust.chain.common.tools.SerializationUtil;
+import org.talust.chain.common.tools.*;
 import org.talust.chain.network.MessageValidator;
 import org.talust.chain.network.netty.queue.MessageQueueHolder;
 import org.talust.chain.storage.BlockStorage;
@@ -187,10 +184,8 @@ public class TransactionValidator implements MessageValidator {
                             double depositCoin = MiningRule.getDepositCoin(currentBlockHeight + 1);
                             double amount = out.getAmount();
                             if (Math.abs(depositCoin - amount) > nearZero) {//说明本次挖矿所得数量没有问题
-                                Double addrAmt = stateStorage.getAddressAmount(address);
-                                //TODO
-                                addrAmt = addrAmt + amount;
-                                stateStorage.saveAddressAmount(address,amount);
+                                String addrAmt = stateStorage.getAddressAmount(address);
+                                stateStorage.saveAddressAmount(address,ArithUtils.add(addrAmt,amount));
                                 result = false;
                                 break;
                             }
