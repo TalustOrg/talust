@@ -51,7 +51,6 @@ public class AccountController {
     ResponseMessage login() {
         String addrs ="";
         try {
-
             addrs = AccountStorage.get().walletLogin();
             BlockChainServer.get().start();
         } catch (Exception e) {
