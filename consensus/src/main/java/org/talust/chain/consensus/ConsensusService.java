@@ -23,11 +23,9 @@ public class ConsensusService {
     public static ConsensusService get() {
         return instance;
     }
-
     private CacheManager cu = CacheManager.get();
     private Conference conference = Conference.get();
     private  ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
-
     private PackBlockTool packBlockTool = new PackBlockTool();
     private AtomicBoolean genRunning = new AtomicBoolean(false);
     private int checkSecond;//检测区块是否正常的时长
