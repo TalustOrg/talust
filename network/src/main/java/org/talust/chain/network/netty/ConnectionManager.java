@@ -25,9 +25,13 @@
 
 package org.talust.chain.network.netty;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.talust.chain.common.crypto.Utils;
 import org.talust.chain.common.model.Message;
 import org.talust.chain.common.model.MessageChannel;
 import org.talust.chain.common.model.MessageType;
@@ -41,6 +45,7 @@ import org.talust.chain.network.netty.client.NodeClient;
 import org.talust.chain.network.netty.queue.MessageQueue;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.*;
 import java.util.*;
@@ -238,33 +243,47 @@ public class ConnectionManager {
         } catch (SocketException e) {
             e.printStackTrace();
         }
-        if (myIps.contains(Configure.GENESIS_IP)) {
+
+        JSONObject Gip = getJsonFile(Configure.GENESIS_SERVER_ADDR);
+        if (myIps.contains(Gip.getString("genesisIp"))) {
             genesisIp = true;//说明当前节点是创世块产生的ip
         }
 
-        String ips = "1|192.168.0.102|aaa,2|192.168.0.150|dddd";//getIps(Configure.NODE_SERVER_ADDR);//@TODO 测试用,实际需要取消
-        if (ips != null && ips.length() > 0) {
-            String[] nodeServerAddr = ips.split(",");
-            for (String sin : nodeServerAddr) {
-                String[] ss = sin.split("\\|");
-                SuperNode snode = new SuperNode();
-                snode.setCode(Integer.parseInt(ss[0]));
-                snode.setIp(ss[1]);
-                snode.setAddress(ss[2]);
-                String ip = snode.getIp();
-                if (!myIps.contains(ip)) {
-                    superIps.add(ip);
-                } else {//说明当前是超级节点
-                    superNode = true;
-                    selfIp = ip;
-                }
-                superNodes.put(ip, snode);
-            }
+        JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
+        for(Object map : ips.entrySet()){
+           JSONObject ipContent = JSONObject.parseObject((String) ((Map.Entry)map).getValue());
+           String ip  = ipContent.getString("ip");
+            SuperNode snode = new SuperNode();
+            snode.setCode((Integer) ((Map.Entry)map).getKey());
+            snode.setIp(ip);
+            snode.setAddress(Utils.showAddress(Utils.getAddress(ipContent.getBytes("miningPublicKey"))));
+           if(!myIps.contains(ip)){
+               superIps.add(ip);
+           }else{
+               superNode = true;
+           }
+            superNodes.put(ip, snode);
         }
         if(null==selfIp){
             selfIp=  myIps.iterator().next();
         }
         log.info("获得超级节点数为:{}", superIps.size());
+    }
+
+    public JSONObject getJsonFile(String filename) {
+        String path = getClass().getClassLoader().getResource(filename).toString();
+        path = path.replace("\\", "/");
+        if (path.contains(":")) {
+            path = path.replace("file:/","");// 2
+        }
+        JSONObject jsonObject = null;
+        try {
+            String input = FileUtils.readFileToString(new File(path), "UTF-8");
+            jsonObject = JSONObject.parseObject(input);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
     }
 
     /**
@@ -273,35 +292,35 @@ public class ConnectionManager {
      * @param filePath
      * @return
      */
-    private String getIps(String filePath) {
-        int HttpResult; // 服务器返回的状态
-        String ee = new String();
-        try {
-            URL url = new URL(filePath); // 创建URL
-            URLConnection urlconn = url.openConnection(); // 试图连接并取得返回状态码
-            urlconn.connect();
-            HttpURLConnection httpconn = (HttpURLConnection) urlconn;
-            HttpResult = httpconn.getResponseCode();
-            if (HttpResult != HttpURLConnection.HTTP_OK) // 不等于HTTP_OK说明连接不成功
-            {
-                log.error("无法连接到服务器获取节点列表...");
-            } else {
-                InputStreamReader isReader = new InputStreamReader(urlconn.getInputStream());
-                BufferedReader reader = new BufferedReader(isReader);
-                StringBuffer buffer = new StringBuffer();
-                String line; // 用来保存每行读取的内容
-                line = reader.readLine(); // 读取第一行
-                while (line != null) { // 如果 line 为空说明读完了
-                    buffer.append(line); // 将读到的内容添加到 buffer 中
-                    line = reader.readLine(); // 读取下一行
-                }
-                ee = buffer.toString();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return ee;
-    }
+//    private String getIps(String filePath) {
+//        int HttpResult; // 服务器返回的状态
+//        String ee = new String();
+//        try {
+//            URL url = new URL(filePath); // 创建URL
+//            URLConnection urlconn = url.openConnection(); // 试图连接并取得返回状态码
+//            urlconn.connect();
+//            HttpURLConnection httpconn = (HttpURLConnection) urlconn;
+//            HttpResult = httpconn.getResponseCode();
+//            if (HttpResult != HttpURLConnection.HTTP_OK) // 不等于HTTP_OK说明连接不成功
+//            {
+//                log.error("无法连接到服务器获取节点列表...");
+//            } else {
+//                InputStreamReader isReader = new InputStreamReader(urlconn.getInputStream());
+//                BufferedReader reader = new BufferedReader(isReader);
+//                StringBuffer buffer = new StringBuffer();
+//                String line; // 用来保存每行读取的内容
+//                line = reader.readLine(); // 读取第一行
+//                while (line != null) { // 如果 line 为空说明读完了
+//                    buffer.append(line); // 将读到的内容添加到 buffer 中
+//                    line = reader.readLine(); // 读取下一行
+//                }
+//                ee = buffer.toString();
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return ee;
+//    }
 
     /**
      * 获取超级网络节点

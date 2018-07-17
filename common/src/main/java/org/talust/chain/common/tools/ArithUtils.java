@@ -68,6 +68,11 @@ public class ArithUtils
         return b1.subtract(b2).toString();
     }
 
+    public static String sub(String v1 ,BigDecimal v2){
+        BigDecimal b1 = new BigDecimal(v1);
+        return b1.subtract(v2).toString();
+    }
+
     public static String sub(String v1, double v2)
     {
         BigDecimal b1 = new BigDecimal(v1);

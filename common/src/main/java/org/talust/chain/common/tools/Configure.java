@@ -85,12 +85,12 @@ public final class Configure {
     /**
      * 超级节点获取地址
      */
-    public static String NODE_SERVER_ADDR = "http://dev.talust.com:18004/ip.txt";
+    public static String NODE_SERVER_ADDR = "supernode.json";
 
     /**
      * 创世块ip
      */
-    public static String GENESIS_IP = "192.168.0.150";
+    public static String GENESIS_SERVER_ADDR = "genesis.json";
 
     /**
      * 根证书公钥,需要在实际情况下进行修改

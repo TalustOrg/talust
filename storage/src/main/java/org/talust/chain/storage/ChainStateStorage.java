@@ -103,6 +103,7 @@ public class ChainStateStorage {
     }
 
 
+
     public  void saveAddressAmount(byte[] address,String amount){
         try {
             db.put(byteMerger(address,ADDRESS_AMOUNT),SerializationUtil.serializer(amount));
