@@ -44,6 +44,7 @@ import org.talust.chain.storage.ChainStateStorage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static javax.swing.UIManager.get;
 
@@ -56,7 +57,6 @@ public class TransactionValidator implements MessageValidator {
     private BlockStorage blockStorage = BlockStorage.get();
     private ChainStateStorage stateStorage = ChainStateStorage.get();
     private double nearZero = 0.0000000000001;
-
     @Override
     public boolean check(MessageChannel message) {//对每一条交易数据进行验证
         Message msg = message.getMessage();
@@ -170,6 +170,8 @@ public class TransactionValidator implements MessageValidator {
                             double baseCoin = MiningRule.getBaseCoin(currentBlockHeight + 1);
                             double amount = out.getAmount();
                             if (Math.abs(baseCoin - amount) > nearZero) {//说明本次挖矿所得数量没有问题
+                                String addrAmt = stateStorage.getAddressAmount(address);
+                                stateStorage.saveAddressAmount(address,ArithUtils.add(addrAmt,amount));
                                 result = false;
                                 break;
                             }
@@ -250,6 +252,8 @@ public class TransactionValidator implements MessageValidator {
                         }
                         //TODO if transfer success ,we need  got the addrs in accountStorage
                         // TODO  save the transfer in an local cache
+                        String addrAmt = stateStorage.getAddressAmount(signAddr);
+                        stateStorage.saveAddressAmount(signAddr,ArithUtils.sub(addrAmt,outAmount));
                         return true;
                     }
                 }
