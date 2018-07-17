@@ -47,13 +47,12 @@ h4{text-align:right;color:red;}
 <script type="text/javascript">
 
 function register(){
-    var formValues = {"password":password};
+    var password = $("#password").val();
     $.ajax({
-        url: 'api/user/register',
+        url: 'api/user/register?accPassword='+password,
         type: 'POST',
         contentType: 'application/json',
         dataType: 'json',
-        data: JSON.stringify(formValues),
         success: function (data) {
             alert(data.message);
         }

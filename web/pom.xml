@@ -14,7 +14,7 @@
     <name>web</name>
 
     <properties>
-        <start-class>org.talust.chain.web.app.Application</start-class>
+        <start-class>org.talust.web.app.Application</start-class>
     </properties>
 
     <dependencies>
