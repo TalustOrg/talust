@@ -30,7 +30,7 @@
         <dependency>
             <groupId>org.rocksdb</groupId>
             <artifactId>rocksdbjni</artifactId>
-            <version>5.14.2</version>
+            <version>5.3.6</version>
         </dependency>
         <dependency>
             <groupId>org.talust</groupId>

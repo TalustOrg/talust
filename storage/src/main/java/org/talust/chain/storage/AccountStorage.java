@@ -123,9 +123,8 @@ public class AccountStorage {
     }
 
 
-    //TODO: liubc@talust.org
-    public  String  createAccount(String accPs){
-        return "liubc";
+    public  String  createAccount(String accPs) throws Exception {
+        return createAccount(accPs,0);
     }
 
     public String getVersion() throws IOException {

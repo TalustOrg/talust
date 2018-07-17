@@ -123,7 +123,6 @@ public class ConnectionManager {
                         }
                     }
                 } catch (Throwable e) {
-//                    e.printStackTrace();
                     log.info("连接ip:{} 失败,未能成功连接该节点...", node);
                 }
                 //如果到此处则说明当前的节点是有问题的,则重新选择另外一个节点

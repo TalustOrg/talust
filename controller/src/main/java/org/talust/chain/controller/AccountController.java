@@ -70,11 +70,11 @@ public class AccountController {
     }
 
     @ApiOperation(value = "创建帐户", notes = "新创建帐户")
-    @PostMapping(value = "register")
-    ResponseMessage register(@RequestParam String  accPassword) {
+    @PostMapping(value = "register", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseMessage register(@RequestBody  Account account) {
         String address = "";
         try {
-           address =   AccountStorage.get().createAccount(accPassword);
+           address =   AccountStorage.get().createAccount(account.getAccPwd());
             BlockChainServer.get().start();
         } catch (Exception e) {
             if (e instanceof ErrorPasswordException) {
