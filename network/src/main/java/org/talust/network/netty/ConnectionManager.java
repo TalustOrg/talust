@@ -43,7 +43,9 @@ import org.talust.network.model.MyChannel;
 import org.talust.network.netty.client.NodeClient;
 import org.talust.network.netty.queue.MessageQueue;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -266,8 +268,12 @@ public class ConnectionManager {
         log.info("获得超级节点数为:{}", superIps.size());
     }
 
+    //TODO  configure file  reload method  need change logic
     public JSONObject getJsonFile(String filename) {
+        System.out.println(  getClass().getClassLoader().getResource("").toString());
+        System.out.println(  getClass().getResource("").toString());
         String path = getClass().getClassLoader().getResource(filename).toString();
+
         path = path.replace("\\", "/");
         if (path.contains(":")) {
             path = path.replace("file:/","");// 2
@@ -288,35 +294,35 @@ public class ConnectionManager {
      * @param filePath
      * @return
      */
-//    private String getIps(String filePath) {
-//        int HttpResult; // 服务器返回的状态
-//        String ee = new String();
-//        try {
-//            URL url = new URL(filePath); // 创建URL
-//            URLConnection urlconn = url.openConnection(); // 试图连接并取得返回状态码
-//            urlconn.connect();
-//            HttpURLConnection httpconn = (HttpURLConnection) urlconn;
-//            HttpResult = httpconn.getResponseCode();
-//            if (HttpResult != HttpURLConnection.HTTP_OK) // 不等于HTTP_OK说明连接不成功
-//            {
-//                log.error("无法连接到服务器获取节点列表...");
-//            } else {
-//                InputStreamReader isReader = new InputStreamReader(urlconn.getInputStream());
-//                BufferedReader reader = new BufferedReader(isReader);
-//                StringBuffer buffer = new StringBuffer();
-//                String line; // 用来保存每行读取的内容
-//                line = reader.readLine(); // 读取第一行
-//                while (line != null) { // 如果 line 为空说明读完了
-//                    buffer.append(line); // 将读到的内容添加到 buffer 中
-//                    line = reader.readLine(); // 读取下一行
-//                }
-//                ee = buffer.toString();
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return ee;
-//    }
+    private String getIps(String filePath) {
+        int HttpResult; // 服务器返回的状态
+        String ee = new String();
+        try {
+            URL url = new URL(filePath); // 创建URL
+            URLConnection urlconn = url.openConnection(); // 试图连接并取得返回状态码
+            urlconn.connect();
+            HttpURLConnection httpconn = (HttpURLConnection) urlconn;
+            HttpResult = httpconn.getResponseCode();
+            if (HttpResult != HttpURLConnection.HTTP_OK) // 不等于HTTP_OK说明连接不成功
+            {
+                log.error("无法连接到服务器获取节点列表...");
+            } else {
+                InputStreamReader isReader = new InputStreamReader(urlconn.getInputStream());
+                BufferedReader reader = new BufferedReader(isReader);
+                StringBuffer buffer = new StringBuffer();
+                String line; // 用来保存每行读取的内容
+                line = reader.readLine(); // 读取第一行
+                while (line != null) { // 如果 line 为空说明读完了
+                    buffer.append(line); // 将读到的内容添加到 buffer 中
+                    line = reader.readLine(); // 读取下一行
+                }
+                ee = buffer.toString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ee;
+    }
 
     /**
      * 获取超级网络节点
