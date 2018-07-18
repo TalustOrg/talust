@@ -38,7 +38,7 @@ public class PackBlockTool {
     //打包
     public void  pack(int packageTime) {
         try {
-            Account account = AccountStorage.get().getAccounts().get(0);
+            Account account = AccountStorage.get().getAccount();
             List<byte[]> batchRecord = dataContainer.getBatchRecord();//批量获取需要打包的数据
             if (batchRecord == null) {
                 batchRecord = new ArrayList<>();

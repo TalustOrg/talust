@@ -57,7 +57,15 @@ public class AccountStorage {
     private ECKey ecKey;
     private String filePath = Configure.DATA_ACCOUNT;
     private List<Account> accounts = new ArrayList<>();
-    private Account account ;
+    private Account account = new Account();
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
 
     /**
      * 初始化帐户存储的路径
@@ -77,7 +85,6 @@ public class AccountStorage {
      * @throws Exception
      */
     public  String  createAccount(String accPs,int accType) throws Exception{
-        Account account = new Account();
         ecKey = new ECKey();
         JSONObject fileJson =  new JSONObject();
         if(null==accPs){

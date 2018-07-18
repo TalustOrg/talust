@@ -146,7 +146,7 @@ public class BlockChainServer {
         accountStorage.init();
 
         log.info("初始化缓存...");
-        byte[] nowBlockHash = blockStorage.get(Constant.NOW_BLOCK_HASH);
+             byte[] nowBlockHash = blockStorage.get(Constant.NOW_BLOCK_HASH);
 
         if (nowBlockHash != null) {
             byte[] nowBlock = blockStorage.get(nowBlockHash);

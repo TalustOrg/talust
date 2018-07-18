@@ -117,12 +117,12 @@ public class TransactionValidator implements MessageValidator {
                             parentBytes = CacheManager.get().get(Hex.encode(parentAddrKey));
                         }
                         if (parentBytes == null) {//有可能是根用户
-                            if (Utils.equals(account.getPublicKey(), Hex.decode(Configure.ROOT_PUB))) {//根证书验证正确
+                            if (Utils.equals(account.getPublicKey(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//根证书验证正确
                                 isOk = true;
                             }
                         } else {
                             if (accType == AccountType.TALUST.getType()) {//是运营方类型
-                                if (Utils.equals(account.getParentPub(), Hex.decode(Configure.ROOT_PUB))) {//运营方的父级证书只能是根
+                                if (Utils.equals(account.getParentPub(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//运营方的父级证书只能是根
                                     isOk = true;
                                 }
                             } else if (accType == AccountType.MINING.getType()) {//是挖矿类型,则检测父类型是运营方类型即可

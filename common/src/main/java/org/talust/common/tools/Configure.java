@@ -85,41 +85,11 @@ public final class Configure {
     /**
      * 超级节点获取地址
      */
-    public static String NODE_SERVER_ADDR = "supernode.json";
+    public static String NODE_SERVER_ADDR = "http://dev.talust.com:18004/supernode.json";
 
     /**
      * 创世块ip
      */
-    public static String GENESIS_SERVER_ADDR = "genesis.json";
-
-    /**
-     * 根证书公钥,需要在实际情况下进行修改
-     */
-    public static String ROOT_PUB = "";
-
-    /**
-     * 根证书的自签名内容
-     */
-    public static String ROOT_SIGN = "";
-
-    /**
-     * talust公钥,需要在实际情况下进行修改
-     */
-    public static String TALUST_PUB = "";
-
-    /**
-     * talust的签名内容,由根证书自成
-     */
-    public static String TALUST_SIGN = "";
-
-    /**
-     * 初始化挖矿公钥,需要在实际情况下进行修改
-     */
-    public static String MINING_PUB = "";
-
-    /**
-     * 初始化挖矿的签名内容,由talust帐户自成
-     */
-    public static String MINING_SIGN = "";
+    public static String GENESIS_SERVER_ADDR = "http://dev.talust.com:18004/genesis.json";
 
 }

@@ -107,7 +107,7 @@ public class TransactionHandler implements MessageHandler {
             byte[] content = transaction.getDatas();
             Account account = SerializationUtil.deserializer(content, Account.class);
             int accType = account.getAccType();
-            if (accType == AccountType.ROOT.getType() && Utils.equals(account.getPublicKey(), Hex.decode(Configure.ROOT_PUB))) {//如果当前帐户是根帐户
+            if (accType == AccountType.ROOT.getType() && Utils.equals(account.getPublicKey(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//如果当前帐户是根帐户
                 blockStorage.put(Constant.ROOT_CA, content);
             }
 

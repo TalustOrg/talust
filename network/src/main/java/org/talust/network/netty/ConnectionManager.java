@@ -25,6 +25,7 @@
 
 package org.talust.network.netty;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
@@ -35,6 +36,7 @@ import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 import org.talust.common.model.SuperNode;
+import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.Constant;
 import org.talust.common.tools.SerializationUtil;
@@ -242,17 +244,24 @@ public class ConnectionManager {
             e.printStackTrace();
         }
 
-        JSONObject Gip = getJsonFile(Configure.GENESIS_SERVER_ADDR);
-        if (myIps.contains(Gip.getString("genesisIp"))) {
+        JSONObject gip = getJsonFile(Configure.GENESIS_SERVER_ADDR);
+        JSONObject root = gip.getJSONObject("root");
+        CacheManager.get().put("ROOT_PK",root.get("publickey"));
+        CacheManager.get().put("ROOT_SIGN",root.get("sign"));
+        JSONObject talust = gip.getJSONObject("talust");
+        CacheManager.get().put("TALUST_PK",talust.get("publickey"));
+        CacheManager.get().put("TALUST_SIGN",talust.get("sign"));
+        if (myIps.contains(gip.getString("genesisIp"))) {
             genesisIp = true;//说明当前节点是创世块产生的ip
         }
-
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
+        List<JSONObject> minings = new ArrayList<>();
         for(Object map : ips.entrySet()){
-           JSONObject ipContent = JSONObject.parseObject((String) ((Map.Entry)map).getValue());
+           JSONObject ipContent = (JSONObject) ((Map.Entry)map).getValue();
            String ip  = ipContent.getString("ip");
+            minings.add(ipContent);
             SuperNode snode = new SuperNode();
-            snode.setCode((Integer) ((Map.Entry)map).getKey());
+            snode.setCode(Integer.parseInt((String)((Map.Entry)map).getKey()));
             snode.setIp(ip);
             snode.setAddress(Utils.showAddress(Utils.getAddress(ipContent.getBytes("miningPublicKey"))));
            if(!myIps.contains(ip)){
@@ -262,25 +271,17 @@ public class ConnectionManager {
            }
             superNodes.put(ip, snode);
         }
+        CacheManager.get().put("MININGS",minings);
         if(null==selfIp){
             selfIp=  myIps.iterator().next();
         }
         log.info("获得超级节点数为:{}", superIps.size());
     }
 
-    //TODO  configure file  reload method  need change logic
-    public JSONObject getJsonFile(String filename) {
-        System.out.println(  getClass().getClassLoader().getResource("").toString());
-        System.out.println(  getClass().getResource("").toString());
-        String path = getClass().getClassLoader().getResource(filename).toString();
-
-        path = path.replace("\\", "/");
-        if (path.contains(":")) {
-            path = path.replace("file:/","");// 2
-        }
+    public JSONObject getJsonFile(String filePath) {
         JSONObject jsonObject = null;
         try {
-            String input = FileUtils.readFileToString(new File(path), "UTF-8");
+            String input = getIps(filePath);
             jsonObject = JSONObject.parseObject(input);
         } catch (Exception e) {
             e.printStackTrace();

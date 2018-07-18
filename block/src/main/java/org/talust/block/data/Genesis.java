@@ -25,6 +25,7 @@
 
 package org.talust.block.data;
 
+import com.alibaba.fastjson.JSONObject;
 import org.talust.account.Account;
 import org.talust.account.AccountType;
 import org.talust.block.model.TranType;
@@ -32,11 +33,14 @@ import org.talust.block.model.Transaction;
 import org.talust.common.crypto.Hex;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageType;
+import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.DateUtil;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.common.crypto.Utils;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 @Slf4j
 public class Genesis {
@@ -59,10 +63,10 @@ public class Genesis {
     private void addRootAccount() {
         Account rootAcc = new Account();
         rootAcc.setAccType(AccountType.ROOT.getType());
-        rootAcc.setPublicKey(Hex.decode(Configure.ROOT_PUB));
+        rootAcc.setPublicKey(Hex.decode( CacheManager.get().get("ROOT_PK")));
         rootAcc.setAddress(Utils.getAddress(rootAcc.getPublicKey()));
-        rootAcc.setParentPub(Hex.decode(Configure.ROOT_PUB));
-        rootAcc.setParentSign(Hex.decode(Configure.ROOT_SIGN));
+        rootAcc.setParentPub(Hex.decode( CacheManager.get().get("ROOT_PK")));
+        rootAcc.setParentSign(Hex.decode( CacheManager.get().get("ROOT_SIGN")));
 
         Transaction transaction = new Transaction();
         transaction.setTranType(TranType.ACCOUNT.getType());//设定为账户下发类型
@@ -82,10 +86,10 @@ public class Genesis {
     private void addTalustAccount() {
         Account rootAcc = new Account();
         rootAcc.setAccType(AccountType.TALUST.getType());
-        rootAcc.setPublicKey(Hex.decode(Configure.TALUST_PUB));
+        rootAcc.setPublicKey(Hex.decode( CacheManager.get().get("TALUST_PK")));
         rootAcc.setAddress(Utils.getAddress(rootAcc.getPublicKey()));
-        rootAcc.setParentPub(Hex.decode(Configure.ROOT_PUB));
-        rootAcc.setParentSign(Hex.decode(Configure.TALUST_SIGN));
+        rootAcc.setParentPub(Hex.decode(CacheManager.get().get("ROOT_PK")));
+        rootAcc.setParentSign(Hex.decode(CacheManager.get().get("TALUST_SIGN")));
 
         Transaction transaction = new Transaction();
         transaction.setTranType(TranType.ACCOUNT.getType());//设定为账户下发类型
@@ -103,23 +107,26 @@ public class Genesis {
      * 加入mining帐户
      */
     private void addMiningAccount() {
-        Account rootAcc = new Account();
-        rootAcc.setAccType(AccountType.MINING.getType());
-        rootAcc.setPublicKey(Hex.decode(Configure.MINING_PUB));
-        rootAcc.setAddress(Utils.getAddress(rootAcc.getPublicKey()));
-        rootAcc.setParentPub(Hex.decode(Configure.TALUST_PUB));
-        rootAcc.setParentSign(Hex.decode(Configure.MINING_SIGN));
+        List<JSONObject> minings  = CacheManager.get().get("MININGS");
+        for(JSONObject mining : minings){
+            Account rootAcc = new Account();
+            rootAcc.setAccType(AccountType.MINING.getType());
+            rootAcc.setPublicKey(Hex.decode(mining.getString("miningPublicKey")));
+            rootAcc.setAddress(Utils.getAddress(rootAcc.getPublicKey()));
+            rootAcc.setParentPub(Hex.decode(CacheManager.get().get("TALUST_PK")));
+            rootAcc.setParentSign(Hex.decode(mining.getString("miningSign")));
+            Transaction transaction = new Transaction();
+            transaction.setTranType(TranType.ACCOUNT.getType());//设定为账户下发类型
+            transaction.setDatas(SerializationUtil.serializer(rootAcc));//存储账户下发的具体数据
 
-        Transaction transaction = new Transaction();
-        transaction.setTranType(TranType.ACCOUNT.getType());//设定为账户下发类型
-        transaction.setDatas(SerializationUtil.serializer(rootAcc));//存储账户下发的具体数据
+            Message message = new Message();
+            message.setContent(SerializationUtil.serializer(transaction));
+            message.setType(MessageType.TRANSACTION.getType());
+            message.setTime(DateUtil.getTimeSecond());
 
-        Message message = new Message();
-        message.setContent(SerializationUtil.serializer(transaction));
-        message.setType(MessageType.TRANSACTION.getType());
-        message.setTime(DateUtil.getTimeSecond());
+            dataContainer.addRecord(SerializationUtil.serializer(message));
+        }
 
-        dataContainer.addRecord(SerializationUtil.serializer(message));
     }
 
 
