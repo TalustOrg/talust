@@ -6,7 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
-
  */
 @Slf4j
 public class ByteArrayTool {
