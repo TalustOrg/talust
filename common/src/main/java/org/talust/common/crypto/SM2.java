@@ -23,19 +23,18 @@
  */
 package org.talust.common.crypto;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-
 import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
 import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.bouncycastle.crypto.params.ECKeyGenerationParameters;
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.math.ec.ECFieldElement;
-import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.ECFieldElement.Fp;
+import org.bouncycastle.math.ec.ECPoint;
+
+import java.math.BigInteger;
+import java.security.SecureRandom;
 
 /**
- * Created by facjas on 2017/11/20.
  */
 public class SM2 {
     public static final String[] ECC_PARAM = {

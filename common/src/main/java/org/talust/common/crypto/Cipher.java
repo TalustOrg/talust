@@ -8,7 +8,6 @@ import org.bouncycastle.math.ec.ECPoint;
 import java.math.BigInteger;
 
 /**
- * Created by facjas on 2017/11/20.
  */
 public class Cipher {
     private int ct;

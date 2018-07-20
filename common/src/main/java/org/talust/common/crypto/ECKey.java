@@ -30,7 +30,6 @@ import java.security.SecureRandom;
 /**
  * 椭圆曲线加密
  *
- * @author ln
  */
 public class ECKey {
 

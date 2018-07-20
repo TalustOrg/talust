@@ -5,7 +5,6 @@ import java.util.Objects;
 
 /**
  * 加密后的数据
- * @author ln
  *
  */
 public final class EncryptedData {

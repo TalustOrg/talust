@@ -13,7 +13,6 @@ import java.util.Arrays;
 
 /**
  * AES加密
- * @author ln
  */
 public class AESEncrypt {
 
