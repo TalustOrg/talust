@@ -39,12 +39,5 @@ public class CreateMiningAccount {
         byte[] sign =  ecKey.sign(Sha256Hash.of(AESEncrypt.encrypt(prk.getBytes(), psd)).getBytes(),bigInteger);
         System.out.println("publickey : "+ Base64.getEncoder().encodeToString(AESEncrypt.encrypt(prk.getBytes(), psd)));
         System.out.println("sign : "+Base64.getEncoder().encodeToString(sign));
-
-
-        Sha256Hash hash = Sha256Hash.of(AESEncrypt.encrypt(prk.getBytes(), psd));
-        boolean verify = ECKey.verify(hash.getBytes(),
-                AESEncrypt.encrypt(prk.getBytes(), psd),
-                "0300c65cdd05d851108c58ff7b572214109acc887abc765768cbf875ee93459c93".getBytes());
-        System.out.println(verify);
     }
 }

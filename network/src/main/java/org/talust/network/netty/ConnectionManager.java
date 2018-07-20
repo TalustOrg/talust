@@ -130,6 +130,7 @@ public class ConnectionManager {
                 snodes.remove(selNode);
                 size = snodes.size();
             }
+
             if (nodes != null && nodes.size() > 0) {//
                 List<String> sIps = new ArrayList<>();
                 List<String> normalIps = new ArrayList<>();
@@ -147,6 +148,9 @@ public class ConnectionManager {
                     log.info("当前节点是超级节点,将会连接所有网络的超级节点...");
                     connectAllSuperNode(sIps, cc);
                 } else {
+                    //TODO  save all node make a json file ,
+                    // if can't connect someone node ,
+                    // then we need to remove the node from the file
                     Collections.shuffle(normalIps);
                     connectNode(normalIps, cc);//优先连接普通节点
                     Collections.shuffle(sIps);
@@ -174,7 +178,7 @@ public class ConnectionManager {
                     break;
                 }
                 log.error("我允许的主动连接总数:{},当前主动连接总数:{},连接我的总数:{},准备连接的ip:{}",
-                        connSize, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
+                connSize, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
                 boolean needConnection = true;//当前ip需要进行连接
                 for (MyChannel channel : cc.getMyChannels()) {
                     String remoteIP = channel.getRemoteIp();
