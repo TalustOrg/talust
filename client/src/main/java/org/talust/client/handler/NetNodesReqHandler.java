@@ -45,6 +45,7 @@ public class NetNodesReqHandler implements MessageHandler {
     @Override
     public boolean handle(MessageChannel message) {
         AllNodes an = new AllNodes();
+        //TODO from file to got all node ips
         Set<String> allNodeIps = ChannelContain.get().getAllNodeIps();
         String fromIp = message.getFromIp();
         if (fromIp != null) {
