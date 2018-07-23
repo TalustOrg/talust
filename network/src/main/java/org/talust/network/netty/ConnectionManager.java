@@ -25,29 +25,22 @@
 
 package org.talust.network.netty;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.talust.common.crypto.Utils;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 import org.talust.common.model.SuperNode;
-import org.talust.common.tools.CacheManager;
-import org.talust.common.tools.Configure;
-import org.talust.common.tools.Constant;
-import org.talust.common.tools.SerializationUtil;
+import org.talust.common.tools.*;
 import org.talust.network.model.AllNodes;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.client.NodeClient;
 import org.talust.network.netty.queue.MessageQueue;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -74,6 +67,10 @@ public class ConnectionManager {
     public boolean genesisIp = false;
     private int connSize = Configure.MAX_CONNECT_TO_COUNT;//节点允许主动连接其他节点数
     public String selfIp = null;//节点自身ip地址
+    private String peersFileDirPath = Configure.PEERS_PATH;
+    private String peerPath = peersFileDirPath + File.separator + "peers.json";
+    private String peerCont = null;
+    ;
     private MessageQueue mq = MessageQueue.get();
     //存储当前节点的ip地址,可能有多个
     private Set<String> myIps = new HashSet<>();
@@ -84,16 +81,155 @@ public class ConnectionManager {
      * 初始化方法,主要用于定时检测节点连接情况,发现连接数过少时,就需要同步一下连接
      */
     public void init() {
+        initSuperIps();
         //先初始化查看PEERS 文件是否存在
 
         //存在的话就读取文件进行连接，若某个IP无法连接，则从文件中移除。如果全部不可连接，则连接主节点进行文件重新写入
 
-        //不存在文件的话，连接主节点，获取peers，创建文件，将可连接的节点进行连接。
-
-
-
-        initSuperIps();
+        //不存在文件的话，连接主节点，获取peers，创建文件，将可连接的节点进行连接。写入文件内部。
+        if (!superNode) {
+            if (checkPeersFile()) {
+                initPeers();
+            }
+        }
         connectToNet();
+    }
+
+    /**
+     * 连接普通节点
+     */
+    private void initPeers() {
+        ChannelContain cc = ChannelContain.get();
+        JSONObject peerJ = JSONObject.parseObject(peerCont);
+        List<String> unusedIps = new ArrayList<>();
+        for (Object map : peerJ.entrySet()) {
+            String trust  = (String) ((Map.Entry) map).getValue();
+            String peerIp = (String) ((Map.Entry) map).getKey();
+            if (!trust.equals("0")) {
+                String status = connectByIp(peerIp, cc);
+                if (status.equals("FULL")) {
+                    break;
+                }
+                switch (status) {
+                    case "OK":
+                        peerJ.put(peerIp, ArithUtils.add(trust, "1"));
+                        break;
+                    case "FAIL":
+                        if (ArithUtils.sub(trust, "1").equals("0")) {
+                            unusedIps.add((String) ((Map.Entry) map).getKey());
+                        } else {
+                            peerJ.put(peerIp, ArithUtils.sub(trust, "1"));
+                        }
+                        break;
+                }
+            }
+        }
+        for (String ip : unusedIps) {
+            peerJ.remove(ip);
+        }
+        String peers = peerJ.toJSONString();
+        writePeersFile(peers);
+        //连接普通节点后，进行一次全节点更新
+    }
+
+    /**
+     * 链接单个节点
+     */
+    private String connectByIp(String ip, ChannelContain cc) {
+        try {//依次连接各个ip
+            int nowConnSize = cc.getActiveConnectionCount();
+            if (nowConnSize < connSize) {//说明当前节点的连接数达到了允许的值
+                log.error("我允许的主动连接总数:{},当前主动连接总数:{},连接我的总数:{},准备连接的ip:{}",
+                        connSize, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
+                boolean needConnection = true;//当前ip需要进行连接
+                for (MyChannel channel : cc.getMyChannels()) {
+                    String remoteIP = channel.getRemoteIp();
+                    if (remoteIP.equals(ip)) {//说明当前已经连接了此ip了的
+                        needConnection = false;
+                    }
+                }
+                if (needConnection) {
+                    log.info("本节点连接目标ip地址:{}", ip);
+                    NodeClient tmpnc = new NodeClient();
+                    Channel connect = tmpnc.connect(ip, Constant.PORT);
+                    cc.addChannel(connect, false);
+                }
+                return "OK";
+            } else {
+                return "FULL";
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return "FAIL";
+        }
+    }
+
+
+    /**
+     * 检查JSON文件是否存在,存在则读
+     */
+    private boolean checkPeersFile() {
+        File file = new File(peersFileDirPath);
+        if (!file.exists()) {
+            file.mkdirs();
+            return false;
+        } else {
+            File peerFile = new File(peerPath);
+            try {
+                if (!peerFile.exists()) {
+                    peerFile.createNewFile();
+                    FileOutputStream fos = new FileOutputStream(peerFile);
+                    fos.write("{}".getBytes());
+                    fos.close();
+                } else {
+                    peerCont = readToString(peerFile);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 写入JSON文件
+     */
+    private void writePeersFile(String peers) {
+        try {
+            File peerFile = new File(peerPath);
+            FileOutputStream fos = new FileOutputStream(peerFile);
+            fos.write(peers.getBytes());
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 读取文件
+     */
+    public String readToString(File file) {
+        String encoding = "UTF-8";
+        Long filelength = file.length();
+        byte[] filecontent = new byte[filelength.intValue()];
+        try {
+            FileInputStream in = new FileInputStream(file);
+            in.read(filecontent);
+            in.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            return new String(filecontent, encoding);
+        } catch (UnsupportedEncodingException e) {
+            System.err.println("The OS does not support " + encoding);
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -156,9 +292,6 @@ public class ConnectionManager {
                     log.info("当前节点是超级节点,将会连接所有网络的超级节点...");
                     connectAllSuperNode(sIps, cc);
                 } else {
-                    //TODO  save all node make a json file ,
-                    // if can't connect someone node ,
-                    // then we need to remove the node from the file
                     Collections.shuffle(normalIps);
                     connectNode(normalIps, cc);//优先连接普通节点
                     Collections.shuffle(sIps);
@@ -186,7 +319,7 @@ public class ConnectionManager {
                     break;
                 }
                 log.error("我允许的主动连接总数:{},当前主动连接总数:{},连接我的总数:{},准备连接的ip:{}",
-                connSize, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
+                        connSize, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
                 boolean needConnection = true;//当前ip需要进行连接
                 for (MyChannel channel : cc.getMyChannels()) {
                     String remoteIP = channel.getRemoteIp();
@@ -205,6 +338,10 @@ public class ConnectionManager {
             }
         }
     }
+    /**
+     * 链接单个节点
+     */
+
 
     /**
      * 连接所有超级节点
@@ -258,34 +395,34 @@ public class ConnectionManager {
 
         JSONObject gip = getJsonFile(Configure.GENESIS_SERVER_ADDR);
         JSONObject root = gip.getJSONObject("root");
-        CacheManager.get().put("ROOT_PK",root.get("publickey"));
-        CacheManager.get().put("ROOT_SIGN",root.get("sign"));
+        CacheManager.get().put("ROOT_PK", root.get("publickey"));
+        CacheManager.get().put("ROOT_SIGN", root.get("sign"));
         JSONObject talust = gip.getJSONObject("talust");
-        CacheManager.get().put("TALUST_PK",talust.get("publickey"));
-        CacheManager.get().put("TALUST_SIGN",talust.get("sign"));
+        CacheManager.get().put("TALUST_PK", talust.get("publickey"));
+        CacheManager.get().put("TALUST_SIGN", talust.get("sign"));
         if (myIps.contains(gip.getString("genesisIp"))) {
             genesisIp = true;//说明当前节点是创世块产生的ip
         }
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
         List<JSONObject> minings = new ArrayList<>();
-        for(Object map : ips.entrySet()){
-           JSONObject ipContent = (JSONObject) ((Map.Entry)map).getValue();
-           String ip  = ipContent.getString("ip");
+        for (Object map : ips.entrySet()) {
+            JSONObject ipContent = (JSONObject) ((Map.Entry) map).getValue();
+            String ip = ipContent.getString("ip");
             minings.add(ipContent);
             SuperNode snode = new SuperNode();
-            snode.setCode(Integer.parseInt((String)((Map.Entry)map).getKey()));
+            snode.setCode(Integer.parseInt((String) ((Map.Entry) map).getKey()));
             snode.setIp(ip);
             snode.setAddress(Utils.showAddress(Utils.getAddress(ipContent.getBytes("miningPublicKey"))));
-           if(!myIps.contains(ip)){
-               superIps.add(ip);
-           }else{
-               superNode = true;
-           }
+            if (!myIps.contains(ip)) {
+                superIps.add(ip);
+            } else {
+                superNode = true;
+            }
             superNodes.put(ip, snode);
         }
-        CacheManager.get().put("MININGS",minings);
-        if(null==selfIp){
-            selfIp=  myIps.iterator().next();
+        CacheManager.get().put("MININGS", minings);
+        if (null == selfIp) {
+            selfIp = myIps.iterator().next();
         }
         log.info("获得超级节点数为:{}", superIps.size());
     }

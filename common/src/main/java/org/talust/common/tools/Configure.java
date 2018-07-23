@@ -65,6 +65,11 @@ public final class Configure {
     public static String DATA_TRANSACTION = DATA_DIR + File.separator + "transaction";
 
     /**
+     * peers 文件储存目录
+     */
+    public static String PEERS_PATH  = DATA_DIR + File.separator + "peers";
+
+    /**
      * 最大允许节点连接数  // 这里指允许其他节点接入的数量
      */
     public static int MAX_CONNECT_COUNT = 3;
