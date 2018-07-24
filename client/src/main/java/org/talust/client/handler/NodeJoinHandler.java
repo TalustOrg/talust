@@ -36,26 +36,29 @@ import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.client.NodeClient;
 import org.talust.network.netty.queue.MessageQueueHolder;
 
-@Slf4j //节点加入到网络
+@Slf4j
 public class NodeJoinHandler implements MessageHandler {
-    private int connSize = Configure.MAX_CONNECT_TO_COUNT;//节点允许主动连接其他节点数
+    private int maxActiveConnectCount = Configure.MAX_ACTIVE_CONNECT_COUNT;
+    private int maxPassivityConnectCount =  Configure.MAX_PASSIVITY_CONNECT_COUNT;
     private MessageQueueHolder mqHolder = MessageQueueHolder.get();
 
     @Override
     public boolean handle(MessageChannel message) {
         String ip = new String(message.getMessage().getContent());
-        log.info("接收到节点ip:{} 加入网络的消息...", ip);
-        mqHolder.broadMessage(message);
-        ChannelContain.get().addNodeIp(ip);
+        log.info("接收到节点ip:{} 请求加入本节点网络的消息...", ip);
+        if(maxPassivityConnectCount-ChannelContain.get().getPassiveConnCount()>0){
+            ChannelContain.get().addNodeIp(ip);
+        }
         int activeConnectionCount = ChannelContain.get().getActiveConnectionCount();
-        if (activeConnectionCount < connSize) {//说明当前连接数过小,则再次启动连接
+        if (activeConnectionCount < maxActiveConnectCount) {
+            //说明当前连接数过小,可以进行相互连接
             if (!ConnectionManager.get().isSelfIp(ip)) {
-                log.info("当前节点要求主动连接其他节点的总结点数为:{},当前已经主动连接数为:{},将会连接ip:{}", connSize, activeConnectionCount, ip);
-                //TODO  节点加入，修改文件
+                log.info("当前节点要求主动连接其他节点的总结点数为:{},当前已经主动连接数为:{},将会连接ip:{}", maxActiveConnectCount, activeConnectionCount, ip);
                 try {
-                    NodeClient tmpnc = new NodeClient();
-                    Channel connect = tmpnc.connect(ip, Constant.PORT);
+                    NodeClient nodeClient = new NodeClient();
+                    Channel connect = nodeClient.connect(ip, Constant.PORT);
                     ChannelContain.get().addChannel(connect, false);
+                    //TODO  节点加入，修改文件
                 } catch (Exception e) {
                     //e.printStackTrace();
                 }

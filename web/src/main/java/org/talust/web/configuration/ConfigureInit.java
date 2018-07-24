@@ -46,8 +46,8 @@ public class ConfigureInit {
 
     @PostConstruct
     public void init() {
-        Configure.MAX_CONNECT_COUNT = maxConnectCount;
-        Configure.MAX_CONNECT_TO_COUNT = maxConnectToCount;
+        Configure.MAX_PASSIVITY_CONNECT_COUNT = maxConnectCount;
+        Configure.MAX_ACTIVE_CONNECT_COUNT = maxConnectToCount;
         Configure.MAX_SUPER_CONNECT_COUNT = maxSuperCount;
     }
 }
