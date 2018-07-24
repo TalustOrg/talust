@@ -43,6 +43,24 @@ public class PeersManager {
     private String peerPath = peersFileDirPath + File.separator + "peers.json";
     public String peerCont = "";
 
+    public void  initPeers(){
+        File file = new File(peersFileDirPath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        File peerFile = new File(peerPath);
+        try {
+            if (!peerFile.exists()) {
+                peerFile.createNewFile();
+                FileOutputStream fos = new FileOutputStream(peerFile);
+                fos.write("{}".getBytes());
+                fos.close();
+            }
+        }catch (Exception e ){
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 写入JSON文件
      */
