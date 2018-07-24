@@ -45,7 +45,11 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-//连接管理者,用于实现底层的连接,上层应用中不需要关心本层次的连接问题
+/**
+ * 连接管理者,用于实现底层的连接,上层应用中不需要关心本层次的连接问题
+ * @author
+ */
+
 @Slf4j
 public class ConnectionManager {
     private static ConnectionManager instance = new ConnectionManager();
@@ -57,36 +61,50 @@ public class ConnectionManager {
         return instance;
     }
 
-    //存储当前网络的超级节点ip地址
+    /**
+     * 存储当前网络的超级节点ip地址
+     */
     private Set<String> superIps = new ConcurrentSet<>();
-    //超级节点信息
+    /**
+     * 超级节点信息
+     */
     private Map<String, SuperNode> superNodes = new HashMap<>();
-    //当前节点是否是超级节点
+    /**
+     * 当前节点是否是超级节点
+     */
     public boolean superNode = false;
-    //当前节点是否是创世ip
+    /**
+     * 当前节点是否是创世ip
+     */
     public boolean genesisIp = false;
-    private int connSize = Configure.MAX_CONNECT_TO_COUNT;//节点允许主动连接其他节点数
-    public String selfIp = null;//节点自身ip地址
-    private MessageQueue mq = MessageQueue.get();
-    //存储当前节点的ip地址,可能有多个
-    private Set<String> myIps = new HashSet<>();
-    //主要用于判断当前节点是否可用,当同步网络完成之后,表示为可用,网络同步未完成,则表示为不可用
-    public AtomicBoolean amEnabled = new AtomicBoolean(false);
+    /**
+     * 节点允许主动连接其他节点数
+     */
+    private int connSize = Configure.MAX_CONNECT_TO_COUNT;
+    /**
+     * 节点自身ip地址
+     */
+    public String selfIp = null;
 
+    private MessageQueue mq = MessageQueue.get();
+    /**
+     * 存储当前节点的ip地址,可能有多个
+     */
+    private Set<String> myIps = new HashSet<>();
+    /**
+     * 主要用于判断当前节点是否可用,当同步网络完成之后,表示为可用,网络同步未完成,则表示为不可用
+     */
+    public AtomicBoolean amEnabled = new AtomicBoolean(false);
     /**
      * 初始化方法,主要用于定时检测节点连接情况,发现连接数过少时,就需要同步一下连接
      */
     public void init() {
         initSuperIps();
-        //先初始化查看PEERS 文件是否存在
-
-        //存在的话就读取文件进行连接，若某个IP无法连接，则从文件中移除。如果全部不可连接，则连接主节点进行文件重新写入
-
-        //不存在文件的话，连接主节点，获取peers，创建文件，将可连接的节点进行连接。写入文件内部。
         if (!superNode) {
             initPeers();
+        }else{
+            connectToNet();
         }
-        connectToNet();
     }
 
     /**
@@ -94,27 +112,34 @@ public class ConnectionManager {
      */
     private void initPeers() {
         ChannelContain cc = ChannelContain.get();
+        int nowConnSize = cc.getActiveConnectionCount();
         JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
         List<String> unusedIps = new ArrayList<>();
         for (Object map : peerJ.entrySet()) {
             String trust  = (String) ((Map.Entry) map).getValue();
             String peerIp = (String) ((Map.Entry) map).getKey();
-            if (!trust.equals("0")) {
+            if (!"0".equals(trust)) {
                 String status = connectByIp(peerIp, cc);
-                if (status.equals("FULL")) {
+                if ("FULL".equals(status)) {
                     break;
                 }
                 switch (status) {
                     case "OK":
                         peerJ.put(peerIp, ArithUtils.add(trust, "1"));
+                        try {
+                            getPeersOnline(peerIp,peerJ);
+                        } catch (Exception e) {
+                          continue;
+                        }
                         break;
                     case "FAIL":
-                        if (ArithUtils.sub(trust, "1").equals("0")) {
+                        if ("0".equals(ArithUtils.sub(trust, "1"))) {
                             unusedIps.add((String) ((Map.Entry) map).getKey());
                         } else {
                             peerJ.put(peerIp, ArithUtils.sub(trust, "1"));
                         }
                         break;
+                    default:break;
                 }
             }
         }
@@ -123,29 +148,41 @@ public class ConnectionManager {
         }
         String peers = peerJ.toJSONString();
         PeersManager.get().writePeersFile(peers);
-        //连接普通节点后，进行一次全节点更新
+        //如果依然没有连接，则判定文件内容不足或头一次进行主节点连接获取现存业务节点PEERS
+        if(nowConnSize==0){
+            for (String fixedIp : superIps) {
+                try {
+                    getPeersOnline(fixedIp,peerJ);
+                    break;
+                } catch (Exception e) {
+                    continue;
+                }
+            }
+        }
+        //进行全网广播确认本身节点已加入
+        nodesJoinBroadcast();
     }
 
     /**
      * 链接单个节点
      */
     private String connectByIp(String ip, ChannelContain cc) {
-        try {//依次连接各个ip
+        try {
             int nowConnSize = cc.getActiveConnectionCount();
-            if (nowConnSize < connSize) {//说明当前节点的连接数达到了允许的值
+            if (nowConnSize < connSize) {
                 log.error("我允许的主动连接总数:{},当前主动连接总数:{},连接我的总数:{},准备连接的ip:{}",
                         connSize, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
-                boolean needConnection = true;//当前ip需要进行连接
+                boolean needConnection = true;
                 for (MyChannel channel : cc.getMyChannels()) {
                     String remoteIP = channel.getRemoteIp();
-                    if (remoteIP.equals(ip)) {//说明当前已经连接了此ip了的
+                    if (remoteIP.equals(ip)) {
                         needConnection = false;
                     }
                 }
                 if (needConnection) {
                     log.info("本节点连接目标ip地址:{}", ip);
-                    NodeClient tmpnc = new NodeClient();
-                    Channel connect = tmpnc.connect(ip, Constant.PORT);
+                    NodeClient nodeClient = new NodeClient();
+                    Channel connect = nodeClient.connect(ip, Constant.PORT);
                     cc.addChannel(connect, false);
                 }
                 return "OK";
@@ -157,13 +194,31 @@ public class ConnectionManager {
             return "FAIL";
         }
     }
-
-
-
-
+    /**
+     * 获取连接节点的已连接peers 数据
+     */
+    public void getPeersOnline(String peersIp,JSONObject peersNow) throws Exception {
+        NodeClient nc = new NodeClient();
+        Channel channel = nc.connect(peersIp, Constant.PORT);
+        ChannelContain.get().addChannel(channel, false);
+        Message nm = new Message();
+        nm.setType(MessageType.NODES_REQ.getType());
+        log.info("向节点ip:{} 请求当前网络的所有节点...", peersIp);
+        InetSocketAddress inetSocketAddress = (InetSocketAddress) channel.remoteAddress();
+        String remoteIp = inetSocketAddress.getAddress().getHostAddress();
+        MessageChannel message = SynRequest.get().synReq(nm, remoteIp);
+        if (message != null) {
+            JSONObject peers = SerializationUtil.deserializer(message.getMessage().getContent(), JSONObject.class);
+            peers.putAll(peersNow);
+            PeersManager.get().writePeersFile(peers.toJSONString());
+            if (peers != null && peers.keySet().size()>0) {
+                log.info("节点ip:{} 返回当前网络的所有节点数:{}", peersIp,  peers.keySet().size());
+            }
+        }
+    }
 
     /**
-     * 连接到网络各个节点
+     * 连接到超级节点各个节点
      */
     private void connectToNet() {
         List<String> snodes = new ArrayList<>(superIps.size());
@@ -176,38 +231,26 @@ public class ConnectionManager {
         if (size > 0) {
             List<String> nodes = null;
             Random rand = new Random();
-            while (size > 0) {//确保能够成功连接到一台节点获得当前所有连接
-                int selNode = rand.nextInt(size);//随机选择一台固定节点以获取当前所有可用的网络节点
+            while (size > 0) {
+                //确保能够成功连接到一台节点获得当前所有连接
+                int selNode = rand.nextInt(size);
+                //随机选择一台固定节点以获取当前所有可用的网络节点
                 String node = snodes.get(selNode);
                 try {
-                    NodeClient nc = new NodeClient();
-                    Channel channel = nc.connect(node, Constant.PORT);
-                    ChannelContain.get().addChannel(channel, false);
-                    Message nm = new Message();
-                    nm.setType(MessageType.NODES_REQ.getType());
-                    log.info("向节点ip:{} 请求当前网络的所有节点...", node);
-                    InetSocketAddress insocket = (InetSocketAddress) channel.remoteAddress();
-                    String remoteIp = insocket.getAddress().getHostAddress();
-                    MessageChannel message = SynRequest.get().synReq(nm, remoteIp);
-                    if (message != null) {//说明有数据返回,即请求成功
-                        JSONObject peers = SerializationUtil.deserializer(message.getMessage().getContent(), JSONObject.class);
-                        if (peers != null && peers.keySet().size()>0) {
-                            log.info("节点ip:{} 返回当前网络的所有节点数:{}", node,  peers.keySet().size());
-                            break;
-                        }
-                    }
-                } catch (Throwable e) {
-                    log.info("连接ip:{} 失败,未能成功连接该节点...", node);
+                    getPeersOnline(node,new JSONObject());
+                    break;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
                 snodes.remove(selNode);
                 size = snodes.size();
             }
-
-            if (nodes != null && nodes.size() > 0) {//
+            if (nodes != null && nodes.size() > 0) {
                 List<String> sIps = new ArrayList<>();
                 List<String> normalIps = new ArrayList<>();
                 for (String nodeIp : nodes) {
-                    cc.addNodeIp(nodeIp);//将这些返回的节点加入到本地用于存储网络节点记录中
+                    cc.addNodeIp(nodeIp);
+                    //将这些返回的节点加入到本地用于存储网络节点记录中
                     log.info("返回的节点ip:{}", nodeIp);
                     if (this.superIps.contains(nodeIp)) {
                         sIps.add(nodeIp);
@@ -216,59 +259,24 @@ public class ConnectionManager {
                     }
                 }
                 log.info("当前所有网络中,超级节点数:{},普通节点数:{}", sIps.size(), normalIps.size());
-                if (superNode) {//如果当前是超级节点,则依次连接所有的超级节点
-                    log.info("当前节点是超级节点,将会连接所有网络的超级节点...");
-                    connectAllSuperNode(sIps, cc);
-                } else {
-                    Collections.shuffle(normalIps);
-                    connectNode(normalIps, cc);//优先连接普通节点
-                    Collections.shuffle(sIps);
-                    connectNode(sIps, cc);//然后再连接超级节点
-                }
-                if (selfIp != null && selfIp.length() > 0) {
-                    Message nodeMessage = new Message();
-                    nodeMessage.setType(MessageType.NODE_JOIN.getType());
-                    nodeMessage.setContent(selfIp.getBytes());
-                    log.info("向当前网络发送当前节点ip:{}", selfIp);
-                    MessageChannel mc = new MessageChannel();
-                    mc.setMessage(nodeMessage);
-                    mq.addMessage(mc);
-                }
+                connectAllSuperNode(sIps, cc);
+                nodesJoinBroadcast();
             }
         }
     }
 
-    private void connectNode(List<String> nodeIps, ChannelContain cc) {
-        for (String ip : nodeIps) {
-            try {//依次连接各个ip
-                int nowConnSize = cc.getActiveConnectionCount();
-
-                if (nowConnSize >= connSize) {//说明当前节点的连接数达到了允许的值
-                    break;
-                }
-                log.error("我允许的主动连接总数:{},当前主动连接总数:{},连接我的总数:{},准备连接的ip:{}",
-                        connSize, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
-                boolean needConnection = true;//当前ip需要进行连接
-                for (MyChannel channel : cc.getMyChannels()) {
-                    String remoteIP = channel.getRemoteIp();
-                    if (remoteIP.equals(ip)) {//说明当前已经连接了此ip了的
-                        needConnection = false;
-                    }
-                }
-                if (needConnection) {
-                    log.info("本节点连接目标ip地址:{}", ip);
-                    NodeClient tmpnc = new NodeClient();
-                    Channel connect = tmpnc.connect(ip, Constant.PORT);
-                    cc.addChannel(connect, false);
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }
-    }
     /**
-     * 链接单个节点
+     * 全网广播本身节点加入
      */
+    public void nodesJoinBroadcast(){
+        Message nodeMessage = new Message();
+        nodeMessage.setType(MessageType.NODE_JOIN.getType());
+        nodeMessage.setContent(selfIp.getBytes());
+        log.info("向当前网络发送当前节点ip:{}", selfIp);
+        MessageChannel mc = new MessageChannel();
+        mc.setMessage(nodeMessage);
+        mq.addMessage(mc);
+    }
 
 
     /**
@@ -280,10 +288,10 @@ public class ConnectionManager {
     private void connectAllSuperNode(List<String> nodeIps, ChannelContain cc) {
         for (String ip : nodeIps) {
             try {//依次连接各个ip
-                boolean needConnection = true;//当前ip需要进行连接
+                boolean needConnection = true;
                 for (MyChannel channel : cc.getMyChannels()) {
                     String remoteIP = channel.getRemoteIp();
-                    if (remoteIP.equals(ip)) {//说明当前已经连接了此ip了的
+                    if (remoteIP.equals(ip)) {
                         needConnection = false;
                     }
                 }
@@ -312,8 +320,9 @@ public class ConnectionManager {
                 Enumeration<?> e2 = ni.getInetAddresses();
                 while (e2.hasMoreElements()) {
                     InetAddress ia = (InetAddress) e2.nextElement();
-                    if (ia instanceof Inet6Address)
+                    if (ia instanceof Inet6Address){
                         continue;
+                    }
                     myIps.add(ia.getHostAddress());
                 }
             }
@@ -329,7 +338,7 @@ public class ConnectionManager {
         CacheManager.get().put("TALUST_PK", talust.get("publickey"));
         CacheManager.get().put("TALUST_SIGN", talust.get("sign"));
         if (myIps.contains(gip.getString("genesisIp"))) {
-            genesisIp = true;//说明当前节点是创世块产生的ip
+            genesisIp = true;
         }
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
         List<JSONObject> minings = new ArrayList<>();
@@ -373,26 +382,26 @@ public class ConnectionManager {
      * @return
      */
     private String getIps(String filePath) {
-        int HttpResult; // 服务器返回的状态
+        int HttpResult;
         String ee = new String();
         try {
-            URL url = new URL(filePath); // 创建URL
-            URLConnection urlconn = url.openConnection(); // 试图连接并取得返回状态码
+            URL url = new URL(filePath);
+            URLConnection urlconn = url.openConnection();
             urlconn.connect();
             HttpURLConnection httpconn = (HttpURLConnection) urlconn;
             HttpResult = httpconn.getResponseCode();
-            if (HttpResult != HttpURLConnection.HTTP_OK) // 不等于HTTP_OK说明连接不成功
+            if (HttpResult != HttpURLConnection.HTTP_OK)
             {
                 log.error("无法连接到服务器获取节点列表...");
             } else {
                 InputStreamReader isReader = new InputStreamReader(urlconn.getInputStream());
                 BufferedReader reader = new BufferedReader(isReader);
                 StringBuffer buffer = new StringBuffer();
-                String line; // 用来保存每行读取的内容
-                line = reader.readLine(); // 读取第一行
-                while (line != null) { // 如果 line 为空说明读完了
-                    buffer.append(line); // 将读到的内容添加到 buffer 中
-                    line = reader.readLine(); // 读取下一行
+                String line;
+                line = reader.readLine();
+                while (line != null) {
+                    buffer.append(line);
+                    line = reader.readLine();
                 }
                 ee = buffer.toString();
             }
@@ -404,8 +413,6 @@ public class ConnectionManager {
 
     /**
      * 获取超级网络节点
-     *
-     * @return
      */
     public Set<String> getSuperIps() {
         return superIps;
@@ -413,9 +420,6 @@ public class ConnectionManager {
 
     /**
      * 判断ip是否是本节点的ip
-     *
-     * @param ip
-     * @return
      */
     public boolean isSelfIp(String ip) {
         return myIps.contains(ip);
@@ -423,8 +427,6 @@ public class ConnectionManager {
 
     /**
      * 判断当前ip是否是超级节点
-     *
-     * @return
      */
     public boolean isSuperNode() {
         for (String myIp : myIps) {
@@ -437,8 +439,6 @@ public class ConnectionManager {
 
     /**
      * 返回当前节点的ip地址,即对外的ip地址
-     *
-     * @return
      */
     public String getSelfIp() {
         return this.selfIp;
@@ -450,9 +450,6 @@ public class ConnectionManager {
 
     /**
      * 获取超级节点的信息
-     *
-     * @param superIp
-     * @return
      */
     public SuperNode getSuperNodeByIp(String superIp) {
         return superNodes.get(superIp);
