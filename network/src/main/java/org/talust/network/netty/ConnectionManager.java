@@ -84,9 +84,7 @@ public class ConnectionManager {
 
         //不存在文件的话，连接主节点，获取peers，创建文件，将可连接的节点进行连接。写入文件内部。
         if (!superNode) {
-            if (PeersManager.get().checkPeersFile()) {
-                initPeers();
-            }
+            initPeers();
         }
         connectToNet();
     }

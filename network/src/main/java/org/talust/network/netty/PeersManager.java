@@ -55,6 +55,9 @@ public class PeersManager {
                 FileOutputStream fos = new FileOutputStream(peerFile);
                 fos.write("{}".getBytes());
                 fos.close();
+                peerCont="{}";
+            } else {
+                peerCont = FileUtil.fileToTxt(peerFile);
             }
         }catch (Exception e ){
             e.printStackTrace();
@@ -76,39 +79,4 @@ public class PeersManager {
             e.printStackTrace();
         }
     }
-
-    /**
-     * 读取文件
-     */
-
-
-
-    /**
-     * 检查JSON文件是否存在,存在则读
-     */
-    public boolean checkPeersFile() {
-        File file = new File(peersFileDirPath);
-        if (!file.exists()) {
-            file.mkdirs();
-            return false;
-        } else {
-            File peerFile = new File(peerPath);
-            try {
-                if (!peerFile.exists()) {
-                    peerFile.createNewFile();
-                    FileOutputStream fos = new FileOutputStream(peerFile);
-                    fos.write("{}".getBytes());
-                    fos.close();
-                } else {
-                    peerCont = FileUtil.fileToTxt(peerFile);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return true;
-    }
-
 }
