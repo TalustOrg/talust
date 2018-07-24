@@ -67,10 +67,6 @@ public class ConnectionManager {
     public boolean genesisIp = false;
     private int connSize = Configure.MAX_CONNECT_TO_COUNT;//节点允许主动连接其他节点数
     public String selfIp = null;//节点自身ip地址
-    private String peersFileDirPath = Configure.PEERS_PATH;
-    private String peerPath = peersFileDirPath + File.separator + "peers.json";
-    private String peerCont = null;
-    ;
     private MessageQueue mq = MessageQueue.get();
     //存储当前节点的ip地址,可能有多个
     private Set<String> myIps = new HashSet<>();
@@ -88,7 +84,7 @@ public class ConnectionManager {
 
         //不存在文件的话，连接主节点，获取peers，创建文件，将可连接的节点进行连接。写入文件内部。
         if (!superNode) {
-            if (checkPeersFile()) {
+            if (PeersManager.get().checkPeersFile()) {
                 initPeers();
             }
         }
@@ -100,7 +96,7 @@ public class ConnectionManager {
      */
     private void initPeers() {
         ChannelContain cc = ChannelContain.get();
-        JSONObject peerJ = JSONObject.parseObject(peerCont);
+        JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
         List<String> unusedIps = new ArrayList<>();
         for (Object map : peerJ.entrySet()) {
             String trust  = (String) ((Map.Entry) map).getValue();
@@ -128,7 +124,7 @@ public class ConnectionManager {
             peerJ.remove(ip);
         }
         String peers = peerJ.toJSONString();
-        writePeersFile(peers);
+        PeersManager.get().writePeersFile(peers);
         //连接普通节点后，进行一次全节点更新
     }
 
@@ -165,72 +161,8 @@ public class ConnectionManager {
     }
 
 
-    /**
-     * 检查JSON文件是否存在,存在则读
-     */
-    private boolean checkPeersFile() {
-        File file = new File(peersFileDirPath);
-        if (!file.exists()) {
-            file.mkdirs();
-            return false;
-        } else {
-            File peerFile = new File(peerPath);
-            try {
-                if (!peerFile.exists()) {
-                    peerFile.createNewFile();
-                    FileOutputStream fos = new FileOutputStream(peerFile);
-                    fos.write("{}".getBytes());
-                    fos.close();
-                } else {
-                    peerCont = readToString(peerFile);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return true;
-    }
 
-    /**
-     * 写入JSON文件
-     */
-    private void writePeersFile(String peers) {
-        try {
-            File peerFile = new File(peerPath);
-            FileOutputStream fos = new FileOutputStream(peerFile);
-            fos.write(peers.getBytes());
-            fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    /**
-     * 读取文件
-     */
-    public String readToString(File file) {
-        String encoding = "UTF-8";
-        Long filelength = file.length();
-        byte[] filecontent = new byte[filelength.intValue()];
-        try {
-            FileInputStream in = new FileInputStream(file);
-            in.read(filecontent);
-            in.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            return new String(filecontent, encoding);
-        } catch (UnsupportedEncodingException e) {
-            System.err.println("The OS does not support " + encoding);
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     /**
      * 连接到网络各个节点
@@ -260,17 +192,15 @@ public class ConnectionManager {
                     String remoteIp = insocket.getAddress().getHostAddress();
                     MessageChannel message = SynRequest.get().synReq(nm, remoteIp);
                     if (message != null) {//说明有数据返回,即请求成功
-                        AllNodes allNodes = SerializationUtil.deserializer(message.getMessage().getContent(), AllNodes.class);
-                        if (allNodes != null && allNodes.getNodes() != null) {
-                            nodes = allNodes.getNodes();
-                            log.info("节点ip:{} 返回当前网络的所有节点数:{}", node, nodes.size());
+                        JSONObject peers = SerializationUtil.deserializer(message.getMessage().getContent(), JSONObject.class);
+                        if (peers != null && peers.keySet().size()>0) {
+                            log.info("节点ip:{} 返回当前网络的所有节点数:{}", node,  peers.keySet().size());
                             break;
                         }
                     }
                 } catch (Throwable e) {
                     log.info("连接ip:{} 失败,未能成功连接该节点...", node);
                 }
-                //如果到此处则说明当前的节点是有问题的,则重新选择另外一个节点
                 snodes.remove(selNode);
                 size = snodes.size();
             }

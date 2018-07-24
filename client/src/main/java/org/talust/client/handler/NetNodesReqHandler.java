@@ -26,6 +26,7 @@
 package org.talust.client.handler;
 
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
@@ -33,11 +34,9 @@ import org.talust.common.model.MessageType;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.network.MessageHandler;
 import org.talust.network.model.AllNodes;
-import org.talust.network.netty.ChannelContain;
+import org.talust.network.netty.PeersManager;
 import org.talust.network.netty.queue.MessageQueue;
 
-import java.util.List;
-import java.util.Set;
 
 @Slf4j //请求本节点当前存储的所有网络节点
 public class NetNodesReqHandler implements MessageHandler {
@@ -45,19 +44,8 @@ public class NetNodesReqHandler implements MessageHandler {
     @Override
     public boolean handle(MessageChannel message) {
         AllNodes an = new AllNodes();
-        //TODO from file to got all node ips
-        Set<String> allNodeIps = ChannelContain.get().getAllNodeIps();
-        String fromIp = message.getFromIp();
-        if (fromIp != null) {
-            List<String> allNodes = an.getNodes();
-            for (String nodeIp : allNodeIps) {
-                if (!nodeIp.equals(fromIp)) {
-                    allNodes.add(nodeIp);
-                }
-            }
-        }
-
-        byte[] serializer = SerializationUtil.serializer(an);
+        JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
+        byte[] serializer = SerializationUtil.serializer(peerJ);
         Message alm = new Message();
         alm.setType(MessageType.NODES_RESP.getType());
         alm.setContent(serializer);
@@ -66,8 +54,7 @@ public class NetNodesReqHandler implements MessageHandler {
         mc.setMessage(alm);
         mc.setToIp(message.getFromIp());
         mq.addMessage(mc);
-        log.info("向远端ip:{} 返回所请求的所有节点消息,当前网络节点数:{}", message.getFromIp(), allNodeIps.size());
-
+        log.info("向远端ip:{} 返回所请求的所有节点消息,当前网络节点数:{}", message.getFromIp(), peerJ.entrySet().size());
         return true;
     }
 }

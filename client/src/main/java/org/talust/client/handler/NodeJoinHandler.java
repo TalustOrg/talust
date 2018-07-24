@@ -51,6 +51,7 @@ public class NodeJoinHandler implements MessageHandler {
         if (activeConnectionCount < connSize) {//说明当前连接数过小,则再次启动连接
             if (!ConnectionManager.get().isSelfIp(ip)) {
                 log.info("当前节点要求主动连接其他节点的总结点数为:{},当前已经主动连接数为:{},将会连接ip:{}", connSize, activeConnectionCount, ip);
+                //TODO  节点加入，修改文件
                 try {
                     NodeClient tmpnc = new NodeClient();
                     Channel connect = tmpnc.connect(ip, Constant.PORT);
