@@ -122,7 +122,7 @@
         </encoder>
     </appender>
 
-    <logger name="org" level="ERROR" />
+    <logger name="org" level="INFO" />
 
     <root level="DEBUG">
         <appender-ref ref="FILE_ERROR" />

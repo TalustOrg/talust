@@ -1,7 +1,7 @@
 package org.talust;
 
 import org.rocksdb.*;
-import org.talust.chain.common.tools.Configure;
+import org.talust.common.tools.Configure;
 
 import java.util.ArrayList;
 import java.util.List;
