@@ -25,7 +25,10 @@
 
 package org.talust.client.handler;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import io.netty.channel.Channel;
+import io.netty.handler.codec.json.JsonObjectDecoder;
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
@@ -36,9 +39,13 @@ import org.talust.common.tools.SerializationUtil;
 import org.talust.network.MessageHandler;
 import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.ConnectionManager;
+import org.talust.network.netty.PeersManager;
 import org.talust.network.netty.client.NodeClient;
 import org.talust.network.netty.queue.MessageQueue;
 import org.talust.network.netty.queue.MessageQueueHolder;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 public class NodeJoinHandler implements MessageHandler {
@@ -50,10 +57,12 @@ public class NodeJoinHandler implements MessageHandler {
     public boolean handle(MessageChannel message) {
         String ip = new String(message.getMessage().getContent());
         log.info("接收到节点ip:{} 请求加入本节点网络的消息...", ip);
-        boolean result = false;
+        String result = "false";
         if(maxPassivityConnectCount-ChannelContain.get().getPassiveConnCount()>0){
-            result = true;
-            //TODO  节点加入，修改文件
+            result = "true";
+            JSONObject peer = new JSONObject();
+            peer.put(ip,"1");
+            PeersManager.get().addPeer(peer);
         }
         byte[] serializer = SerializationUtil.serializer(result);
         Message alm = new Message();

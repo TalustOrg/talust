@@ -23,6 +23,7 @@ package org.talust.network.netty;/*
  *
  */
 
+import com.alibaba.fastjson.JSONObject;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
 
@@ -76,6 +77,40 @@ public class PeersManager {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addPeer(JSONObject peers){
+        try {
+            File peerFile = new File(peerPath);
+            JSONObject nowPeers  = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
+            nowPeers.putAll(peers);
+            FileOutputStream fos = new FileOutputStream(peerFile);
+            fos.write(nowPeers.toJSONString().getBytes());
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removePeer(String peerIp){
+        try {
+            File peerFile = new File(peerPath);
+            JSONObject nowPeers  = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
+            nowPeers.remove(peerIp);
+            FileOutputStream fos = new FileOutputStream(peerFile);
+            fos.write(nowPeers.toJSONString().getBytes());
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

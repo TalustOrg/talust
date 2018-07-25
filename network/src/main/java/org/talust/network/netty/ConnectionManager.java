@@ -266,7 +266,7 @@ public class ConnectionManager {
             Message message = new Message();
             message.setType(MessageType.NODE_JOIN.getType());
             message.setContent(selfIp.getBytes());
-            log.info("向当前网络发送当前节点ip:{}", selfIp);
+            log.info("向地址{}发送当前节点ip:{}的连接请求",ip, selfIp);
             MessageChannel  messageChannel = SynRequest.get().synReq(message, ip);
             if (messageChannel != null) {
                 String  nodeJoinResp = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), String.class);
@@ -274,6 +274,8 @@ public class ConnectionManager {
                 if (Boolean.parseBoolean(nodeJoinResp)) {
                     return true;
                 }
+            }else{
+                log.info("连接节点ip:{}，请求失败", ip);
             }
         } catch (Exception e) {
             log.info("连接节点ip:{}，请求失败", ip);

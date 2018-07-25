@@ -74,11 +74,11 @@ public final class Configure {
     public static String PEERS_PATH  = DATA_DIR + File.separator + "peers";
 
     /**
-     * 最大允许节点连接数  // 这里指允许其他节点接入的数量
+     * 最大被动连接数
      */
     public static int MAX_PASSIVITY_CONNECT_COUNT = 3;
     /**
-     * 最大主动连接其他节点的数量,主动连接数要少于被动连接数
+     * 最大主动连接数
      */
     public static int MAX_ACTIVE_CONNECT_COUNT = 2;
     /**
