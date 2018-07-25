@@ -28,6 +28,7 @@ import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
 
 import java.io.*;
+import java.util.List;
 
 public class PeersManager {
     private static PeersManager instance = new PeersManager();
@@ -44,7 +45,7 @@ public class PeersManager {
     private String peerPath = peersFileDirPath + File.separator + "peers.json";
     public String peerCont = "";
 
-    public void  initPeers(){
+    public void initPeers() {
         File file = new File(peersFileDirPath);
         if (!file.exists()) {
             file.mkdirs();
@@ -56,11 +57,11 @@ public class PeersManager {
                 FileOutputStream fos = new FileOutputStream(peerFile);
                 fos.write("{}".getBytes());
                 fos.close();
-                peerCont="{}";
+                peerCont = "{}";
             } else {
                 peerCont = FileUtil.fileToTxt(peerFile);
             }
-        }catch (Exception e ){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -81,10 +82,10 @@ public class PeersManager {
         }
     }
 
-    public void addPeer(JSONObject peers){
+    public void addPeer(JSONObject peers) {
         try {
             File peerFile = new File(peerPath);
-            JSONObject nowPeers  = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
+            JSONObject nowPeers = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
             nowPeers.putAll(peers);
             FileOutputStream fos = new FileOutputStream(peerFile);
             fos.write(nowPeers.toJSONString().getBytes());
@@ -98,11 +99,13 @@ public class PeersManager {
         }
     }
 
-    public void removePeer(String peerIp){
+    public void removePeer(List<String> ips) {
         try {
             File peerFile = new File(peerPath);
-            JSONObject nowPeers  = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
-            nowPeers.remove(peerIp);
+            JSONObject nowPeers = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
+            for (String ip : ips) {
+                nowPeers.remove(ip);
+            }
             FileOutputStream fos = new FileOutputStream(peerFile);
             fos.write(nowPeers.toJSONString().getBytes());
             fos.close();
