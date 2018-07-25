@@ -35,7 +35,8 @@ public enum MessageType {
     HEIGHT_RESP(8),//区块高度响应
     BLOCK_REQ(9),//获取区块请求
     BLOCK_RESP(10),//获取区块响应
-    NODE_JOIN(11),//节点加入
+    NODE_JOIN(11),//节点申请加入
+    NODE_JOIN_RESP(21),//节点加入结果
     NODE_EXIT(12),//节点退出
     ERROR_MESSAGE(13),//错误消息处理,一般针对请求响应模型才会有,遇到此种情况,直接向异步请求端投递即可
     TRANSACTION(14),//接收到交易数据

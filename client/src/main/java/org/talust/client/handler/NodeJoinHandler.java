@@ -27,43 +27,43 @@ package org.talust.client.handler;
 
 import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
+import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
+import org.talust.common.model.MessageType;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.Constant;
+import org.talust.common.tools.SerializationUtil;
 import org.talust.network.MessageHandler;
 import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.client.NodeClient;
+import org.talust.network.netty.queue.MessageQueue;
 import org.talust.network.netty.queue.MessageQueueHolder;
 
 @Slf4j
 public class NodeJoinHandler implements MessageHandler {
     private int maxActiveConnectCount = Configure.MAX_ACTIVE_CONNECT_COUNT;
     private int maxPassivityConnectCount =  Configure.MAX_PASSIVITY_CONNECT_COUNT;
-    private MessageQueueHolder mqHolder = MessageQueueHolder.get();
+    private MessageQueue mq = MessageQueue.get();
 
     @Override
     public boolean handle(MessageChannel message) {
         String ip = new String(message.getMessage().getContent());
         log.info("接收到节点ip:{} 请求加入本节点网络的消息...", ip);
+        boolean result = false;
         if(maxPassivityConnectCount-ChannelContain.get().getPassiveConnCount()>0){
-            ChannelContain.get().addNodeIp(ip);
+            result = true;
+            //TODO  节点加入，修改文件
         }
-        int activeConnectionCount = ChannelContain.get().getActiveConnectionCount();
-        if (activeConnectionCount < maxActiveConnectCount) {
-            //说明当前连接数过小,可以进行相互连接
-            if (!ConnectionManager.get().isSelfIp(ip)) {
-                log.info("当前节点要求主动连接其他节点的总结点数为:{},当前已经主动连接数为:{},将会连接ip:{}", maxActiveConnectCount, activeConnectionCount, ip);
-                try {
-                    NodeClient nodeClient = new NodeClient();
-                    Channel connect = nodeClient.connect(ip, Constant.PORT);
-                    ChannelContain.get().addChannel(connect, false);
-                    //TODO  节点加入，修改文件
-                } catch (Exception e) {
-                    //e.printStackTrace();
-                }
-            }
-        }
+        byte[] serializer = SerializationUtil.serializer(result);
+        Message alm = new Message();
+        alm.setType(MessageType.NODE_JOIN_RESP.getType());
+        alm.setContent(serializer);
+        alm.setMsgCount(message.getMessage().getMsgCount());
+        MessageChannel mc = new MessageChannel();
+        mc.setMessage(alm);
+        mc.setToIp(message.getFromIp());
+        mq.addMessage(mc);
         return true;
     }
 }

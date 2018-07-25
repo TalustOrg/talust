@@ -119,6 +119,7 @@ public class BlockChainServer {
         addHandler(MessageType.BLOCK_RESP, new BlockDataRespHandler());
         addHandler(MessageType.ERROR_MESSAGE, new ErrorMessageHandler());
         addHandler(MessageType.NODE_JOIN, new NodeJoinHandler());
+        addHandler(MessageType.NODE_JOIN_RESP, new NodeJoinRespHandler());
         addHandler(MessageType.NODE_EXIT, new NodeExitHandler());
         addHandler(MessageType.TRANSACTION, new TransactionHandler());
         addHandler(MessageType.MASTER_REQ, new MasterReqHandler());

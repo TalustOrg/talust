@@ -77,7 +77,7 @@ public class ChannelContain {
         String localIp = loSocket.getAddress().getHostAddress();
         myChannel.setLocalIp(localIp);
         mapChannel.put(remoteIp, myChannel);
-        if (superIps.contains(remoteIp)) {//对方是超级节点
+        if (superIps.contains(remoteIp)) {
             superChannel.put(remoteIp, myChannel);
         }
         allNodeIps.add(remoteIp);
@@ -114,28 +114,6 @@ public class ChannelContain {
 
     public Collection<MyChannel> getSuperChannels() {
         return superChannel.values();
-    }
-
-    /**
-     * 新增一个网络节点ip
-     *
-     * @param ip
-     */
-    public void addNodeIp(String ip) {
-        allNodeIps.add(ip);
-        printChannel();
-    }
-
-    /**
-     * 移除某个网络节点ip
-     *
-     * @param ip
-     */
-    public void removeNodeIp(String ip) {
-        allNodeIps.remove(ip);
-        mapChannel.remove(ip);
-        superChannel.remove(ip);
-        printChannel();
     }
 
     /**

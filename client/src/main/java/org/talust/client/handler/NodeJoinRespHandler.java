@@ -1,4 +1,4 @@
-/*
+package org.talust.client.handler;/*
  * MIT License
  *
  * Copyright (c) 2017-2018 talust.org talust.io
@@ -23,30 +23,21 @@
  *
  */
 
-
-package org.talust.client.handler;
-
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.model.MessageChannel;
-import org.talust.common.tools.CacheManager;
-import org.talust.common.tools.Configure;
 import org.talust.network.MessageHandler;
-import org.talust.network.netty.ChannelContain;
-import org.talust.network.netty.queue.MessageQueueHolder;
+import org.talust.network.netty.SynRequest;
 
-@Slf4j //节点退出网络
-public class NodeExitHandler implements MessageHandler {
-
+/**
+ * @author Axe-Liu
+ * @date 2018/7/25.
+ */
+@Slf4j
+public class NodeJoinRespHandler implements MessageHandler {
     @Override
     public boolean handle(MessageChannel message) {
-        String ip = new String(message.getMessage().getContent());
-        log.info("接收到节点ip:{} 退出的消息...", ip);
-        String time = message.getMessage().getTime().toString();
-        String identifier = (ip + time);
-        boolean checkRepeat = CacheManager.get().checkRepeat(identifier, Configure.BLOCK_GEN_TIME);
-        if (!checkRepeat) {
-            MessageQueueHolder.get().broadMessage(message);
-        }
+        log.info("远端ip:{} 返回是否可以连接本节点...", message.getFromIp());
+        SynRequest.get().synResp(message);
         return true;
     }
 }

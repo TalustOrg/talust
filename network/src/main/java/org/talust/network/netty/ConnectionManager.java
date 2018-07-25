@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 连接管理者,用于实现底层的连接,上层应用中不需要关心本层次的连接问题
+ *
  * @author
  */
 
@@ -95,6 +96,7 @@ public class ConnectionManager {
      * 主要用于判断当前节点是否可用,当同步网络完成之后,表示为可用,网络同步未完成,则表示为不可用
      */
     public AtomicBoolean amEnabled = new AtomicBoolean(false);
+
     /**
      * 初始化方法,主要用于定时检测节点连接情况,发现连接数过少时,就需要同步一下连接
      */
@@ -102,7 +104,7 @@ public class ConnectionManager {
         initSuperIps();
         if (!superNode) {
             normalNodeJoin();
-        }else{
+        } else {
             superNodeJoin();
         }
 
@@ -114,10 +116,10 @@ public class ConnectionManager {
     private void normalNodeJoin() {
         ChannelContain cc = ChannelContain.get();
         JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
-        while(peerJ.entrySet().size()==0){
+        while (peerJ.entrySet().size() == 0) {
             for (String fixedIp : superIps) {
                 try {
-                    peerJ=getPeersOnline(fixedIp,peerJ);
+                    peerJ = getPeersOnline(fixedIp, peerJ);
                     break;
                 } catch (Exception e) {
                     continue;
@@ -126,26 +128,28 @@ public class ConnectionManager {
         }
         List<String> unusedIps = new ArrayList<>();
         for (Object map : peerJ.entrySet()) {
-            String trust  = (String) ((Map.Entry) map).getValue();
+            String trust = (String) ((Map.Entry) map).getValue();
             String peerIp = (String) ((Map.Entry) map).getKey();
             if (!"0".equals(trust)) {
-                String status = connectByIp(peerIp, cc);
-                if ("FULL".equals(status)) {
-                    break;
-                }
-                switch (status) {
-                    case "OK":
-                        nodesJoinBroadcast(peerIp);
-                        try {
-                            getPeersOnline(peerIp,peerJ);
-                        } catch (Exception e) {
-                            continue;
-                        }
+                if(nodesJoinBroadcast(peerIp)){
+                    String status = connectByIp(peerIp, cc);
+                    if ("FULL".equals(status)) {
                         break;
-                    case "FAIL":
+                    }
+                    switch (status) {
+                        case "OK":
+                            try {
+                                getPeersOnline(peerIp, peerJ);
+                            } catch (Exception e) {
+                                continue;
+                            }
+                            break;
+                        case "FAIL":
                             unusedIps.add((String) ((Map.Entry) map).getKey());
                             break;
-                    default:break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -154,7 +158,7 @@ public class ConnectionManager {
         }
         String peers = peerJ.toJSONString();
         PeersManager.get().writePeersFile(peers);
-        if(cc.getActiveConnectionCount()==0){
+        if (cc.getActiveConnectionCount() == 0) {
             superNodeJoin();
         }
     }
@@ -189,10 +193,11 @@ public class ConnectionManager {
             return "FAIL";
         }
     }
+
     /**
      * 获取连接节点的已连接peers 数据
      */
-    public JSONObject getPeersOnline(String peersIp,JSONObject peersNow) throws Exception {
+    public JSONObject getPeersOnline(String peersIp, JSONObject peersNow) throws Exception {
         NodeClient nc = new NodeClient();
         JSONObject peers = new JSONObject();
         Channel channel = nc.connect(peersIp, Constant.PORT);
@@ -204,14 +209,14 @@ public class ConnectionManager {
         String remoteIp = inetSocketAddress.getAddress().getHostAddress();
         MessageChannel message = SynRequest.get().synReq(nm, remoteIp);
         if (message != null) {
-            peers  = SerializationUtil.deserializer(message.getMessage().getContent(), JSONObject.class);
+            peers = SerializationUtil.deserializer(message.getMessage().getContent(), JSONObject.class);
             peers.putAll(peersNow);
             PeersManager.get().writePeersFile(peers.toJSONString());
-            if (peers != null && peers.keySet().size()>0) {
-                log.info("节点ip:{} 返回当前网络的所有节点数:{}", peersIp,  peers.keySet().size());
+            if (peers != null && peers.keySet().size() > 0) {
+                log.info("节点ip:{} 返回当前网络的所有节点数:{}", peersIp, peers.keySet().size());
             }
         }
-        return  peers;
+        return peers;
     }
 
     /**
@@ -234,7 +239,7 @@ public class ConnectionManager {
                 //随机选择一台固定节点以获取当前所有可用的网络节点
                 String node = snodes.get(selNode);
                 try {
-                    getPeersOnline(node,new JSONObject());
+                    getPeersOnline(node, new JSONObject());
                     break;
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -246,8 +251,6 @@ public class ConnectionManager {
                 List<String> sIps = new ArrayList<>();
                 List<String> normalIps = new ArrayList<>();
                 for (String nodeIp : nodes) {
-                    cc.addNodeIp(nodeIp);
-                    //将这些返回的节点加入到本地用于存储网络节点记录中
                     log.info("返回的节点ip:{}", nodeIp);
                     if (this.superIps.contains(nodeIp)) {
                         sIps.add(nodeIp);
@@ -265,15 +268,25 @@ public class ConnectionManager {
     /**
      * 对象节点通知本节点加入
      */
-    public void nodesJoinBroadcast(String ip){
-        Message nodeMessage = new Message();
-        nodeMessage.setType(MessageType.NODE_JOIN.getType());
-        nodeMessage.setContent(selfIp.getBytes());
-        log.info("向当前网络发送当前节点ip:{}", selfIp);
-        MessageChannel mc = new MessageChannel();
-        mc.setMessage(nodeMessage);
-        mc.setToIp(ip);
-        mq.addMessage(mc);
+    public boolean nodesJoinBroadcast(String ip) {
+        try {
+            Message message = new Message();
+            message.setType(MessageType.NODE_JOIN.getType());
+            message.setContent(selfIp.getBytes());
+            log.info("向当前网络发送当前节点ip:{}", selfIp);
+            MessageChannel  messageChannel = SynRequest.get().synReq(message, ip);
+            if (message != null) {
+                boolean  nodeJoinResp = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), boolean.class);
+                log.info("连接节点ip:{} 返回连接结果为:{}", ip, nodeJoinResp);
+                if (nodeJoinResp) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            log.info("连接节点ip:{}，请求失败", ip);
+            return false;
+        }
+        return false;
     }
 
 
@@ -319,7 +332,7 @@ public class ConnectionManager {
                 Enumeration<?> e2 = ni.getInetAddresses();
                 while (e2.hasMoreElements()) {
                     InetAddress ia = (InetAddress) e2.nextElement();
-                    if (ia instanceof Inet6Address){
+                    if (ia instanceof Inet6Address) {
                         continue;
                     }
                     myIps.add(ia.getHostAddress());
@@ -389,8 +402,7 @@ public class ConnectionManager {
             urlconn.connect();
             HttpURLConnection httpconn = (HttpURLConnection) urlconn;
             HttpResult = httpconn.getResponseCode();
-            if (HttpResult != HttpURLConnection.HTTP_OK)
-            {
+            if (HttpResult != HttpURLConnection.HTTP_OK) {
                 log.error("无法连接到服务器获取节点列表...");
             } else {
                 InputStreamReader isReader = new InputStreamReader(urlconn.getInputStream());
