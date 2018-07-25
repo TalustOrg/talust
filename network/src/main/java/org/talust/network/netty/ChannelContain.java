@@ -117,32 +117,6 @@ public class ChannelContain {
     }
 
     /**
-     * 返回所有节点ip
-     *
-     * @return
-     */
-    public Set<String> getAllNodeIps() {
-        return this.allNodeIps;
-    }
-
-    /**
-     * 打印当前容器数
-     */
-    private synchronized void printChannel() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("本节点的连接数为:");
-        sb.append(mapChannel.size() + ",分别连接:");
-        for (MyChannel channel : mapChannel.values()) {
-            sb.append(channel.getRemoteIp() + ":" + channel.isPassive() + ",");
-        }
-        sb.append("全网节点有:");
-        for (String allNodeIp : allNodeIps) {
-            sb.append(allNodeIp + ",");
-        }
-        log.info("{}", sb.toString());
-    }
-
-    /**
      * 向cid所指向的通道发送消息
      *
      * @param remoteIp

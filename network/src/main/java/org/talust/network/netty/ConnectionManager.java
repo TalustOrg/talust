@@ -26,6 +26,7 @@
 package org.talust.network.netty;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.CollectionCodec;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
@@ -107,7 +108,6 @@ public class ConnectionManager {
         } else {
             superNodeJoin();
         }
-
     }
 
     /**
@@ -150,6 +150,8 @@ public class ConnectionManager {
                         default:
                             break;
                     }
+                }else{
+                    unusedIps.add((String) ((Map.Entry) map).getKey());
                 }
             }
         }
@@ -231,7 +233,6 @@ public class ConnectionManager {
         ChannelContain cc = ChannelContain.get();
         int size = snodes.size();
         if (size > 0) {
-            List<String> nodes = null;
             Random rand = new Random();
             while (size > 0) {
                 //确保能够成功连接到一台节点获得当前所有连接
@@ -242,25 +243,12 @@ public class ConnectionManager {
                     getPeersOnline(node, new JSONObject());
                     break;
                 } catch (Exception e) {
-                    e.printStackTrace();
                 }
                 snodes.remove(selNode);
                 size = snodes.size();
             }
-            if (nodes != null && nodes.size() > 0) {
-                List<String> sIps = new ArrayList<>();
-                List<String> normalIps = new ArrayList<>();
-                for (String nodeIp : nodes) {
-                    log.info("返回的节点ip:{}", nodeIp);
-                    if (this.superIps.contains(nodeIp)) {
-                        sIps.add(nodeIp);
-                    } else {
-                        normalIps.add(nodeIp);
-                    }
-                }
-                log.info("当前所有网络中,超级节点数:{},普通节点数:{}", sIps.size(), normalIps.size());
-                connectAllSuperNode(sIps, cc);
-
+            if(snodes.size()>0){
+                connectAllSuperNode(superIps, cc);
             }
         }
     }
@@ -275,7 +263,7 @@ public class ConnectionManager {
             message.setContent(selfIp.getBytes());
             log.info("向当前网络发送当前节点ip:{}", selfIp);
             MessageChannel  messageChannel = SynRequest.get().synReq(message, ip);
-            if (message != null) {
+            if (messageChannel != null) {
                 boolean  nodeJoinResp = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), boolean.class);
                 log.info("连接节点ip:{} 返回连接结果为:{}", ip, nodeJoinResp);
                 if (nodeJoinResp) {
@@ -296,7 +284,7 @@ public class ConnectionManager {
      * @param nodeIps
      * @param cc
      */
-    private void connectAllSuperNode(List<String> nodeIps, ChannelContain cc) {
+    private void connectAllSuperNode(Collection<String> nodeIps, ChannelContain cc) {
         for (String ip : nodeIps) {
             try {//依次连接各个ip
                 boolean needConnection = true;
@@ -307,13 +295,14 @@ public class ConnectionManager {
                     }
                 }
                 if (needConnection) {
-                    log.info("本节点连接超级节点目标ip地址:{}", ip);
-                    NodeClient tmpnc = new NodeClient();
-                    Channel connect = tmpnc.connect(ip, Constant.PORT);
-                    cc.addChannel(connect, false);
-                    InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
-                    selfIp = insocket.getAddress().getHostAddress();
-                    nodesJoinBroadcast(ip);
+                    if( nodesJoinBroadcast(ip)){
+                        log.info("本节点连接超级节点目标ip地址:{}", ip);
+                        NodeClient tmpnc = new NodeClient();
+                        Channel connect = tmpnc.connect(ip, Constant.PORT);
+                        cc.addChannel(connect, false);
+                        InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
+                        selfIp = insocket.getAddress().getHostAddress();
+                    }
                 }
             } catch (Throwable e) {
             }
