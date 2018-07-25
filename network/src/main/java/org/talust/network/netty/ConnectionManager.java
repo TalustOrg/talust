@@ -158,8 +158,6 @@ public class ConnectionManager {
         for (String ip : unusedIps) {
             peerJ.remove(ip);
         }
-        String peers = peerJ.toJSONString();
-        PeersManager.get().writePeersFile(peers);
         if (cc.getActiveConnectionCount() == 0) {
             superNodeJoin();
         }
@@ -212,11 +210,15 @@ public class ConnectionManager {
         MessageChannel message = SynRequest.get().synReq(nm, remoteIp);
         if (message != null) {
             peers = SerializationUtil.deserializer(message.getMessage().getContent(), JSONObject.class);
-            peers.putAll(peersNow);
-            PeersManager.get().writePeersFile(peers.toJSONString());
             if (peers != null && peers.keySet().size() > 0) {
                 log.info("节点ip:{} 返回当前网络的所有节点数:{}", peersIp, peers.keySet().size());
             }
+            if(peers.containsKey(selfIp)){
+                peers.remove(selfIp);
+            }
+            //TODO
+            peers.putAll(peersNow);
+            PeersManager.get().writePeersFile(peers.toJSONString());
         }
         return peers;
     }
@@ -258,15 +260,18 @@ public class ConnectionManager {
      */
     public boolean nodesJoinBroadcast(String ip) {
         try {
+            NodeClient nc = new NodeClient();
+            Channel channel = nc.connect(ip, Constant.PORT);
+            ChannelContain.get().addChannel(channel, false);
             Message message = new Message();
             message.setType(MessageType.NODE_JOIN.getType());
             message.setContent(selfIp.getBytes());
             log.info("向当前网络发送当前节点ip:{}", selfIp);
             MessageChannel  messageChannel = SynRequest.get().synReq(message, ip);
             if (messageChannel != null) {
-                boolean  nodeJoinResp = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), boolean.class);
+                String  nodeJoinResp = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), String.class);
                 log.info("连接节点ip:{} 返回连接结果为:{}", ip, nodeJoinResp);
-                if (nodeJoinResp) {
+                if (Boolean.parseBoolean(nodeJoinResp)) {
                     return true;
                 }
             }
