@@ -49,7 +49,7 @@ import java.util.Map;
 
 @Slf4j
 public class NodeJoinHandler implements MessageHandler {
-    private int maxActiveConnectCount = Configure.MAX_ACTIVE_CONNECT_COUNT;
+    private int maxSuperPassivityConnectCount =  Configure.MAX_SUPER_PASSIVITY_CONNECT_COUNT;
     private int maxPassivityConnectCount =  Configure.MAX_PASSIVITY_CONNECT_COUNT;
     private MessageQueue mq = MessageQueue.get();
 
@@ -58,11 +58,18 @@ public class NodeJoinHandler implements MessageHandler {
         String ip = new String(message.getMessage().getContent());
         log.info("接收到节点ip:{} 请求加入本节点网络的消息...", ip);
         String result = "false";
-        if(maxPassivityConnectCount-ChannelContain.get().getPassiveConnCount()>0){
-            result = "true";
-            JSONObject peer = new JSONObject();
-            peer.put(ip,"1");
-            PeersManager.get().addPeer(peer);
+        if(ConnectionManager.get().isSuperNode()){
+            if(maxSuperPassivityConnectCount-ChannelContain.get().getPassiveConnCount()>0){
+                result = "true";
+                if(!ConnectionManager.get().getSuperIps().contains(ip)){
+                    PeersManager.get().addPeer(ip);
+                }
+            }
+        }else{
+            if(maxPassivityConnectCount-ChannelContain.get().getPassiveConnCount()>0){
+                result = "true";
+                PeersManager.get().addPeer(ip);
+            }
         }
         byte[] serializer = SerializationUtil.serializer(result);
         Message alm = new Message();

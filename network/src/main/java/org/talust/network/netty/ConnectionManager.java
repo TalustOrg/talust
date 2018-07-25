@@ -25,6 +25,7 @@
 
 package org.talust.network.netty;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.CollectionCodec;
 import io.netty.channel.Channel;
@@ -79,10 +80,7 @@ public class ConnectionManager {
      * 当前节点是否是创世ip
      */
     public boolean genesisIp = false;
-    /**
-     * 节点允许主动连接其他节点数
-     */
-    private int connSize = Configure.MAX_ACTIVE_CONNECT_COUNT;
+
     /**
      * 节点自身ip地址
      */
@@ -93,15 +91,15 @@ public class ConnectionManager {
      * 存储当前节点的ip地址,可能有多个
      */
     private Set<String> myIps = new HashSet<>();
-    /**
-     * 主要用于判断当前节点是否可用,当同步网络完成之后,表示为可用,网络同步未完成,则表示为不可用
-     */
-    public AtomicBoolean amEnabled = new AtomicBoolean(false);
+    private String peerConfigPath = Configure.CONFIG_PATH;
+    private String peerConfigFilePath = peerConfigPath + File.separator + "peerConfig.json";
 
     /**
      * 初始化方法,主要用于定时检测节点连接情况,发现连接数过少时,就需要同步一下连接
      */
     public void init() {
+        //初始化连接数
+        peerConfigInit();
         initSuperIps();
         if (!superNode) {
             normalNodeJoin();
@@ -109,6 +107,22 @@ public class ConnectionManager {
             superNodeJoin();
         }
     }
+    /**
+     *
+     */
+    public void peerConfigInit(){
+        try {
+            File config = new File(peerConfigFilePath);
+            JSONObject peerConfig =  JSONObject.parseObject(FileUtil.fileToTxt(config));
+            Configure.setMaxPassivityConnectCount(peerConfig.getInteger("MAX_PASSIVITY_CONNECT_COUNT"));
+            Configure.setMaxActiveConnectCount(peerConfig.getInteger("MAX_ACTIVE_CONNECT_COUNT"));
+            Configure.setMaxSuperActivrConnectCount(peerConfig.getInteger("MAX_SUPER_PASSIVITY_CONNECT_COUNT"));
+            Configure.setMaxSuperPassivityConnectCount(peerConfig.getInteger("MAX_SUPER_ACTIVE_CONNECT_COUNT"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * 连接普通节点
@@ -167,9 +181,9 @@ public class ConnectionManager {
     private String connectByIp(String ip, ChannelContain cc) {
         try {
             int nowConnSize = cc.getActiveConnectionCount();
-            if (nowConnSize < connSize) {
+            if (nowConnSize < Configure.MAX_ACTIVE_CONNECT_COUNT) {
                 log.info("我允许的主动连接总数:{},当前主动连接总数:{},连接我的总数:{},准备连接的ip:{}",
-                        connSize, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
+                        Configure.MAX_ACTIVE_CONNECT_COUNT, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
                 boolean needConnection = true;
                 for (MyChannel channel : cc.getMyChannels()) {
                     String remoteIP = channel.getRemoteIp();
@@ -293,26 +307,37 @@ public class ConnectionManager {
      * @param cc
      */
     private void connectAllSuperNode(Collection<String> nodeIps, ChannelContain cc) {
+        int needConCount = 0;
+        if(isSuperNode()){
+            needConCount =  Configure.MAX_SUPER_ACTIVE_CONNECT_COUNT-cc.getActiveConnectionCount();
+        }else{
+            needConCount = Configure.MAX_ACTIVE_CONNECT_COUNT-cc.getActiveConnectionCount();
+        }
         for (String ip : nodeIps) {
-            try {//依次连接各个ip
-                boolean needConnection = true;
-                for (MyChannel channel : cc.getMyChannels()) {
-                    String remoteIP = channel.getRemoteIp();
-                    if (remoteIP.equals(ip)) {
-                        needConnection = false;
+            if (needConCount > 0) {
+                try {
+                    boolean needConnection = true;
+                    for (MyChannel channel : cc.getMyChannels()) {
+                        String remoteIP = channel.getRemoteIp();
+                        if (remoteIP.equals(ip)) {
+                            needConnection = false;
+                        }
                     }
-                }
-                if (needConnection) {
-                    if( nodesJoinBroadcast(ip)){
-                        log.info("本节点连接超级节点目标ip地址:{}", ip);
-                        NodeClient tmpnc = new NodeClient();
-                        Channel connect = tmpnc.connect(ip, Constant.PORT);
-                        cc.addChannel(connect, false);
-                        InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
-                        selfIp = insocket.getAddress().getHostAddress();
+                    if (needConnection) {
+                        if (nodesJoinBroadcast(ip)) {
+                            log.info("本节点连接超级节点目标ip地址:{}", ip);
+                            NodeClient tmpnc = new NodeClient();
+                            Channel connect = tmpnc.connect(ip, Constant.PORT);
+                            cc.addChannel(connect, false);
+                            InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
+                            selfIp = insocket.getAddress().getHostAddress();
+                        }
                     }
+                } catch (Throwable e) {
                 }
-            } catch (Throwable e) {
+                needConCount--;
+            } else {
+                break;
             }
         }
     }

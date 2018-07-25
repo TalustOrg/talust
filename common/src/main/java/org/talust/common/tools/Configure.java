@@ -72,19 +72,27 @@ public final class Configure {
      * peers 文件储存目录
      */
     public static String PEERS_PATH  = DATA_DIR + File.separator + "peers";
+    /**
+     * config 文件储存目录
+     */
+    public static String CONFIG_PATH  = DATA_DIR + File.separator + "config";
 
     /**
-     * 最大被动连接数
+     * 业务节点最大被动连接数
      */
-    public static int MAX_PASSIVITY_CONNECT_COUNT = 3;
+    public static int MAX_PASSIVITY_CONNECT_COUNT  ;
     /**
-     * 最大主动连接数
+     * 业务节点最大主动连接数
      */
-    public static int MAX_ACTIVE_CONNECT_COUNT = 2;
+    public static int MAX_ACTIVE_CONNECT_COUNT;
     /**
-     * 超级节点之间最大连接数
+     * 超级节点被动连接数
      */
-    public static int MAX_SUPER_CONNECT_COUNT = 3;
+    public static int MAX_SUPER_PASSIVITY_CONNECT_COUNT ;
+    /**
+     * 超级节点主动连接数
+     */
+    public static int MAX_SUPER_ACTIVE_CONNECT_COUNT ;
 
     /**
      * 区块生成间隔时间，单位秒
@@ -101,4 +109,35 @@ public final class Configure {
      */
     public static String GENESIS_SERVER_ADDR = "http://dev.talust.com:18004/genesis.json";
 
+    public static int getMaxPassivityConnectCount() {
+        return MAX_PASSIVITY_CONNECT_COUNT;
+    }
+
+    public static void setMaxPassivityConnectCount(int maxPassivityConnectCount) {
+        MAX_PASSIVITY_CONNECT_COUNT = maxPassivityConnectCount;
+    }
+
+    public static int getMaxActiveConnectCount() {
+        return MAX_ACTIVE_CONNECT_COUNT;
+    }
+
+    public static void setMaxActiveConnectCount(int maxActiveConnectCount) {
+        MAX_ACTIVE_CONNECT_COUNT = maxActiveConnectCount;
+    }
+
+    public static int getMaxSuperPassivityConnectCount() {
+        return MAX_SUPER_PASSIVITY_CONNECT_COUNT;
+    }
+
+    public static void setMaxSuperPassivityConnectCount(int maxSuperPassivityConnectCount) {
+        MAX_SUPER_PASSIVITY_CONNECT_COUNT = maxSuperPassivityConnectCount;
+    }
+
+    public static int getMaxSuperActivrConnectCount() {
+        return MAX_SUPER_ACTIVE_CONNECT_COUNT;
+    }
+
+    public static void setMaxSuperActivrConnectCount(int maxSuperActivrConnectCount) {
+        MAX_SUPER_ACTIVE_CONNECT_COUNT = maxSuperActivrConnectCount;
+    }
 }

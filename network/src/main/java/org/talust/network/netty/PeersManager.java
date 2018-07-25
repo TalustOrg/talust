@@ -82,6 +82,23 @@ public class PeersManager {
         }
     }
 
+    public void addPeer(String ip) {
+        try {
+            File peerFile = new File(peerPath);
+            JSONObject nowPeers = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
+            nowPeers.put(ip,"1");
+            FileOutputStream fos = new FileOutputStream(peerFile);
+            fos.write(nowPeers.toJSONString().getBytes());
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void addPeer(JSONObject peers) {
         try {
             File peerFile = new File(peerPath);
@@ -98,6 +115,7 @@ public class PeersManager {
             e.printStackTrace();
         }
     }
+
 
     public void removePeerList(List<String> ips) {
         try {
