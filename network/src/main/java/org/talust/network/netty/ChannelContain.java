@@ -116,6 +116,7 @@ public class ChannelContain {
         return superChannel.values();
     }
 
+
     /**
      * 向cid所指向的通道发送消息
      *

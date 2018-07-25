@@ -119,7 +119,7 @@ public class ConnectionManager {
         while (peerJ.entrySet().size() == 0) {
             for (String fixedIp : superIps) {
                 try {
-                    peerJ = getPeersOnline(fixedIp, peerJ);
+                    peerJ = getPeersOnline(fixedIp,peerJ);
                     break;
                 } catch (Exception e) {
                     continue;
@@ -139,7 +139,7 @@ public class ConnectionManager {
                     switch (status) {
                         case "OK":
                             try {
-                                getPeersOnline(peerIp, peerJ);
+                                getPeersOnline(peerIp);
                             } catch (Exception e) {
                                 continue;
                             }
@@ -155,9 +155,7 @@ public class ConnectionManager {
                 }
             }
         }
-        for (String ip : unusedIps) {
-            peerJ.remove(ip);
-        }
+        PeersManager.get().removePeerList(unusedIps);
         if (cc.getActiveConnectionCount() == 0) {
             superNodeJoin();
         }
@@ -197,7 +195,7 @@ public class ConnectionManager {
     /**
      * 获取连接节点的已连接peers 数据
      */
-    public JSONObject getPeersOnline(String peersIp, JSONObject peersNow) throws Exception {
+    public JSONObject getPeersOnline(String peersIp) throws Exception {
         NodeClient nc = new NodeClient();
         JSONObject peers = new JSONObject();
         Channel channel = nc.connect(peersIp, Constant.PORT);
@@ -216,12 +214,15 @@ public class ConnectionManager {
             if(peers.containsKey(selfIp)){
                 peers.remove(selfIp);
             }
-            //TODO
-            peers.putAll(peersNow);
-            PeersManager.get().writePeersFile(peers.toJSONString());
+            PeersManager.get().addPeer(peers);
         }
         return peers;
     }
+    public JSONObject getPeersOnline(String peersIp,JSONObject peerNow) throws Exception {
+        peerNow.putAll(getPeersOnline(peersIp));
+        return peerNow;
+    }
+
 
     /**
      * 连接到超级节点
@@ -242,7 +243,7 @@ public class ConnectionManager {
                 //随机选择一台固定节点以获取当前所有可用的网络节点
                 String node = snodes.get(selNode);
                 try {
-                    getPeersOnline(node, new JSONObject());
+                    getPeersOnline(node);
                     break;
                 } catch (Exception e) {
                 }

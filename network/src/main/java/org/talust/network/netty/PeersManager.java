@@ -99,13 +99,30 @@ public class PeersManager {
         }
     }
 
-    public void removePeer(List<String> ips) {
+    public void removePeerList(List<String> ips) {
         try {
             File peerFile = new File(peerPath);
             JSONObject nowPeers = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
             for (String ip : ips) {
                 nowPeers.remove(ip);
             }
+            FileOutputStream fos = new FileOutputStream(peerFile);
+            fos.write(nowPeers.toJSONString().getBytes());
+            fos.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removePeer(String ip) {
+        try {
+            File peerFile = new File(peerPath);
+            JSONObject nowPeers = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
+            nowPeers.remove(ip);
             FileOutputStream fos = new FileOutputStream(peerFile);
             fos.write(nowPeers.toJSONString().getBytes());
             fos.close();

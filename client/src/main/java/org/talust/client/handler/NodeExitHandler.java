@@ -32,6 +32,7 @@ import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.network.MessageHandler;
 import org.talust.network.netty.ChannelContain;
+import org.talust.network.netty.PeersManager;
 import org.talust.network.netty.queue.MessageQueueHolder;
 
 @Slf4j //节点退出网络
@@ -47,6 +48,7 @@ public class NodeExitHandler implements MessageHandler {
         if (!checkRepeat) {
             MessageQueueHolder.get().broadMessage(message);
         }
+        PeersManager.get().removePeer(ip);
         return true;
     }
 }
