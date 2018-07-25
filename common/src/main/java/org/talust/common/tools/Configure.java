@@ -102,42 +102,30 @@ public final class Configure {
     /**
      * 超级节点获取地址
      */
-    public static String NODE_SERVER_ADDR = "http://dev.talust.com:18004/supernode.json";
+    public static String NODE_SERVER_ADDR ;
 
     /**
      * 创世块ip
      */
-    public static String GENESIS_SERVER_ADDR = "http://dev.talust.com:18004/genesis.json";
+    public static String GENESIS_SERVER_ADDR ;
 
-    public static int getMaxPassivityConnectCount() {
-        return MAX_PASSIVITY_CONNECT_COUNT;
-    }
 
     public static void setMaxPassivityConnectCount(int maxPassivityConnectCount) {
         MAX_PASSIVITY_CONNECT_COUNT = maxPassivityConnectCount;
     }
-
-    public static int getMaxActiveConnectCount() {
-        return MAX_ACTIVE_CONNECT_COUNT;
-    }
-
     public static void setMaxActiveConnectCount(int maxActiveConnectCount) {
         MAX_ACTIVE_CONNECT_COUNT = maxActiveConnectCount;
     }
-
-    public static int getMaxSuperPassivityConnectCount() {
-        return MAX_SUPER_PASSIVITY_CONNECT_COUNT;
-    }
-
     public static void setMaxSuperPassivityConnectCount(int maxSuperPassivityConnectCount) {
         MAX_SUPER_PASSIVITY_CONNECT_COUNT = maxSuperPassivityConnectCount;
     }
-
-    public static int getMaxSuperActivrConnectCount() {
-        return MAX_SUPER_ACTIVE_CONNECT_COUNT;
-    }
-
     public static void setMaxSuperActivrConnectCount(int maxSuperActivrConnectCount) {
         MAX_SUPER_ACTIVE_CONNECT_COUNT = maxSuperActivrConnectCount;
+    }
+    public static void setNodeServerAddr(String nodeServerAddr) {
+        NODE_SERVER_ADDR = nodeServerAddr;
+    }
+    public static void setGenesisServerAddr(String genesisServerAddr) {
+        GENESIS_SERVER_ADDR = genesisServerAddr;
     }
 }

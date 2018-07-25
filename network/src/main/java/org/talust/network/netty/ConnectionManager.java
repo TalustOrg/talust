@@ -28,6 +28,7 @@ package org.talust.network.netty;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.CollectionCodec;
+import com.sun.scenario.effect.Color4f;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +93,7 @@ public class ConnectionManager {
      */
     private Set<String> myIps = new HashSet<>();
     private String peerConfigPath = Configure.CONFIG_PATH;
-    private String peerConfigFilePath = peerConfigPath + File.separator + "peerConfig.json";
+    private String peerConfigFilePath = peerConfigPath + File.separator + "ConnectionConfig.json";
 
     /**
      * 初始化方法,主要用于定时检测节点连接情况,发现连接数过少时,就需要同步一下连接
@@ -118,6 +119,8 @@ public class ConnectionManager {
             Configure.setMaxActiveConnectCount(peerConfig.getInteger("MAX_ACTIVE_CONNECT_COUNT"));
             Configure.setMaxSuperActivrConnectCount(peerConfig.getInteger("MAX_SUPER_PASSIVITY_CONNECT_COUNT"));
             Configure.setMaxSuperPassivityConnectCount(peerConfig.getInteger("MAX_SUPER_ACTIVE_CONNECT_COUNT"));
+            Configure.setNodeServerAddr(peerConfig.getString("NODE_SERVER_ADDR"));
+            Configure.setGenesisServerAddr(peerConfig.getString("GENESIS_SERVER_ADDR"));
         } catch (Exception e) {
             e.printStackTrace();
         }
