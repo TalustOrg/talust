@@ -94,15 +94,13 @@ public class ConnectionManager {
      * 存储当前节点的ip地址,可能有多个
      */
     private Set<String> myIps = new HashSet<>();
-    private String peerConfigPath = Configure.CONFIG_PATH;
-    private String peerConfigFilePath = peerConfigPath + File.separator + "ConnectionConfig.json";
+
 
     /**
      * 初始化方法,主要用于定时检测节点连接情况,发现连接数过少时,就需要同步一下连接
      */
     public void init() {
-        //初始化连接数
-        peerConfigInit();
+
         initSuperIps();
         if (!superNode) {
             normalNodeJoin();
@@ -113,20 +111,7 @@ public class ConnectionManager {
     /**
      *
      */
-    public void peerConfigInit(){
-        try {
-            File config = new File(peerConfigFilePath);
-            JSONObject peerConfig =  JSONObject.parseObject(FileUtil.fileToTxt(config));
-            Configure.setMaxPassivityConnectCount(peerConfig.getInteger("MAX_PASSIVITY_CONNECT_COUNT"));
-            Configure.setMaxActiveConnectCount(peerConfig.getInteger("MAX_ACTIVE_CONNECT_COUNT"));
-            Configure.setMaxSuperActivrConnectCount(peerConfig.getInteger("MAX_SUPER_PASSIVITY_CONNECT_COUNT"));
-            Configure.setMaxSuperPassivityConnectCount(peerConfig.getInteger("MAX_SUPER_ACTIVE_CONNECT_COUNT"));
-            Configure.setNodeServerAddr(peerConfig.getString("NODE_SERVER_ADDR"));
-            Configure.setGenesisServerAddr(peerConfig.getString("GENESIS_SERVER_ADDR"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
 
 
     /**

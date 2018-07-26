@@ -40,12 +40,14 @@ public class PeersManager {
         return instance;
     }
 
-
+    private String peerConfigPath = Configure.CONFIG_PATH;
+    private String peerConfigFilePath = peerConfigPath + File.separator + "ConnectionConfig.json";
     private String peersFileDirPath = Configure.PEERS_PATH;
     private String peerPath = peersFileDirPath + File.separator + "peers.json";
     public String peerCont = "";
 
     public void initPeers() {
+        peerConfigInit();
         File file = new File(peersFileDirPath);
         if (!file.exists()) {
             file.mkdirs();
@@ -65,7 +67,20 @@ public class PeersManager {
             e.printStackTrace();
         }
     }
-
+    public void peerConfigInit(){
+        try {
+            File config = new File(peerConfigFilePath);
+            JSONObject peerConfig =  JSONObject.parseObject(FileUtil.fileToTxt(config));
+            Configure.setMaxPassivityConnectCount(peerConfig.getInteger("MAX_PASSIVITY_CONNECT_COUNT"));
+            Configure.setMaxActiveConnectCount(peerConfig.getInteger("MAX_ACTIVE_CONNECT_COUNT"));
+            Configure.setMaxSuperActivrConnectCount(peerConfig.getInteger("MAX_SUPER_PASSIVITY_CONNECT_COUNT"));
+            Configure.setMaxSuperPassivityConnectCount(peerConfig.getInteger("MAX_SUPER_ACTIVE_CONNECT_COUNT"));
+            Configure.setNodeServerAddr(peerConfig.getString("NODE_SERVER_ADDR"));
+            Configure.setGenesisServerAddr(peerConfig.getString("GENESIS_SERVER_ADDR"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     /**
      * 写入JSON文件
      */
