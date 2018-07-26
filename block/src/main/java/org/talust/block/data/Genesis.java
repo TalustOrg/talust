@@ -54,7 +54,6 @@ public class Genesis {
         log.info("创建创世块内容,本处初始化了一些基础帐户信息...");
         addRootAccount();
         addTalustAccount();
-        addMiningAccount();
     }
 
     /**
@@ -92,8 +91,10 @@ public class Genesis {
         rootAcc.setParentSign(Hex.decode(CacheManager.get().get("TALUST_SIGN")));
 
         Transaction transaction = new Transaction();
-        transaction.setTranType(TranType.ACCOUNT.getType());//设定为账户下发类型
-        transaction.setDatas(SerializationUtil.serializer(rootAcc));//存储账户下发的具体数据
+        //设定为账户下发类型
+        transaction.setTranType(TranType.ACCOUNT.getType());
+        //存储账户下发的具体数据
+        transaction.setDatas(SerializationUtil.serializer(rootAcc));
 
         Message message = new Message();
         message.setContent(SerializationUtil.serializer(transaction));
@@ -102,33 +103,6 @@ public class Genesis {
 
         dataContainer.addRecord(SerializationUtil.serializer(message));
     }
-
-    /**
-     * 加入mining帐户
-     */
-    private void addMiningAccount() {
-        List<JSONObject> minings  = CacheManager.get().get("MININGS");
-        for(JSONObject mining : minings){
-            Account rootAcc = new Account();
-            rootAcc.setAccType(AccountType.MINING.getType());
-            rootAcc.setPublicKey(Hex.decode(mining.getString("miningPublicKey")));
-            rootAcc.setAddress(Utils.getAddress(rootAcc.getPublicKey()));
-            rootAcc.setParentPub(Hex.decode(CacheManager.get().get("TALUST_PK")));
-            rootAcc.setParentSign(Hex.decode(mining.getString("miningSign")));
-            Transaction transaction = new Transaction();
-            transaction.setTranType(TranType.ACCOUNT.getType());//设定为账户下发类型
-            transaction.setDatas(SerializationUtil.serializer(rootAcc));//存储账户下发的具体数据
-
-            Message message = new Message();
-            message.setContent(SerializationUtil.serializer(transaction));
-            message.setType(MessageType.TRANSACTION.getType());
-            message.setTime(DateUtil.getTimeSecond());
-
-            dataContainer.addRecord(SerializationUtil.serializer(message));
-        }
-
-    }
-
 
     public static void main(String[] args) throws Exception{
 //        Account rootAcc = new Account();

@@ -30,7 +30,6 @@ import java.util.List;
  */
 @Slf4j
 public class PackBlockTool {
-    private BlockStorage blockStorage = BlockStorage.get();
     private DataContainer dataContainer = DataContainer.get();
     private ChainStateStorage chainStateStorage = ChainStateStorage.get();
     private CacheManager cu = CacheManager.get();
@@ -120,8 +119,8 @@ public class PackBlockTool {
         int idx = height % size;
         String sn = miningAddress.get(idx);
 
-
-        TransactionOut mining = new TransactionOut();//矿机自身获得
+        //矿机自身获得
+        TransactionOut mining = new TransactionOut();
         mining.setAddress(Utils.deShowAddress(sn));
         mining.setAmount(baseCoin.doubleValue());
         mining.setStatus(OutStatus.ENABLE.getType());

@@ -380,11 +380,11 @@ public class ConnectionManager {
             genesisIp = true;
         }
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
-        List<JSONObject> minings = new ArrayList<>();
+        List<String> minings = new ArrayList<>();
         for (Object map : ips.entrySet()) {
             JSONObject ipContent = (JSONObject) ((Map.Entry) map).getValue();
             String ip = ipContent.getString("ip");
-            minings.add(ipContent);
+            minings.add(ipContent.getString("address"));
             SuperNode snode = new SuperNode();
             snode.setCode(Integer.parseInt((String) ((Map.Entry) map).getKey()));
             snode.setIp(ip);
@@ -393,11 +393,11 @@ public class ConnectionManager {
                 superIps.add(ip);
             } else {
                 superNode = true;
-                AccountStorage.get().superIpLoginByPK(ipContent.getString("miningPublicKey"));
+                AccountStorage.get().superNodeLogin();
             }
             superNodes.put(ip, snode);
         }
-        CacheManager.get().put("MININGS", minings);
+        CacheManager.get().put(new String(Constant.MINING_ADDRESS), minings);
         if (null == selfIp) {
             selfIp = myIps.iterator().next();
         }

@@ -30,12 +30,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.talust.account.Account;
 import org.talust.common.crypto.AESEncrypt;
 import org.talust.common.crypto.ECKey;
+import org.talust.common.crypto.Hex;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.AccountFileEmptyException;
 import org.talust.common.exception.AccountFileNotExistException;
 import org.talust.common.exception.ErrorPasswordException;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
+import org.talust.common.tools.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -201,10 +203,23 @@ public class AccountStorage {
     /**
      *根据PK 登录
      */
-    public  void superIpLoginByPK(String publicKey){
-        ECKey ecKey =  ECKey.fromPublicOnly(publicKey.getBytes());
-        account.setPublicKey(ecKey.getPubKey());
-        account.setAddress(Utils.getAddress(ecKey.getPubKey()));
+    public  void superNodeLogin(){
+        try {
+            List<String> list = getAllFile(filePath,true);
+            File file = new File(list.get(0));
+            String content = FileUtil.fileToTxt(file);
+            JSONObject fileJson = JSONObject.parseObject(content);
+            ecKey =  ECKey.fromPrivate(new BigInteger( Hex.decode(fileJson.getString("privateKey"))));
+            account.setPublicKey(ecKey.getPubKey());
+            String fileAddress  = fileJson.getString("address");
+            if(StringUtils.bytesToHexString(Utils.getAddress(ecKey.getPubKey())).equals(fileAddress)){
+                account.setAddress(Utils.getAddress(ecKey.getPubKey()));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 

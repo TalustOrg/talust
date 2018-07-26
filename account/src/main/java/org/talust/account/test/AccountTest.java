@@ -58,7 +58,10 @@ public class AccountTest {
         Sha256Hash hash = Sha256Hash.of(key.getPubKey());
         byte[] sign_bytes = ecKey.sign(hash.getBytes());
         System.out.println("sign : "+ StringUtils.bytesToHexString(sign_bytes));
-        System.out.println("address :0x"+StringUtils.bytesToHexString(Utils.getAddress(ecKey.getPubKey())));
+        String addr = StringUtils.bytesToHexString(Utils.getAddress(ecKey.getPubKey()));
+        System.out.println("address haxString:"+addr);
+        System.out.println("address haxString to  bytes and Base58:"+Base58.encode(StringUtils.hexStringToBytes(addr)));
+        System.out.println("address Base58:"+Base58.encode(Utils.getAddress(ecKey.getPubKey())));
         boolean verify = ECKey.verify(hash.getBytes(), sign_bytes, ecKey.getPubKey());
         System.out.println(verify);
 
