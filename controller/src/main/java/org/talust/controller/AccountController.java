@@ -39,6 +39,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -49,10 +50,9 @@ public class AccountController {
     @ApiOperation(value = "登录帐户", notes = "帐户信息已经存在的情况下,登录")
     @PostMapping(value = "login")
     ResponseMessage login() {
-        String addrs ="";
+       List<String> addrs =new ArrayList<>();
         try {
             addrs = AccountStorage.get().walletLogin();
-            BlockChainServer.get().start();
         } catch (Exception e) {
             if (e instanceof ErrorPasswordException) {
                 return ResponseMessage.error("登录的账户和密码不匹配,请确认后输入!");
@@ -76,7 +76,6 @@ public class AccountController {
         String address = "";
         try {
             address =   AccountStorage.get().createAccount(accPassword);
-            BlockChainServer.get().start();
         } catch (Exception e) {
             if (e instanceof ErrorPasswordException) {
                 return ResponseMessage.error("登录的账户和密码不匹配,请确认后输入!");

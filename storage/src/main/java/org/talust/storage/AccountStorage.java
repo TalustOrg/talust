@@ -141,9 +141,9 @@ public class AccountStorage {
      * walletLogin
      * @throws Exception
      */
-    public String walletLogin() throws Exception {
+    public List<String> walletLogin() throws Exception {
         List<String> list = getAllFile(filePath,true);
-        String addrs = "";
+        List<String> addrs = new ArrayList<>();
         for(String path : list ){
             File file = new File(path);
             if (file.exists()) {
@@ -151,8 +151,7 @@ public class AccountStorage {
                 if (content != null && content.length() > 0) {//说明已经有账户信息
                     try {
                         JSONObject fileJson = JSONObject.parseObject(content);
-                        addrs= addrs + fileJson.get("address") +",";
-                        //TODO less amount total
+                        addrs.add( fileJson.getString("address"));
                     } catch (Exception e) {
                         throw new ErrorPasswordException();
                     }
@@ -190,9 +189,6 @@ public class AccountStorage {
                     account.setAccPwd(accPassword);
                     //解密成功,将密钥对信息放入ecKey对象中
                     ecKey = ECKey.fromPrivate(new BigInteger(decrypt));
-                    //TODO less amount total
-                    //TODO  find this addr  in accountStorage , if this aaddr is exist and  the blockHeght is the highest , so this value is the real amount
-                    //TODO  if we can't find this addr in accountStorage , we need to  reload the blocks , and get all addr to reload  this addr's amount and save into accountStorage
                 } catch (Exception e) {
                     throw new ErrorPasswordException();
                 }
@@ -203,7 +199,7 @@ public class AccountStorage {
         return account;
     }
     /**
-     *
+     *根据PK 登录
      */
     public  void superIpLoginByPK(String publicKey){
         ECKey ecKey =  ECKey.fromPublicOnly(publicKey.getBytes());
