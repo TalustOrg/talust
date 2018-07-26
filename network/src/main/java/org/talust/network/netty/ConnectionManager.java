@@ -120,13 +120,16 @@ public class ConnectionManager {
     private void normalNodeJoin() {
         ChannelContain cc = ChannelContain.get();
         JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
-        while (peerJ.entrySet().size() == 0) {
+        int connect = cc.getActiveConnectionCount();
+        if (peerJ.entrySet().size() == 0) {
             for (String fixedIp : superIps) {
-                try {
-                    peerJ = getPeersOnline(fixedIp,peerJ);
-                    break;
-                } catch (Exception e) {
-                    continue;
+                if(nodesJoinBroadcast(fixedIp)){
+                    try {
+                        peerJ = getPeersOnline(fixedIp,peerJ);
+                        break;
+                    } catch (Exception e) {
+                        continue;
+                    }
                 }
             }
         }
@@ -200,10 +203,21 @@ public class ConnectionManager {
      * 获取连接节点的已连接peers 数据
      */
     public JSONObject getPeersOnline(String peersIp) throws Exception {
-        NodeClient nc = new NodeClient();
+        boolean needConnection =  true;
+        Channel channel= null;
+        for (MyChannel myChannel : ChannelContain.get().getMyChannels()) {
+            String remoteIP = myChannel.getRemoteIp();
+            if (remoteIP.equals(peersIp)) {
+                needConnection = false;
+                channel= myChannel.getChannel();
+            }
+        }
+        if(needConnection){
+            NodeClient nc = new NodeClient();
+            channel = nc.connect(peersIp, Constant.PORT);
+            ChannelContain.get().addChannel(channel, false);
+        }
         JSONObject peers = new JSONObject();
-        Channel channel = nc.connect(peersIp, Constant.PORT);
-        ChannelContain.get().addChannel(channel, false);
         Message nm = new Message();
         nm.setType(MessageType.NODES_REQ.getType());
         log.info("向节点ip:{} 请求当前网络的所有节点...", peersIp);
@@ -219,6 +233,9 @@ public class ConnectionManager {
                 peers.remove(selfIp);
             }
             PeersManager.get().addPeer(peers);
+        }
+        if(needConnection){
+            ChannelContain.get().removeChannel(channel);
         }
         return peers;
     }
@@ -264,9 +281,10 @@ public class ConnectionManager {
      * 对象节点通知本节点加入
      */
     public boolean nodesJoinBroadcast(String ip) {
+        Channel channel = null;
         try {
             NodeClient nc = new NodeClient();
-            Channel channel = nc.connect(ip, Constant.PORT);
+             channel = nc.connect(ip, Constant.PORT);
             ChannelContain.get().addChannel(channel, false);
             Message message = new Message();
             message.setType(MessageType.NODE_JOIN.getType());
@@ -285,6 +303,10 @@ public class ConnectionManager {
         } catch (Exception e) {
             log.info("连接节点ip:{}，请求失败", ip);
             return false;
+        }finally {
+            if(channel!=null){
+                ChannelContain.get().removeChannel(channel);
+            }
         }
         return false;
     }
