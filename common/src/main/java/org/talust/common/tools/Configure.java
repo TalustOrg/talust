@@ -75,7 +75,7 @@ public final class Configure {
     /**
      * config 文件储存目录
      */
-    public static String CONFIG_PATH  = DATA_DIR + File.separator + "config";
+    public static String CONFIG_PATH  = SERVER_HOME + File.separator +"conf";
 
     /**
      * 业务节点最大被动连接数
