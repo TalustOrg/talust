@@ -116,7 +116,13 @@ public class ChannelContain {
         return superChannel.values();
     }
 
+    public boolean validateIpIsConnected(String  ip){
+        return  ChannelContain.get().mapChannel.containsKey(ip);
+    }
 
+    public Channel getChannelByIp(String ip){
+        return  ChannelContain.get().mapChannel.get(ip).getChannel();
+    }
     /**
      * 向cid所指向的通道发送消息
      *

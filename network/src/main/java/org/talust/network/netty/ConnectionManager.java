@@ -100,7 +100,6 @@ public class ConnectionManager {
      * 初始化方法,主要用于定时检测节点连接情况,发现连接数过少时,就需要同步一下连接
      */
     public void init() {
-
         initSuperIps();
         if (!superNode) {
             normalNodeJoin();
@@ -137,28 +136,30 @@ public class ConnectionManager {
         for (Object map : peerJ.entrySet()) {
             String trust = (String) ((Map.Entry) map).getValue();
             String peerIp = (String) ((Map.Entry) map).getKey();
-            if (!"0".equals(trust)) {
-                if(nodesJoinBroadcast(peerIp)){
-                    String status = connectByIp(peerIp, cc);
-                    if ("FULL".equals(status)) {
-                        break;
+            if(!ChannelContain.get().validateIpIsConnected(peerIp)){
+                if (!"0".equals(trust)) {
+                    if(nodesJoinBroadcast(peerIp)){
+                        String status = connectByIp(peerIp, cc);
+                        if ("FULL".equals(status)) {
+                            break;
+                        }
+                        switch (status) {
+                            case "OK":
+                                try {
+                                    getPeersOnline(peerIp);
+                                } catch (Exception e) {
+                                    continue;
+                                }
+                                break;
+                            case "FAIL":
+                                unusedIps.add((String) ((Map.Entry) map).getKey());
+                                break;
+                            default:
+                                break;
+                        }
+                    }else{
+                        unusedIps.add((String) ((Map.Entry) map).getKey());
                     }
-                    switch (status) {
-                        case "OK":
-                            try {
-                                getPeersOnline(peerIp);
-                            } catch (Exception e) {
-                                continue;
-                            }
-                            break;
-                        case "FAIL":
-                            unusedIps.add((String) ((Map.Entry) map).getKey());
-                            break;
-                        default:
-                            break;
-                    }
-                }else{
-                    unusedIps.add((String) ((Map.Entry) map).getKey());
                 }
             }
         }
@@ -177,14 +178,7 @@ public class ConnectionManager {
             if (nowConnSize < Configure.MAX_ACTIVE_CONNECT_COUNT) {
                 log.info("我允许的主动连接总数:{},当前主动连接总数:{},连接我的总数:{},准备连接的ip:{}",
                         Configure.MAX_ACTIVE_CONNECT_COUNT, cc.getActiveConnectionCount(), cc.getPassiveConnCount(), ip);
-                boolean needConnection = true;
-                for (MyChannel channel : cc.getMyChannels()) {
-                    String remoteIP = channel.getRemoteIp();
-                    if (remoteIP.equals(ip)) {
-                        needConnection = false;
-                    }
-                }
-                if (needConnection) {
+                if (!ChannelContain.get().validateIpIsConnected(ip)) {
                     log.info("本节点连接目标ip地址:{}", ip);
                     NodeClient nodeClient = new NodeClient();
                     Channel connect = nodeClient.connect(ip, Constant.PORT);
@@ -199,23 +193,19 @@ public class ConnectionManager {
         }
     }
 
+
     /**
      * 获取连接节点的已连接peers 数据
      */
     public JSONObject getPeersOnline(String peersIp) throws Exception {
-        boolean needConnection =  true;
-        Channel channel= null;
-        for (MyChannel myChannel : ChannelContain.get().getMyChannels()) {
-            String remoteIP = myChannel.getRemoteIp();
-            if (remoteIP.equals(peersIp)) {
-                needConnection = false;
-                channel= myChannel.getChannel();
-            }
-        }
-        if(needConnection){
+        Channel channel;
+        boolean isConnected =ChannelContain.get().validateIpIsConnected(peersIp);
+        if(!isConnected){
             NodeClient nc = new NodeClient();
             channel = nc.connect(peersIp, Constant.PORT);
             ChannelContain.get().addChannel(channel, false);
+        }else{
+            channel=  ChannelContain.get().getChannelByIp(peersIp);
         }
         JSONObject peers = new JSONObject();
         Message nm = new Message();
@@ -234,7 +224,7 @@ public class ConnectionManager {
             }
             PeersManager.get().addPeer(peers);
         }
-        if(needConnection){
+        if(!isConnected){
             ChannelContain.get().removeChannel(channel);
         }
         return peers;
@@ -328,14 +318,7 @@ public class ConnectionManager {
         for (String ip : nodeIps) {
             if (needConCount > 0) {
                 try {
-                    boolean needConnection = true;
-                    for (MyChannel channel : cc.getMyChannels()) {
-                        String remoteIP = channel.getRemoteIp();
-                        if (remoteIP.equals(ip)) {
-                            needConnection = false;
-                        }
-                    }
-                    if (needConnection) {
+                    if (!ChannelContain.get().validateIpIsConnected(ip)) {
                         if (nodesJoinBroadcast(ip)) {
                             log.info("本节点连接超级节点目标ip地址:{}", ip);
                             NodeClient tmpnc = new NodeClient();
