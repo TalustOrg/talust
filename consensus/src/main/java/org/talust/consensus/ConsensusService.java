@@ -32,7 +32,8 @@ public class ConsensusService {
 
     public void start() {
         boolean superNode = ConnectionManager.get().superNode;
-        if (superNode) {//如果当前节点是超级节点,则启动共识机制
+        //如果当前节点是超级节点,则启动共识机制
+        if (superNode) {
             log.info("当前节点是超级节点,启动参与共识....");
             checkSecond = Configure.BLOCK_GEN_TIME / 3;
             genBlock();

@@ -44,7 +44,6 @@ import java.util.List;
 @Slf4j//其他节点广播出来的区块数据
 public class BlockArrivedHandler implements MessageHandler {
     private BlockStorage blockStorage = BlockStorage.get();
-    //    private MessageQueueHolder mqHolder = MessageQueueHolder.get();
     private CacheManager cu = CacheManager.get();
     private TransactionHandler transactionHandler = new TransactionHandler();
 
@@ -69,16 +68,16 @@ public class BlockArrivedHandler implements MessageHandler {
         byte[] blockBytes = messageChannel.getMessage().getContent();
         Block block = SerializationUtil.deserializer(blockBytes, Block.class);
         byte[] hash = Sha256Hash.of(blockBytes).getBytes();
-        blockStorage.put(hash, blockBytes);//存储区块
-        blockStorage.put(Constant.NOW_BLOCK_HASH, hash);//存储最新区块的hash值
+        blockStorage.put(hash, blockBytes);
+        blockStorage.put(Constant.NOW_BLOCK_HASH, hash);
         byte[] bh = (Constant.BH_PRIX + block.getHead().getHeight()).getBytes();
-        blockStorage.put(bh, hash);//key为区块高度,value为区块的hash值
-        //将区块的最新打包时间写入缓存
+        blockStorage.put(bh, hash);
+
         cu.setCurrentBlockHeight(block.getHead().getHeight());
         cu.setCurrentBlockTime(block.getHead().getTime());
         cu.setCurrentBlockHash(hash);
         if(Conference.get().getMaster()!=null){
-            cu.setCurrentBlockGenIp(Conference.get().getMaster().getIp());//设置收到的块时最新的master节点ip
+            cu.setCurrentBlockGenIp(Conference.get().getMaster().getIp());
         }
         log.info("成功存储区块数据,当前hash:{},height:{},time:{}", Hex.encode(hash), block.getHead().getHeight(), block.getHead().getTime());
 

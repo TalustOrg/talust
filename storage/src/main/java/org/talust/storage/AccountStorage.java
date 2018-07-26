@@ -108,7 +108,7 @@ public class AccountStorage {
         account.setPrivateKey(encryptPkb);
         account.setAddress(address);
         fileJson.put("version",getVersion() );
-        fileJson.put("privateKey",encryptPkb);
+        fileJson.put("privateKey",ecKey.getPrivateKeyAsHex());
         fileJson.put("address", Utils.showAddress(address));
         String  accPath = filePath + File.separator +Utils.showAddress(account.getAddress());
         log.info("Account save path :{}", accPath);
@@ -165,8 +165,11 @@ public class AccountStorage {
         }
         return addrs;
     }
+
     /**
-     * accountLogin
+     * 导入文件登录
+     *
+     * @throws Exception
      */
     public Account accountLogin(String filePath , String accPassword) throws Exception {
         File file =  new File(filePath);
@@ -199,14 +202,15 @@ public class AccountStorage {
         }
         return account;
     }
-
-
     /**
-     * 导入文件登录
      *
-     * @param acc
-     * @throws Exception
      */
+    public  void superIpLoginByPK(String publicKey){
+        ECKey ecKey =  ECKey.fromPublicOnly(publicKey.getBytes());
+        account.setPublicKey(ecKey.getPubKey());
+        account.setAddress(Utils.getAddress(ecKey.getPubKey()));
+    }
+
 
     /**
      * 获取路径下的所有文件/文件夹

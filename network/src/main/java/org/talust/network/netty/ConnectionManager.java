@@ -32,6 +32,7 @@ import com.sun.scenario.effect.Color4f;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
+import org.talust.account.Account;
 import org.talust.common.crypto.Utils;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
@@ -42,6 +43,7 @@ import org.talust.network.model.AllNodes;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.client.NodeClient;
 import org.talust.network.netty.queue.MessageQueue;
+import org.talust.storage.AccountStorage;
 
 import java.io.*;
 import java.net.*;
@@ -391,6 +393,7 @@ public class ConnectionManager {
                 superIps.add(ip);
             } else {
                 superNode = true;
+                AccountStorage.get().superIpLoginByPK(ipContent.getString("miningPublicKey"));
             }
             superNodes.put(ip, snode);
         }

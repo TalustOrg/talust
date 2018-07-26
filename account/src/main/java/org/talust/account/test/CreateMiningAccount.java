@@ -32,12 +32,9 @@ import java.util.Base64;
 public class CreateMiningAccount {
 
     public static void main(String[]  arg ) throws InvalidCipherTextException {
-        ECKey ecKey = new ECKey();
-       String  prk ="03f9ec5465755067f872d29ba6e9aa72fed73d5d2198e9e4a521bfa81b576b67c9";
-       String psd = "Talust.2018";
-        BigInteger bigInteger =  new BigInteger("zqtW1pM6/hkfdzw+s5zdg5ikO44Ytcj3FCjm12MMVVw6uvPzaqagdyPdboujYv1s".getBytes());
-        byte[] sign =  ecKey.sign(Sha256Hash.of(AESEncrypt.encrypt(prk.getBytes(), psd)).getBytes(),bigInteger);
-        System.out.println("publickey : "+ Base64.getEncoder().encodeToString(AESEncrypt.encrypt(prk.getBytes(), psd)));
-        System.out.println("sign : "+Base64.getEncoder().encodeToString(sign));
+        ECKey ecKey = ECKey.fromPublicOnly(Hex.decode("6d686158f2930e25035c92edced7c2e436d441141d22c0bdd8af7e70c73c8909"));
+//        byte[] sign =  ecKey.sign(Sha256Hash.of(AESEncrypt.encrypt(prk.getBytes(), psd)).getBytes(),bigInteger);
+//        System.out.println("publickey : "+ Base64.getEncoder().encodeToString(AESEncrypt.encrypt(prk.getBytes(), psd)));
+//        System.out.println("sign : "+Base64.getEncoder().encodeToString(sign));
     }
 }

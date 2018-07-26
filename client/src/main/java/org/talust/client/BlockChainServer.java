@@ -170,6 +170,6 @@ public class BlockChainServer {
                 CacheManager.get().setCurrentBlockHash(nowBlockHash);
             }
         }
-
+        BlockChainServer.get().start();
     }
 }
