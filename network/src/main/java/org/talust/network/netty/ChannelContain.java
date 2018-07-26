@@ -91,13 +91,6 @@ public class ChannelContain {
             if (mapChannel.containsKey(remoteIp)) {
                 mapChannel.remove(remoteIp);
                 superChannel.remove(remoteIp);
-
-                Message message = new Message();
-                message.setType(MessageType.NODE_EXIT.getType());
-                message.setContent(remoteIp.getBytes());
-                MessageChannel mc = new MessageChannel();
-                mc.setMessage(message);
-                mq.addMessage(mc);
             }
             allNodeIps.remove(remoteIp);
         }

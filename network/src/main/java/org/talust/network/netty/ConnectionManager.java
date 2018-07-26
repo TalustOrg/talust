@@ -119,7 +119,6 @@ public class ConnectionManager {
     private void normalNodeJoin() {
         ChannelContain cc = ChannelContain.get();
         JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
-        int connect = cc.getActiveConnectionCount();
         if (peerJ.entrySet().size() == 0) {
             for (String fixedIp : superIps) {
                 if(nodesJoinBroadcast(fixedIp)){
@@ -136,6 +135,9 @@ public class ConnectionManager {
         for (Object map : peerJ.entrySet()) {
             String trust = (String) ((Map.Entry) map).getValue();
             String peerIp = (String) ((Map.Entry) map).getKey();
+            //TODO 需要优化连接请求次数，减少网络消费。
+            //TODO 否则业务节点需要请求是否可以连接，而后断开，再进行连接，而后再进行文件获取
+            //TODO 主节点也是先被请求是否可以连接，而后断开，再去获取peers文件，然后断开。如果不得已而去连接的话，则会再次请求是否可以连接，然后断开，再去连接
             if(!ChannelContain.get().validateIpIsConnected(peerIp)){
                 if (!"0".equals(trust)) {
                     if(nodesJoinBroadcast(peerIp)){
