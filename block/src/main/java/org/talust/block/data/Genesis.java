@@ -33,10 +33,7 @@ import org.talust.block.model.Transaction;
 import org.talust.common.crypto.Hex;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageType;
-import org.talust.common.tools.CacheManager;
-import org.talust.common.tools.Configure;
-import org.talust.common.tools.DateUtil;
-import org.talust.common.tools.SerializationUtil;
+import org.talust.common.tools.*;
 import org.talust.common.crypto.Utils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,7 +62,7 @@ public class Genesis {
         rootAcc.setPublicKey(Hex.decode( CacheManager.get().get("ROOT_PK")));
         rootAcc.setAddress(Utils.getAddress(rootAcc.getPublicKey()));
         rootAcc.setParentPub(Hex.decode( CacheManager.get().get("ROOT_PK")));
-        rootAcc.setParentSign(Hex.decode( CacheManager.get().get("ROOT_SIGN")));
+        rootAcc.setParentSign(StringUtils.hexStringToBytes( CacheManager.get().get("ROOT_SIGN")));
 
         Transaction transaction = new Transaction();
         transaction.setTranType(TranType.ACCOUNT.getType());//设定为账户下发类型
@@ -88,7 +85,7 @@ public class Genesis {
         rootAcc.setPublicKey(Hex.decode( CacheManager.get().get("TALUST_PK")));
         rootAcc.setAddress(Utils.getAddress(rootAcc.getPublicKey()));
         rootAcc.setParentPub(Hex.decode(CacheManager.get().get("ROOT_PK")));
-        rootAcc.setParentSign(Hex.decode(CacheManager.get().get("TALUST_SIGN")));
+        rootAcc.setParentSign(StringUtils.hexStringToBytes(CacheManager.get().get("TALUST_SIGN")));
 
         Transaction transaction = new Transaction();
         //设定为账户下发类型

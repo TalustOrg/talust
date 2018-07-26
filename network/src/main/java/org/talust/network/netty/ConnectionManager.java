@@ -371,11 +371,11 @@ public class ConnectionManager {
 
         JSONObject gip = getJsonFile(Configure.GENESIS_SERVER_ADDR);
         JSONObject root = gip.getJSONObject("root");
-        CacheManager.get().put("ROOT_PK", root.get("publickey"));
-        CacheManager.get().put("ROOT_SIGN", root.get("sign"));
+        CacheManager.get().put("ROOT_PK", root.getString("publickey"));
+        CacheManager.get().put("ROOT_SIGN", root.getString("sign"));
         JSONObject talust = gip.getJSONObject("talust");
-        CacheManager.get().put("TALUST_PK", talust.get("publickey"));
-        CacheManager.get().put("TALUST_SIGN", talust.get("sign"));
+        CacheManager.get().put("TALUST_PK", talust.getString("publickey"));
+        CacheManager.get().put("TALUST_SIGN", talust.getString("sign"));
         if (myIps.contains(gip.getString("genesisIp"))) {
             genesisIp = true;
         }
@@ -388,7 +388,7 @@ public class ConnectionManager {
             SuperNode snode = new SuperNode();
             snode.setCode(Integer.parseInt((String) ((Map.Entry) map).getKey()));
             snode.setIp(ip);
-            snode.setAddress(Utils.showAddress(Utils.getAddress(ipContent.getBytes("miningPublicKey"))));
+            snode.setAddress(Utils.showAddress(Utils.getAddress(ipContent.getBytes("address"))));
             if (!myIps.contains(ip)) {
                 superIps.add(ip);
             } else {

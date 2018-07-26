@@ -5,16 +5,14 @@ import org.talust.account.Account;
 import org.talust.block.data.DataContainer;
 import org.talust.block.mining.MiningRule;
 import org.talust.block.model.*;
+import org.talust.common.crypto.Base58;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.model.DepositAccount;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
-import org.talust.common.tools.CacheManager;
-import org.talust.common.tools.Constant;
-import org.talust.common.tools.DateUtil;
-import org.talust.common.tools.SerializationUtil;
+import org.talust.common.tools.*;
 import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.queue.MessageQueue;
 import org.talust.storage.AccountStorage;
@@ -121,7 +119,7 @@ public class PackBlockTool {
 
         //矿机自身获得
         TransactionOut mining = new TransactionOut();
-        mining.setAddress(Utils.deShowAddress(sn));
+        mining.setAddress(StringUtils.hexStringToBytes(sn));
         mining.setAmount(baseCoin.doubleValue());
         mining.setStatus(OutStatus.ENABLE.getType());
         mining.setItem(item++);
@@ -134,7 +132,7 @@ public class PackBlockTool {
         //当前没有储蓄帐户,则挖出来的币直接奖励给矿机
         if (deposits.size() == 0) {
             TransactionOut tout = new TransactionOut();
-            tout.setAddress(Utils.deShowAddress(sn));
+            tout.setAddress(StringUtils.hexStringToBytes(sn));
             tout.setAmount(depositCoin.doubleValue());
             tout.setStatus(OutStatus.ENABLE.getType());
             tout.setTime(packageTime);
@@ -165,7 +163,7 @@ public class PackBlockTool {
         message.setTime(DateUtil.getTimeSecond());
         byte[] hash = Sha256Hash.of(cbase).getBytes();
         byte[] sign = AccountStorage.get().getEcKey().sign(hash);
-        message.setSigner(AccountStorage.get().getAccounts().get(0).getPublicKey());
+        message.setSigner(AccountStorage.get().getAccount().getPublicKey());
         message.setSignContent(sign);
         return SerializationUtil.serializer(message);
     }

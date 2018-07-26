@@ -55,15 +55,20 @@ public class AccountTest {
         ECKey ecKey = new ECKey();
         System.out.println("public key:"+Hex.encode(ecKey.getPubKey()));
         System.out.println("private key :"+ecKey.getPrivateKeyAsHex());
-        Sha256Hash hash = Sha256Hash.of(key.getPubKey());
-        byte[] sign_bytes = ecKey.sign(hash.getBytes());
+        Sha256Hash hash = Sha256Hash.of(ecKey.getPubKey());
+        byte[] sign_bytes = key.sign(hash.getBytes());
         System.out.println("sign : "+ StringUtils.bytesToHexString(sign_bytes));
         String addr = StringUtils.bytesToHexString(Utils.getAddress(ecKey.getPubKey()));
         System.out.println("address haxString:"+addr);
         System.out.println("address haxString to  bytes and Base58:"+Base58.encode(StringUtils.hexStringToBytes(addr)));
         System.out.println("address Base58:"+Base58.encode(Utils.getAddress(ecKey.getPubKey())));
-        boolean verify = ECKey.verify(hash.getBytes(), sign_bytes, ecKey.getPubKey());
+        boolean verify = ECKey.verify(hash.getBytes(), sign_bytes, key.getPubKey());
         System.out.println(verify);
+
+        /**
+         * Sha256Hash hash = Sha256Hash.of(account.getPublicKey());
+         *                     boolean verify = ECKey.verify(hash.getBytes(), account.getParentSign(), account.getParentPub());
+         */
 
         //root account create Test
 //        ECKey ecKey = new ECKey();
