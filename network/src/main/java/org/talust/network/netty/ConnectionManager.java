@@ -41,7 +41,6 @@ import org.talust.storage.AccountStorage;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 连接管理者,用于实现底层的连接,上层应用中不需要关心本层次的连接问题
@@ -101,11 +100,6 @@ public class ConnectionManager {
             superNodeJoin();
         }
     }
-    /**
-     *
-     */
-
-
 
     /**
      * 连接普通节点

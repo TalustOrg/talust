@@ -79,11 +79,6 @@ public class SynBlock {
 
     private void synBlock() {
         log.info("进行数据块的同步...");
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         int selfBlockHeight = CacheManager.get().getCurrentBlockHeight();
         List<Future<MessageChannel>> results = new ArrayList<>();
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
@@ -103,9 +98,10 @@ public class SynBlock {
             });
             results.add(submit);
         }
-
-        int maxBlockHeight = -1;//最高区块高度
-        Map<String, Integer> channelBlockHeight = new HashMap<>();//用于存储每个通道的区块高度
+        //最高区块高度
+        int maxBlockHeight = -1;
+        //用于存储每个通道的区块高度
+        Map<String, Integer> channelBlockHeight = new HashMap<>();
         for (Future<MessageChannel> result : results) {
             MessageChannel nodeMessage;
             try {
