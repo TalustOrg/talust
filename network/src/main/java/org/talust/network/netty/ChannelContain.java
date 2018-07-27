@@ -93,6 +93,25 @@ public class ChannelContain {
                 superChannel.remove(remoteIp);
             }
             allNodeIps.remove(remoteIp);
+            Message message = new Message();
+            message.setType(MessageType.NODE_EXIT.getType());
+            message.setContent(remoteIp.getBytes());
+            MessageChannel mc = new MessageChannel();
+            mc.setMessage(message);
+            mq.addMessage(mc);
+        }
+    }
+
+
+    public synchronized void removeChannelNoBroad(Channel sc) {
+        if (sc != null) {
+            InetSocketAddress insocket = (InetSocketAddress) sc.remoteAddress();
+            String remoteIp = insocket.getAddress().getHostAddress();
+            if (mapChannel.containsKey(remoteIp)) {
+                mapChannel.remove(remoteIp);
+                superChannel.remove(remoteIp);
+            }
+            allNodeIps.remove(remoteIp);
         }
     }
 

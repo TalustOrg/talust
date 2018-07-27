@@ -201,7 +201,7 @@ public class ConnectionManager {
             PeersManager.get().addPeer(peers);
         }
         if(!isConnected){
-            ChannelContain.get().removeChannel(channel);
+            ChannelContain.get().removeChannelNoBroad(channel);
         }
         return peers;
     }
@@ -249,7 +249,7 @@ public class ConnectionManager {
             return false;
         }finally {
             if(channel!=null){
-                ChannelContain.get().removeChannel(channel);
+                ChannelContain.get().removeChannelNoBroad(channel);
             }
         }
         return false;
