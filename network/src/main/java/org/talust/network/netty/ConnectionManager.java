@@ -25,24 +25,17 @@
 
 package org.talust.network.netty;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.CollectionCodec;
-import com.sun.scenario.effect.Color4f;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
-import org.talust.account.Account;
 import org.talust.common.crypto.Utils;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 import org.talust.common.model.SuperNode;
 import org.talust.common.tools.*;
-import org.talust.network.model.AllNodes;
-import org.talust.network.model.MyChannel;
 import org.talust.network.netty.client.NodeClient;
-import org.talust.network.netty.queue.MessageQueue;
 import org.talust.storage.AccountStorage;
 
 import java.io.*;
@@ -89,7 +82,6 @@ public class ConnectionManager {
      */
     public String selfIp = null;
 
-    private MessageQueue mq = MessageQueue.get();
     /**
      * 存储当前节点的ip地址,可能有多个
      */
@@ -98,6 +90,8 @@ public class ConnectionManager {
 
     /**
      * 初始化方法,主要用于定时检测节点连接情况,发现连接数过少时,就需要同步一下连接
+     * 业务节点需要请求是否可以连接，而后断开，再进行连接再进行文件获取
+     * 如果不得已而去连接超级节点的话，则会请求是否可以连接，然后断开，再去连接以及获取peers文件
      */
     public void init() {
         initSuperIps();
@@ -119,25 +113,11 @@ public class ConnectionManager {
     private void normalNodeJoin() {
         ChannelContain cc = ChannelContain.get();
         JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
-        if (peerJ.entrySet().size() == 0) {
-            for (String fixedIp : superIps) {
-                if(nodesJoinBroadcast(fixedIp)){
-                    try {
-                        peerJ = getPeersOnline(fixedIp,peerJ);
-                        break;
-                    } catch (Exception e) {
-                        continue;
-                    }
-                }
-            }
-        }
         List<String> unusedIps = new ArrayList<>();
         for (Object map : peerJ.entrySet()) {
             String trust = (String) ((Map.Entry) map).getValue();
             String peerIp = (String) ((Map.Entry) map).getKey();
-            //TODO 需要优化连接请求次数，减少网络消费。
-            //TODO 否则业务节点需要请求是否可以连接，而后断开，再进行连接，而后再进行文件获取
-            //TODO 主节点也是先被请求是否可以连接，而后断开，再去获取peers文件，然后断开。如果不得已而去连接的话，则会再次请求是否可以连接，然后断开，再去连接
+
             if(!ChannelContain.get().validateIpIsConnected(peerIp)){
                 if (!"0".equals(trust)) {
                     if(nodesJoinBroadcast(peerIp)){
@@ -231,11 +211,6 @@ public class ConnectionManager {
         }
         return peers;
     }
-    public JSONObject getPeersOnline(String peersIp,JSONObject peerNow) throws Exception {
-        peerNow.putAll(getPeersOnline(peersIp));
-        return peerNow;
-    }
-
 
     /**
      * 连接到超级节点
@@ -247,25 +222,8 @@ public class ConnectionManager {
         }
         log.info("连接到网络,当前节点ip:{},全网超级节点数:{}", this.selfIp, snodes.size());
         ChannelContain cc = ChannelContain.get();
-        int size = snodes.size();
-        if (size > 0) {
-            Random rand = new Random();
-            while (size > 0) {
-                //确保能够成功连接到一台节点获得当前所有连接
-                int selNode = rand.nextInt(size);
-                //随机选择一台固定节点以获取当前所有可用的网络节点
-                String node = snodes.get(selNode);
-                try {
-                    getPeersOnline(node);
-                    break;
-                } catch (Exception e) {
-                }
-                snodes.remove(selNode);
-                size = snodes.size();
-            }
-            if(snodes.size()>0){
-                connectAllSuperNode(superIps, cc);
-            }
+        if(snodes.size()>0){
+            connectAllSuperNode(superIps, cc);
         }
     }
 
@@ -327,6 +285,7 @@ public class ConnectionManager {
                             Channel connect = tmpnc.connect(ip, Constant.PORT);
                             cc.addChannel(connect, false);
                             InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
+                            getPeersOnline(ip);
                             selfIp = insocket.getAddress().getHostAddress();
                         }
                     }
