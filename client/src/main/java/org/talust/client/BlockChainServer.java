@@ -38,6 +38,7 @@ import org.talust.common.model.MessageType;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Constant;
 import org.talust.common.tools.SerializationUtil;
+import org.talust.consensus.Conference;
 import org.talust.consensus.ConsensusService;
 import org.talust.consensus.handler.MasterReqHandler;
 import org.talust.consensus.handler.MasterRespHandler;
@@ -171,5 +172,6 @@ public class BlockChainServer {
             }
         }
         BlockChainServer.get().start();
+
     }
 }

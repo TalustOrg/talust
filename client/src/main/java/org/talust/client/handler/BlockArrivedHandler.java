@@ -72,7 +72,6 @@ public class BlockArrivedHandler implements MessageHandler {
         blockStorage.put(Constant.NOW_BLOCK_HASH, hash);
         byte[] bh = (Constant.BH_PRIX + block.getHead().getHeight()).getBytes();
         blockStorage.put(bh, hash);
-
         cu.setCurrentBlockHeight(block.getHead().getHeight());
         cu.setCurrentBlockTime(block.getHead().getTime());
         cu.setCurrentBlockHash(hash);

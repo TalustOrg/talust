@@ -63,17 +63,22 @@ public class TransactionHandler implements MessageHandler {
         boolean result = true;
         Transaction transaction = SerializationUtil.deserializer(message.getMessage().getContent(), Transaction.class);
         int tranType = transaction.getTranType();
-        if (tranType == TranType.ACCOUNT.getType()) {//是帐户下发的交易类型
+        if (tranType == TranType.ACCOUNT.getType()) {
+            //是帐户下发的交易类型
             result = accountPub(transaction);
-        } else if (tranType == TranType.TRANSFER.getType()) {//是转账的交易类型
-
-        } else if (tranType == TranType.COIN_BASE.getType()) {//是挖矿所得
+        } else if (tranType == TranType.TRANSFER.getType()) {
+            //是转账的交易类型
+        } else if (tranType == TranType.COIN_BASE.getType()) {
+            //是挖矿所得
             coinBase(transaction);
-        } else if (tranType == TranType.DEPOSIT.getType()) {//是储蓄
-
-        } else if (tranType == TranType.BUSINESS.getType()) {//是做业务
-
+        } else if (tranType == TranType.DEPOSIT.getType()) {
+            //是储蓄
+        } else if (tranType == TranType.BUSINESS.getType()) {
+            //是做业务
+        }else if(tranType == TranType.FROZEN.getType()){
+            //是冻结交易
         }
+
         //@TODO 业务的交易类型以及储蓄的交易类型后续需要实现
         return result;
     }
@@ -110,7 +115,6 @@ public class TransactionHandler implements MessageHandler {
             if (accType == AccountType.ROOT.getType() && Utils.equals(account.getPublicKey(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//如果当前帐户是根帐户
                 blockStorage.put(Constant.ROOT_CA, content);
             }
-
             if (accType == AccountType.MINING.getType()) {//是挖矿的帐户
                 rwl.writeLock().lock();
                 try {

@@ -30,12 +30,19 @@ package org.talust.block.model;
  * 交易类型
  */
 public enum TranType {
+    //挖矿所得
+    COIN_BASE(1),
+    //转账
+    TRANSFER(2),
+    //储蓄
+    DEPOSIT(3),
+    //账户下发
+    ACCOUNT(4),
+    //业务数据
+    BUSINESS(5),
+    //冻结交易，按时间或高度释放
+    FROZEN(6);
 
-    COIN_BASE(1), //挖矿所得
-    TRANSFER(2),//转账
-    DEPOSIT(3), //储蓄
-    ACCOUNT(4),//账户下发
-    BUSINESS(5);//业务数据
 
     private int type;
 
