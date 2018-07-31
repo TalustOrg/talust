@@ -173,8 +173,6 @@ public class TransactionValidator implements MessageValidator {
                             double amount = out.getAmount();
                             //说明本次挖矿所得数量没有问题
                             if (Math.abs(baseCoin - amount) > nearZero) {
-                                String addrAmt = stateStorage.getAddressAmount(address);
-                                stateStorage.saveAddressAmount(address, ArithUtils.add(addrAmt,amount));
                                 result = false;
                                 break;
                             }
@@ -190,8 +188,6 @@ public class TransactionValidator implements MessageValidator {
                             double depositCoin = MiningRule.getDepositCoin(currentBlockHeight + 1);
                             double amount = out.getAmount();
                             if (Math.abs(depositCoin - amount) > nearZero) {//说明本次挖矿所得数量没有问题
-                                String addrAmt = stateStorage.getAddressAmount(address);
-                                stateStorage.saveAddressAmount(address,ArithUtils.add(addrAmt,amount));
                                 result = false;
                                 break;
                             }
@@ -262,8 +258,6 @@ public class TransactionValidator implements MessageValidator {
                         }
                         //TODO if transfer success ,we need  got the addrs in accountStorage
                         // TODO  save the transfer in an local cache
-                        String addrAmt = stateStorage.getAddressAmount(signAddr);
-                        stateStorage.saveAddressAmount(signAddr,ArithUtils.sub(addrAmt,outAmount));
                         return true;
                     }
                 }

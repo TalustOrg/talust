@@ -26,12 +26,10 @@
 package org.talust.storage;
 
 import com.alibaba.fastjson.JSONObject;
+import com.sun.xml.internal.ws.api.ha.StickyFeature;
 import lombok.extern.slf4j.Slf4j;
 import org.talust.account.Account;
-import org.talust.common.crypto.AESEncrypt;
-import org.talust.common.crypto.ECKey;
-import org.talust.common.crypto.Hex;
-import org.talust.common.crypto.Utils;
+import org.talust.common.crypto.*;
 import org.talust.common.exception.AccountFileEmptyException;
 import org.talust.common.exception.AccountFileNotExistException;
 import org.talust.common.exception.ErrorPasswordException;
@@ -44,6 +42,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j //帐户存储服务器
@@ -82,6 +81,16 @@ public class AccountStorage {
         log.info("帐户信息存储路径文件:{}", filePath);
     }
 
+    public static void main(String[] arg){
+        ECKey  ecKey = new ECKey();
+        byte[] pubkey = ecKey.getPubKey();
+        byte[] tag3 =  Utils.getAddress(pubkey);
+        byte[] actualChecksum = Arrays.copyOfRange(Sha256Hash.hashTwice(tag3), 0, 4);
+        tag3 = Utils.addBytes(tag3,actualChecksum);
+        String tag4 = Utils.showAddress(tag3);
+
+    }
+
     /**
      * 创建新帐户,会产生一对密钥对,以即会生成一个地址。
      * @throws Exception
@@ -106,7 +115,9 @@ public class AccountStorage {
         account.setPublicKey(ecKey.getPubKey());
         byte[] privKeyBytes = ecKey.getPrivKeyBytes();
         byte[] encryptPkb = AESEncrypt.encrypt(privKeyBytes, accPs);
-        byte[] address = Utils.getAddress(ecKey.getPubKey());
+        byte[] hashOneAddress =  Utils.getAddress(ecKey.getPubKey());
+        byte[] actualChecksum = Arrays.copyOfRange(Sha256Hash.hashTwice(hashOneAddress), 0, 4);
+        byte[] address = Utils.addBytes(hashOneAddress,actualChecksum);
         account.setPrivateKey(encryptPkb);
         account.setAddress(address);
         fileJson.put("version",getVersion() );
@@ -212,14 +223,13 @@ public class AccountStorage {
             ecKey =  ECKey.fromPrivate(new BigInteger( Hex.decode(fileJson.getString("privateKey"))));
             account.setPublicKey(ecKey.getPubKey());
             String fileAddress  = fileJson.getString("address");
-            if(StringUtils.bytesToHexString(Utils.getAddress(ecKey.getPubKey())).equals(fileAddress)){
-                account.setAddress(Utils.getAddress(ecKey.getPubKey()));
+            byte[] address =   Base58.decodeChecked(Base58.encode(StringUtils.hexStringToBytes(fileAddress)));
+            if(Utils.getAddress(ecKey.getPubKey()).equals(address)){
+                account.setAddress(StringUtils.hexStringToBytes(fileAddress));
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
     /**
      * 获取路径下的所有文件/文件夹

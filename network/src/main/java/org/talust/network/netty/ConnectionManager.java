@@ -398,11 +398,11 @@ public class ConnectionManager {
     /**
      * 交易消息传递
      */
-    public void messageSendType(Message message){
+    public void TXMessageSend(Message message){
         if(isSuperNode()){
             ChannelContain.get().sendMessageToSuperNode(message);
         }else{
-
+            ChannelContain.get().sendMessageToRandomSuperNode(message);
         }
     }
 
