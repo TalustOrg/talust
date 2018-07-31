@@ -483,6 +483,8 @@ public class Utils {
         byte[] na = new byte[21];
         System.arraycopy(hash160, 0, na, 0, hash160.length);
         na[20] = xor;
+        byte[] actualChecksum = Arrays.copyOfRange(Sha256Hash.hashTwice(na), 0, 4);
+        na = Utils.addBytes(na,actualChecksum);
         return na;
     }
 

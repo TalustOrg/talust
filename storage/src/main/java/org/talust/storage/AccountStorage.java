@@ -81,16 +81,6 @@ public class AccountStorage {
         log.info("帐户信息存储路径文件:{}", filePath);
     }
 
-    public static void main(String[] arg){
-        ECKey  ecKey = new ECKey();
-        byte[] pubkey = ecKey.getPubKey();
-        byte[] tag3 =  Utils.getAddress(pubkey);
-        byte[] actualChecksum = Arrays.copyOfRange(Sha256Hash.hashTwice(tag3), 0, 4);
-        tag3 = Utils.addBytes(tag3,actualChecksum);
-        String tag4 = Utils.showAddress(tag3);
-
-    }
-
     /**
      * 创建新帐户,会产生一对密钥对,以即会生成一个地址。
      * @throws Exception
