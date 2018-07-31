@@ -79,7 +79,6 @@ public class BlockArrivedHandler implements MessageHandler {
             cu.setCurrentBlockGenIp(Conference.get().getMaster().getIp());
         }
         log.info("成功存储区块数据,当前hash:{},height:{},time:{}", Hex.encode(hash), block.getHead().getHeight(), block.getHead().getTime());
-
         List<byte[]> data = block.getBody().getData();
         for (byte[] datum : data) {
             MessageChannel nm = new MessageChannel();

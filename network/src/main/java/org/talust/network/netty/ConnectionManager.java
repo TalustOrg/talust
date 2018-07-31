@@ -396,6 +396,17 @@ public class ConnectionManager {
     }
 
     /**
+     * 交易消息传递
+     */
+    public void messageSendType(Message message){
+        if(isSuperNode()){
+            ChannelContain.get().sendMessageToSuperNode(message);
+        }else{
+
+        }
+    }
+
+    /**
      * 获取超级网络节点
      */
     public Set<String> getSuperIps() {

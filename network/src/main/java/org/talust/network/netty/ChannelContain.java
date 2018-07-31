@@ -25,6 +25,7 @@
 
 package org.talust.network.netty;
 
+import io.protostuff.MessageMapSchema;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 
@@ -32,13 +33,13 @@ import org.talust.common.model.Message;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
+import org.talust.common.tools.Constant;
 import org.talust.network.model.MyChannel;
+import org.talust.network.netty.client.NodeClient;
 import org.talust.network.netty.queue.MessageQueue;
 
 import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -147,6 +148,45 @@ public class ChannelContain {
             myChannel.getChannel().writeAndFlush(message);
         }
     }
+    /**
+     * 向所有的超级节点发送消息
+     */
+    public void sendMessageToSuperNode( Message message){
+        if(null!=superIps&&superIps.size()>0){
+            for(String ip : superIps){
+                sendMessage(ip,message);
+            }
+        }
+    }
+    /**
+     * 向随机的一个超级节点发送消息
+     */
+    public void sendMessageToRandomSuperNode(Message message){
+        List<String> snodes = new ArrayList<>();
+        if(null!=superChannel&&superChannel.size()>0){
+            snodes = new ArrayList<>(superChannel.size());
+            for (String fixedIp : superChannel.keySet()) {
+                snodes.add(fixedIp);
+            }
+        }else if(null!=superIps){
+            snodes = new ArrayList<>(superIps.size());
+            for (String fixedIp : superIps) {
+                snodes.add(fixedIp);
+            }
+        }
+        int size = snodes.size();
+        if (size > 0) {
+            Random rand = new Random();
+            int selNode = rand.nextInt(size);
+            String node = snodes.get(selNode);
+            if(IsIpConnect(node)){
+                sendMessage(node,message);
+            }else{
+                sendMessageWhenNotConnected(node,message);
+            }
+
+        }
+    }
 
     /**
      * 返回本节点主动连接远端的连接数
@@ -178,6 +218,27 @@ public class ChannelContain {
             }
         }
         return count;
+    }
+    /**
+     * 查询该IP 是否已经被连接
+     */
+    public boolean IsIpConnect(String ip){
+       return  mapChannel.containsKey(ip);
+    }
+
+    /**
+     * 连接IP发送消息后移除连接
+     */
+    public void sendMessageWhenNotConnected(String ip , Message message){
+        try {
+            NodeClient tmpnc = new NodeClient();
+            Channel  connect = tmpnc.connect(ip, Constant.PORT);
+            addChannel(connect, false);
+            sendMessage(ip,message);
+            removeChannelNoBroad(connect);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 //    /**

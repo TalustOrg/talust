@@ -53,7 +53,7 @@ public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) throws Exception {
         new Application().configure(new SpringApplicationBuilder(Application.class)).run(args);
-        BlockChainServer.get().initStorage()  ;
+        BlockChainServer.get().initStorage();
     }
 
 }

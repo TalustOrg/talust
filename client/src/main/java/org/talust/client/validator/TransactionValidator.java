@@ -88,7 +88,8 @@ public class TransactionValidator implements MessageValidator {
             return checkTransfer(signerPub, transaction);
         } else if (tranType == TranType.COIN_BASE.getType()) {//是挖矿的数据
             return checkCoinBase(transaction);
-        }//@TODO 业务的交易类型以及储蓄的交易类型后续需要实现
+        }
+        //TODO 业务的交易类型以及储蓄的交易类型后续需要实现
         return false;
     }
 
@@ -125,16 +126,17 @@ public class TransactionValidator implements MessageValidator {
                                 if (Utils.equals(account.getParentPub(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//运营方的父级证书只能是根
                                     isOk = true;
                                 }
-                            } else if (accType == AccountType.MINING.getType()) {//是挖矿类型,则检测父类型是运营方类型即可
+                            } else {
+                                //其余类型,则检测父类型是运营方类型即可
                                 Account tp = SerializationUtil.deserializer(parentBytes, Account.class);
                                 if (tp != null && tp.getStatus() == AccountStatus.ENABLE.getType() && tp.getAccType().intValue() == AccountType.TALUST.getType()) {
                                     isOk = true;
                                 }
                             }
                         }
-
                         if (isOk) {
-                            byte[] slfAddr = account.getAddress();//父级节点地址
+                            //父级节点地址
+                            byte[] slfAddr = account.getAddress();
                             byte[] slfAddrKey = Utils.addBytes(Constant.ACC_PREFIX, slfAddr);
                             CacheManager.get().put(Hex.encode(slfAddrKey), transaction.getDatas(), 5);
                         }
@@ -159,7 +161,8 @@ public class TransactionValidator implements MessageValidator {
                 Integer coinBaseType = out.getCoinBaseType();
                 if (coinBaseType != null) {
                     //@TODO 后续考虑验证接收地址是否与height匹配
-                    if (coinBaseType.intValue() == CoinBaseType.MINING.getType()) {//是挖矿所得
+                    //是挖矿所得
+                    if (coinBaseType.intValue() == CoinBaseType.MINING.getType()) {
                         byte[] address = out.getAddress();
                         //将挖矿收益地址存于缓存中
                         String cacheKey = new String(Constant.MINING_ADDRESS);
@@ -168,7 +171,8 @@ public class TransactionValidator implements MessageValidator {
                             int currentBlockHeight = CacheManager.get().getCurrentBlockHeight();
                             double baseCoin = MiningRule.getBaseCoin(currentBlockHeight + 1);
                             double amount = out.getAmount();
-                            if (Math.abs(baseCoin - amount) > nearZero) {//说明本次挖矿所得数量没有问题
+                            //说明本次挖矿所得数量没有问题
+                            if (Math.abs(baseCoin - amount) > nearZero) {
                                 String addrAmt = stateStorage.getAddressAmount(address);
                                 stateStorage.saveAddressAmount(address, ArithUtils.add(addrAmt,amount));
                                 result = false;
@@ -180,7 +184,8 @@ public class TransactionValidator implements MessageValidator {
                         //将挖矿收益地址存于缓存中
                         String cacheKey = new String(Constant.MINING_ADDRESS);
                         List<String> madress = CacheManager.get().get(cacheKey);
-                        if (madress.contains(Utils.showAddress(address))) {//储蓄地址中含有挖矿节点地址,则说明当前还没有其他的储蓄用户,则挖矿全部奖励给本次的挖矿节点帐户
+                        //储蓄地址中含有挖矿节点地址,则说明当前还没有其他的储蓄用户,则挖矿全部奖励给本次的挖矿节点帐户
+                        if (madress.contains(Utils.showAddress(address))) {
                             int currentBlockHeight = CacheManager.get().getCurrentBlockHeight();
                             double depositCoin = MiningRule.getDepositCoin(currentBlockHeight + 1);
                             double amount = out.getAmount();
@@ -213,14 +218,16 @@ public class TransactionValidator implements MessageValidator {
         List<TransactionIn> ins = transaction.getIns();
         if (ins != null && ins.size() > 0) {
             List<TransactionOut> inOuts = new ArrayList<>();
-            BigDecimal userAmount = new BigDecimal(0);//当前用户的账户总金额
+            //当前用户的账户总金额
+            BigDecimal userAmount = new BigDecimal(0);
             //签名者的地址
             byte[] signAddr = Base58.encode(Utils.sha256hash160(signerPub)).getBytes();
             for (TransactionIn in : ins) {
                 long tranNumber = in.getTranNumber();
                 int item = in.getItem();
                 boolean disable = TransactionCache.get().isDisable(transaction.getTranNumber(), item);
-                if (disable) {//说明当前的票子已经有可能被使用过了,主要是为了防止双花
+                //说明当前的票子已经有可能被使用过了,主要是为了防止双花
+                if (disable) {
                     return false;
                 }
                 String tid = tranNumber + "-" + item;
@@ -228,22 +235,26 @@ public class TransactionValidator implements MessageValidator {
                 TransactionOut out = SerializationUtil.deserializer(transactionOut, TransactionOut.class);
                 if (out != null) {
                     byte[] address = out.getAddress();
-                    if (Utils.equals(address, signAddr)) {//是当前签名者的余钱
+                    //是当前签名者的余钱
+                    if (Utils.equals(address, signAddr)) {
                         inOuts.add(out);
                         userAmount.add(new BigDecimal(out.getAmount()));
                     }
                 }
             }
-            if (inOuts.size() > 0) {//说明当前帐户有票子
+            //说明当前帐户有票子
+            if (inOuts.size() > 0) {
                 List<TransactionOut> outs = transaction.getOuts();
                 if (outs != null && outs.size() > 0) {
-                    BigDecimal outAmount = new BigDecimal(0);//转出的总金额
+                    //转出的总金额
+                    BigDecimal outAmount = new BigDecimal(0);
                     for (TransactionOut out : outs) {
                         outAmount.add(new BigDecimal(out.getAmount()));
                     }
+                    //说明本次转账成立,当前用户的余额减去目标帐户
                     double ye = userAmount.subtract(outAmount).doubleValue();
-                    if (ye >= 0) {//说明本次转账成立,当前用户的余额减去目标帐户
-                        //将本次交易的输入项设置为不可用
+                    //将本次交易的输入项设置为不可用
+                    if (ye >= 0) {
                         for (TransactionIn in : transaction.getIns()) {
                             long tranNumber = in.getTranNumber();
                             int item = in.getItem();

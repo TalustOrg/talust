@@ -112,10 +112,12 @@ public class TransactionHandler implements MessageHandler {
             byte[] content = transaction.getDatas();
             Account account = SerializationUtil.deserializer(content, Account.class);
             int accType = account.getAccType();
-            if (accType == AccountType.ROOT.getType() && Utils.equals(account.getPublicKey(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//如果当前帐户是根帐户
+            //如果当前帐户是根帐户
+            if (accType == AccountType.ROOT.getType() && Utils.equals(account.getPublicKey(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {
                 blockStorage.put(Constant.ROOT_CA, content);
             }
-            if (accType == AccountType.MINING.getType()) {//是挖矿的帐户
+            //是挖矿的帐户
+            if (accType == AccountType.MINING.getType()) {
                 rwl.writeLock().lock();
                 try {
                     String accountAddress = Utils.showAddress(account.getAddress());
@@ -129,7 +131,6 @@ public class TransactionHandler implements MessageHandler {
                     rwl.writeLock().unlock();
                 }
             }
-
             byte[] accAddr = account.getAddress();
             byte[] accId = Utils.addBytes(Constant.ACC_PREFIX, accAddr);
             blockStorage.put(accId, content);
