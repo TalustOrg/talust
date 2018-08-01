@@ -28,6 +28,7 @@ package org.talust.storage;
 import com.alibaba.fastjson.JSONObject;
 import com.sun.xml.internal.ws.api.ha.StickyFeature;
 import lombok.extern.slf4j.Slf4j;
+import org.spongycastle.crypto.InvalidCipherTextException;
 import org.talust.account.Account;
 import org.talust.common.crypto.*;
 import org.talust.common.exception.AccountFileEmptyException;
@@ -89,12 +90,13 @@ public class AccountStorage {
         ecKey = new ECKey();
         JSONObject fileJson =  new JSONObject();
         if(null==accPs){
-            accPs="";
+            account.setAccPwd(false);
             fileJson.put("Crypto","false");
         }else{
+            account.setAccPwd(true);
             fileJson.put("Crypto","true");
         }
-        account.setAccPwd(accPs);
+
         if(accType == 0){
             account.setAccType(7);
             fileJson.put("t",7);
@@ -110,6 +112,7 @@ public class AccountStorage {
         byte[] address = Utils.addBytes(hashOneAddress,actualChecksum);
         account.setPrivateKey(encryptPkb);
         account.setAddress(address);
+        account.setStatus(1);
         fileJson.put("version",getVersion() );
         fileJson.put("privateKey",ecKey.getPrivateKeyAsHex());
         fileJson.put("address", Utils.showAddress(address));
@@ -173,28 +176,38 @@ public class AccountStorage {
      *
      * @throws Exception
      */
-    public Account accountLogin(String filePath , String accPassword) throws Exception {
+    public Account accountLogin(String filePath , String accPassword) throws ErrorPasswordException, AccountFileEmptyException {
         File file =  new File(filePath);
         if(file.exists()){
-            String content = FileUtil.fileToTxt(file);
+            String content = null;
+            try {
+                content = FileUtil.fileToTxt(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             if (content != null && content.length() > 0) {
-                try {
                     JSONObject fileJson = JSONObject.parseObject(content);
                     if(null==accPassword){
                         accPassword="";
                     }
-                    byte[] decrypt = AESEncrypt.decrypt( fileJson.getBytes("privateKey"), accPassword);
-                    account = new Account();
-                    account.setPublicKey(fileJson.getBytes("privateKey"));
-                    account.setPrivateKey(decrypt);
-                    account.setAccType(fileJson.getInteger("t"));
-                    account.setAddress(fileJson.getBytes("address"));
-                    account.setAccPwd(accPassword);
-                    //解密成功,将密钥对信息放入ecKey对象中
-                    ecKey = ECKey.fromPrivate(new BigInteger(decrypt));
-                } catch (Exception e) {
+                byte[] decrypt = new byte[0];
+                try {
+                    decrypt = AESEncrypt.decrypt( fileJson.getBytes("privateKey"), accPassword);
+                } catch (InvalidCipherTextException e) {
                     throw new ErrorPasswordException();
                 }
+                account = new Account();
+                account.setPublicKey(fileJson.getBytes("privateKey"));
+                account.setPrivateKey(decrypt);
+                account.setAccType(fileJson.getInteger("t"));
+                account.setAddress(fileJson.getBytes("address"));
+                if(null==accPassword||"".equals(accPassword)){
+                    account.setAccPwd(false);
+                }else {
+                    account.setAccPwd(true);
+                }
+                //解密成功,将密钥对信息放入ecKey对象中
+                ecKey = ECKey.fromPrivate(new BigInteger(decrypt));
             } else {
                 throw new AccountFileEmptyException();
             }
@@ -243,6 +256,21 @@ public class AccountStorage {
         }
         return list;
     }
+
+    /**
+     *
+     * @return
+     */
+
+    public  Account getAccountByAddress(String address){
+        for (Account account : accounts) {
+            if(Base58.encode(account.getAddress()).equals(address)) {
+                return account;
+            }
+        }
+        return null;
+    }
+
     public ECKey getEcKey() {
         return ecKey;
     }

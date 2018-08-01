@@ -95,7 +95,7 @@ public class FileUtil {
         }
     }
 
-    public static String fileToTxt(File file) throws Exception {
+    public static String fileToTxt(File file) throws IOException {
         FileReader reader = new FileReader(file);//定义一个fileReader对象，用来初始化BufferedReader
         BufferedReader bReader = new BufferedReader(reader);//new一个BufferedReader对象，将文件内容读取到缓存
         StringBuilder sb = new StringBuilder();//定义一个字符串缓存，将字符串存放缓存中

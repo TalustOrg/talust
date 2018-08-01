@@ -43,7 +43,7 @@ public class Account {
     @Tag(7)//别名
     private String account;
     @Tag(8)//帐号密码,用于用户使用客户端时生成密钥对有用
-    private String accPwd;
+    private boolean accPwd;
     @Tag(9)//密钥对的私钥,一般情况下,不要保存到该字段中
     private byte[] privateKey;
     @Tag(10)//帐户金额数
@@ -106,11 +106,11 @@ public class Account {
         this.account = account;
     }
 
-    public String getAccPwd() {
+    public boolean isAccPwd() {
         return accPwd;
     }
 
-    public void setAccPwd(String accPwd) {
+    public void setAccPwd(boolean accPwd) {
         this.accPwd = accPwd;
     }
 
