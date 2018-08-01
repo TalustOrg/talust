@@ -56,6 +56,7 @@ public class AccountStorage {
     public static AccountStorage get() {
         return instance;
     }
+
     private ECKey ecKey;
     private String filePath = Configure.DATA_ACCOUNT;
     private List<Account> accounts = new ArrayList<>();
@@ -84,48 +85,49 @@ public class AccountStorage {
 
     /**
      * 创建新帐户,会产生一对密钥对,以即会生成一个地址。
+     *
      * @throws Exception
      */
-    public  String  createAccount(String accPs,int accType) throws Exception{
+    public String createAccount(String accPs, int accType) throws Exception {
         ecKey = new ECKey();
-        JSONObject fileJson =  new JSONObject();
-        if(null==accPs){
+        JSONObject fileJson = new JSONObject();
+        if (null == accPs||"".equals(accPs)) {
             account.setAccPwd(false);
-            fileJson.put("Crypto","false");
-        }else{
+            fileJson.put("Crypto", "false");
+        } else {
             account.setAccPwd(true);
-            fileJson.put("Crypto","true");
+            fileJson.put("Crypto", "true");
         }
 
-        if(accType == 0){
+        if (accType == 0) {
             account.setAccType(7);
-            fileJson.put("t",7);
-        }else{
+            fileJson.put("t", 7);
+        } else {
             account.setAccType(accType);
-            fileJson.put("t",accType);
+            fileJson.put("t", accType);
         }
         account.setPublicKey(ecKey.getPubKey());
         byte[] privKeyBytes = ecKey.getPrivKeyBytes();
         byte[] encryptPkb = AESEncrypt.encrypt(privKeyBytes, accPs);
-        byte[] hashOneAddress =  Utils.getAddress(ecKey.getPubKey());
+        byte[] hashOneAddress = Utils.getAddress(ecKey.getPubKey());
         byte[] actualChecksum = Arrays.copyOfRange(Sha256Hash.hashTwice(hashOneAddress), 0, 4);
-        byte[] address = Utils.addBytes(hashOneAddress,actualChecksum);
+        byte[] address = Utils.addBytes(hashOneAddress, actualChecksum);
         account.setPrivateKey(encryptPkb);
         account.setAddress(address);
         account.setStatus(1);
-        fileJson.put("version",getVersion() );
-        fileJson.put("privateKey",ecKey.getPrivateKeyAsHex());
+        fileJson.put("version", getVersion());
+        fileJson.put("privateKey", ecKey.getPrivateKeyAsHex());
         fileJson.put("address", Utils.showAddress(address));
-        String  accPath = filePath + File.separator +Utils.showAddress(account.getAddress());
+        String accPath = filePath + File.separator + Utils.showAddress(account.getAddress());
         log.info("Account save path :{}", accPath);
         File accFile = new File(accPath);
         if (!accFile.exists()) {
             accFile.createNewFile();
         }
-        FileOutputStream  fos= new FileOutputStream(accFile);
+        FileOutputStream fos = new FileOutputStream(accFile);
         fos.write(fileJson.toJSONString().getBytes());
         fos.flush();
-        if (fos!=null) {
+        if (fos != null) {
             try {
                 fos.close();
             } catch (IOException e) {
@@ -136,39 +138,47 @@ public class AccountStorage {
     }
 
 
-    public  String  createAccount(String accPs) throws Exception {
-        return createAccount(accPs,0);
+    public String createAccount(String accPs) throws Exception {
+        return createAccount(accPs, 0);
     }
 
     public String getVersion() throws IOException {
         return Account.class.getProtectionDomain().getCodeSource().getLocation().getFile().split("account")[1].split(".jar")[0].substring(1);
     }
+
     /**
      * walletLogin
+     *
      * @throws Exception
      */
-    public List<String> walletLogin() throws Exception {
-        List<String> list = getAllFile(filePath,true);
-        List<String> addrs = new ArrayList<>();
-        for(String path : list ){
-            File file = new File(path);
-            if (file.exists()) {
-                String content = FileUtil.fileToTxt(file);
-                if (content != null && content.length() > 0) {//说明已经有账户信息
-                    try {
+    public void nomorlNodeLogin() {
+        try {
+            List<String> list = getAllFile(filePath, true);
+            for (String path : list) {
+                File file = new File(path);
+                if (file.exists()) {
+                    String content = FileUtil.fileToTxt(file);
+                    //说明已经有账户信息
+                    if (content != null && content.length() > 0) {
                         JSONObject fileJson = JSONObject.parseObject(content);
-                        addrs.add( fileJson.getString("address"));
-                    } catch (Exception e) {
-                        throw new ErrorPasswordException();
+                        Account account = new Account();
+                        account.setAccType(fileJson.getInteger("t"));
+                        String fileAddress = fileJson.getString("address");
+                        String Crypto = fileJson.getString("Crypto");
+                        try {
+                            Base58.decodeChecked(fileAddress);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        account.setAddress(Base58.decode(fileAddress));
+                        account.setAccPwd(Boolean.parseBoolean(Crypto));
+                        accounts.add(account);
                     }
-                } else {//有帐户文件,无帐户信息
-                    throw new AccountFileEmptyException();
                 }
-            } else {//帐户文件不存在,一般不可能有此种情况
-                throw new AccountFileNotExistException();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return addrs;
     }
 
     /**
@@ -176,9 +186,9 @@ public class AccountStorage {
      *
      * @throws Exception
      */
-    public Account accountLogin(String filePath , String accPassword) throws ErrorPasswordException, AccountFileEmptyException {
-        File file =  new File(filePath);
-        if(file.exists()){
+    public Account accountLogin(String filePath, String accPassword) throws ErrorPasswordException, AccountFileEmptyException {
+        File file = new File(filePath);
+        if (file.exists()) {
             String content = null;
             try {
                 content = FileUtil.fileToTxt(file);
@@ -186,58 +196,70 @@ public class AccountStorage {
                 e.printStackTrace();
             }
             if (content != null && content.length() > 0) {
-                    JSONObject fileJson = JSONObject.parseObject(content);
-                    if(null==accPassword){
-                        accPassword="";
-                    }
+                JSONObject fileJson = JSONObject.parseObject(content);
+                if (null == accPassword) {
+                    accPassword = "";
+                }
                 byte[] decrypt = new byte[0];
                 try {
-                    decrypt = AESEncrypt.decrypt( fileJson.getBytes("privateKey"), accPassword);
+                    decrypt = AESEncrypt.decrypt(Hex.decode(fileJson.getString("privateKey")), accPassword);
                 } catch (InvalidCipherTextException e) {
                     throw new ErrorPasswordException();
                 }
-                account = new Account();
-                account.setPublicKey(fileJson.getBytes("privateKey"));
-                account.setPrivateKey(decrypt);
-                account.setAccType(fileJson.getInteger("t"));
-                account.setAddress(fileJson.getBytes("address"));
-                if(null==accPassword||"".equals(accPassword)){
-                    account.setAccPwd(false);
-                }else {
-                    account.setAccPwd(true);
-                }
                 //解密成功,将密钥对信息放入ecKey对象中
                 ecKey = ECKey.fromPrivate(new BigInteger(decrypt));
+                account = new Account();
+                account.setPublicKey(ecKey.getPubKey());
+                account.setPrivateKey(decrypt);
+                account.setAccType(fileJson.getInteger("t"));
+                String fileAddress = fileJson.getString("address");
+                byte[] address = new byte[0];
+                try {
+                    address = Base58.decodeChecked(Base58.encode(StringUtils.hexStringToBytes(fileAddress)));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (Utils.getAddress(ecKey.getPubKey()).equals(address)) {
+                    account.setAddress(StringUtils.hexStringToBytes(fileAddress));
+                }
+                if (null == accPassword || "".equals(accPassword)) {
+                    account.setAccPwd(false);
+                } else {
+                    account.setAccPwd(true);
+                }
+
             } else {
                 throw new AccountFileEmptyException();
             }
         }
         return account;
     }
+
     /**
-     *根据PK 登录
+     * 根据PK 登录
      */
-    public  void superNodeLogin(){
+    public void superNodeLogin() {
         try {
-            List<String> list = getAllFile(filePath,true);
+            List<String> list = getAllFile(filePath, true);
             File file = new File(list.get(0));
             String content = FileUtil.fileToTxt(file);
             JSONObject fileJson = JSONObject.parseObject(content);
-            ecKey =  ECKey.fromPrivate(new BigInteger( Hex.decode(fileJson.getString("privateKey"))));
+            ecKey = ECKey.fromPrivate(new BigInteger(Hex.decode(fileJson.getString("privateKey"))));
             account.setPublicKey(ecKey.getPubKey());
-            String fileAddress  = fileJson.getString("address");
-            byte[] address =   Base58.decodeChecked(Base58.encode(StringUtils.hexStringToBytes(fileAddress)));
-            if(Utils.getAddress(ecKey.getPubKey()).equals(address)){
+            String fileAddress = fileJson.getString("address");
+            byte[] address = Base58.decodeChecked(Base58.encode(StringUtils.hexStringToBytes(fileAddress)));
+            if (Utils.getAddress(ecKey.getPubKey()).equals(address)) {
                 account.setAddress(StringUtils.hexStringToBytes(fileAddress));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
     /**
      * 获取路径下的所有文件/文件夹
      */
-    public static List<String> getAllFile(String directoryPath,boolean isAddDirectory) {
+    public static List<String> getAllFile(String directoryPath, boolean isAddDirectory) {
         List<String> list = new ArrayList<String>();
         File baseFile = new File(directoryPath);
         if (baseFile.isFile() || !baseFile.exists()) {
@@ -246,10 +268,10 @@ public class AccountStorage {
         File[] files = baseFile.listFiles();
         for (File file : files) {
             if (file.isDirectory()) {
-                if(isAddDirectory){
+                if (isAddDirectory) {
                     list.add(file.getAbsolutePath());
                 }
-                list.addAll(getAllFile(file.getAbsolutePath(),isAddDirectory));
+                list.addAll(getAllFile(file.getAbsolutePath(), isAddDirectory));
             } else {
                 list.add(file.getAbsolutePath());
             }
@@ -258,13 +280,12 @@ public class AccountStorage {
     }
 
     /**
-     *
      * @return
      */
 
-    public  Account getAccountByAddress(String address){
+    public Account getAccountByAddress(String address) {
         for (Account account : accounts) {
-            if(Base58.encode(account.getAddress()).equals(address)) {
+            if (Utils.showAddress(account.getAddress()).equals(address)) {
                 return account;
             }
         }

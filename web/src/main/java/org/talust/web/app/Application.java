@@ -39,7 +39,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @ComponentScan(basePackages = {
         "org.talust.**.configuration",
-        "org.talust.**.controller",
+        "org.talust.**.**",
         "org.talust.**.swagger2"})
 @EnableAutoConfiguration
 @EnableConfigurationProperties

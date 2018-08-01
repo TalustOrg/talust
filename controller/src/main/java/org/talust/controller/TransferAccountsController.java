@@ -49,29 +49,26 @@ import java.util.List;
 @Api("转账相关API")
 public class TransferAccountsController {
     @Autowired
-    private AccountStorage accountStorage ;
-    @Autowired
     private TransferAccountService transferAccountService;
 
     @ApiOperation(value = "发起转账", notes = "帐户信息已经存在的情况下,转账")
     @PostMapping(value = "tansfer", consumes = MediaType.APPLICATION_JSON_VALUE)
-    JSONObject tansfer(@RequestParam String toAddress,@RequestParam String money,@RequestParam String address,@RequestParam String password ) {
-        JSONObject resp =  new JSONObject();
-        if(StringUtil.isNullOrEmpty(toAddress)||StringUtil.isNullOrEmpty(money)){
+    JSONObject tansfer(@RequestParam String toAddress, @RequestParam String money, @RequestParam String address, @RequestParam String password) {
+        JSONObject resp = new JSONObject();
+        if (StringUtil.isNullOrEmpty(toAddress) || StringUtil.isNullOrEmpty(money)) {
             resp.put("retCode", "1");
             resp.put("message", "核心参数缺失");
             return resp;
         }
-        String moneyCoin = "";
         try {
-            moneyCoin = ArithUtils.mul(money,"1",8);
+            money  = ArithUtils.mul(money, "1", 8);
         } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "金额不正确");
             return resp;
         }
-        Account account =  accountStorage.getAccountByAddress(address);
-        if(null==account){
+        Account account = transferAccountService.getAccountByAddress(address);
+        if (null == account) {
             resp.put("retCode", "1");
             resp.put("message", "出账账户不存在");
             return resp;
@@ -83,30 +80,23 @@ public class TransferAccountsController {
             resp.put("message", "目标账户验证失败");
             return resp;
         }
-        if(account.isAccPwd()){
-            if(StringUtil.isNullOrEmpty(password)){
+        if (account.isAccPwd()) {
+            if (StringUtil.isNullOrEmpty(password)) {
                 resp.put("retCode", "1");
                 resp.put("message", "输入钱包密码进行转账");
                 return resp;
-            }else{
-                transferAccountService.decryptAccount(password,account);
+            } else {
+                boolean pswCorrect = transferAccountService.decryptAccount(password, account);
+                if (!pswCorrect) {
+                    resp.put("retCode", "1");
+                    resp.put("message", "账户密码不正确");
+                    return resp;
+                }
             }
         }
-        //验证账户密码是否存在，存在即验证
-        //验证目标地址准确性
-        //验证本账户金额与交易金额是否正常
-        //验证区块是否已经同步完毕
-        //验证网络可用性
+        JSONObject isOk = transferAccountService.transfer(toAddress,money,address,password);
+
         return null;
-    }
-
-
-    public AccountStorage getAccountStorage() {
-        return accountStorage;
-    }
-
-    public void setAccountStorage(AccountStorage accountStorage) {
-        this.accountStorage = accountStorage;
     }
 
     public TransferAccountService getTransferAccountService() {

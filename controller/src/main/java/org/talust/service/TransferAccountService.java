@@ -1,5 +1,6 @@
 package org.talust.service;
 
+import com.alibaba.fastjson.JSONObject;
 import org.talust.account.Account;
 
 /**
@@ -8,4 +9,6 @@ import org.talust.account.Account;
  */
 public interface TransferAccountService {
     boolean decryptAccount(String password , Account account);
+    Account getAccountByAddress(String address);
+    JSONObject transfer(String toAddress, String money, String address, String password);
 }

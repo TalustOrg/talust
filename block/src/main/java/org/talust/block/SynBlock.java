@@ -252,4 +252,12 @@ public class SynBlock {
     public void setBlockArrivedValidator(MessageValidator blockArrivedValidator) {
         this.blockArrivedValidator = blockArrivedValidator;
     }
+
+    public AtomicBoolean getSyning() {
+        return syning;
+    }
+
+    public void setSyning(AtomicBoolean syning) {
+        this.syning = syning;
+    }
 }

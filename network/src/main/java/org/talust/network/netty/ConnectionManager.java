@@ -95,8 +95,10 @@ public class ConnectionManager {
     public void init() {
         initSuperIps();
         if (!superNode) {
+            AccountStorage.get().nomorlNodeLogin();
             normalNodeJoin();
         } else {
+            AccountStorage.get().superNodeLogin();
             superNodeJoin();
         }
     }
@@ -338,7 +340,7 @@ public class ConnectionManager {
                 superIps.add(ip);
             } else {
                 superNode = true;
-                AccountStorage.get().superNodeLogin();
+
             }
             superNodes.put(ip, snode);
         }
