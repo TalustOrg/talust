@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.talust.account.Account;
 import org.talust.block.SynBlock;
+import org.talust.block.model.TranType;
+import org.talust.block.model.Transaction;
 import org.talust.common.crypto.AESEncrypt;
 import org.talust.common.crypto.Base58;
 import org.talust.common.crypto.Utils;
@@ -151,7 +153,9 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 resp.put("message", "余额不足");
                 return resp;
             }
-
+            Transaction transaction = new Transaction();
+            transaction.setTranType(TranType.TRANSFER.getType());
+            //根据交易金额获取当前交易地址下所有的未花费交易
         }catch (Exception e ){
 
         }finally {

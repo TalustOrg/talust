@@ -31,7 +31,7 @@ import io.protostuff.Tag;
 //因此对一个用户来说
 public class TransactionIn {
     @Tag(1)
-    private long tranNumber;//交易输入中对应的交易号
+    private long tranNumber;//交易输入  中对应的交易号
     @Tag(2)
     private int item;//交易号中的交易输出的第几项
 
