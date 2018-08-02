@@ -47,7 +47,7 @@ public class Account {
     @Tag(9)//密钥对的私钥,一般情况下,不要保存到该字段中
     private byte[] privateKey;
     @Tag(10)//帐户金额数
-    private double amount;
+    private String amount;
 
 
     public Integer getAccType() {
@@ -122,12 +122,11 @@ public class Account {
         this.privateKey = privateKey;
     }
 
-    public double getAmount() {
+    public String getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(String amount) {
         this.amount = amount;
     }
-
 }

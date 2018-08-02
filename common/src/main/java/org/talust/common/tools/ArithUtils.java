@@ -80,6 +80,13 @@ public class ArithUtils
         return b1.subtract(b2).toString();
     }
 
+    public static String sub(double v1, String v2)
+    {
+        BigDecimal b1 = new BigDecimal(Double.valueOf(v1).toString());
+        BigDecimal b2 = new BigDecimal(v2);
+        return b1.subtract(b2).toString();
+    }
+
     public static String sub(double v1, double v2)
     {
         BigDecimal b1 = new BigDecimal(Double.valueOf(v1).toString());
@@ -154,8 +161,9 @@ public class ArithUtils
     {
         BigDecimal bg1 = new BigDecimal(str1);
         BigDecimal bg2 = new BigDecimal(str2);
-        if(bg1.compareTo(bg2) == 1)
+        if(bg1.compareTo(bg2) == 1){
             return 1;
+        }
         return bg1.compareTo(bg2) != 0 ? -1 : 0;
     }
 

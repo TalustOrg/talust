@@ -1,4 +1,4 @@
-/*
+package org.talust.common.exception;/*
  * MIT License
  *
  * Copyright (c) 2017-2018 talust.org talust.io
@@ -23,11 +23,12 @@
  *
  */
 
-package org.talust.common.exception;
-
-//帐户文件里面的内容为空
-public class AccountFileEmptyException extends Exception{
-    public AccountFileEmptyException(String msg) {
+/**
+ * @author Axe-Liu
+ * @date 2018/8/2.
+ */
+public class VerificationException  extends Exception {
+    public VerificationException(String msg) {
         super(msg);
     }
 }
