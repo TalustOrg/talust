@@ -1,4 +1,4 @@
-package org.talust.common.tools;/*
+package org.talust.network.netty;/*
  * MIT License
  *
  * Copyright (c) 2017-2018 talust.org talust.io
@@ -23,6 +23,7 @@ package org.talust.common.tools;/*
  *
  */
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ntp.*;
 
 import java.io.IOException;
@@ -35,12 +36,47 @@ import java.text.NumberFormat;
  * @author Axe-Liu
  * @date 2018/8/1.
  */
+@Slf4j
 public class NtpTimeService {
     private static final NumberFormat NUM_FORMAT = new java.text.DecimalFormat("0.00");
-    private static final String SERVER_IP = "60.205.205.64";
-    public static void main(String[] args) throws IOException {
+    private static final String SERVER_IP = "ntp.talust.com";
+    private long lastInitTime;
+    private boolean running;
+    //网络时间是否通过第一种方式进行了同步，如果没有，则通过第二种方式同步
+    private static boolean netTimeHasSync;
+    /** 时间偏移差距触发点，超过该值会导致本地时间重设，单位毫秒 **/
+    public static final long TIME_OFFSET_BOUNDARY = 1000L;
+    /*
+	 * 网络时间刷新间隔
+	 */
+    private static final long TIME_REFRESH_TIME = 600000L;
+    private static NtpTimeService instance = new NtpTimeService();
+    /*
+     * 网络时间与本地时间的偏移
+     */
+    private static long timeOffset;
+
+    private NtpTimeService() {
+    }
+
+    public static NtpTimeService get() {
+        return instance;
+    }
+    public void start(){
+        init();
+        Thread monitorThread = new Thread() {
+            @Override
+            public void run() {
+                monitorTimeChange();
+            }
+        };
+        monitorThread.setName("time change monitor");
+        monitorThread.start();
+    }
+
+
+    public void init(){
         NTPUDPClient client = new NTPUDPClient();
-        // We want to timeout if a response takes longer than 10 seconds
         client.setDefaultTimeout(10000);
         try {
             client.open();
@@ -48,53 +84,66 @@ public class NtpTimeService {
             System.out.println(" > " + hostAddr.getHostName() + "/" + hostAddr.getHostAddress());
             TimeInfo info = client.getTime(hostAddr);
             processResponse(info);
-        } catch (SocketException e) {
-            e.printStackTrace();
-
+            initSuccess();
+        } catch (Exception e) {
+            initError();
         }
         client.close();
+    }
 
+    public void monitorTimeChange() {
+        long lastTime = System.currentTimeMillis();
+        running = true;
+        while(running) {
+            long newTime = System.currentTimeMillis();
+            if(Math.abs(newTime - lastTime) > TIME_OFFSET_BOUNDARY) {
+                log.info("本地时间调整了：{}", newTime - lastTime);
+                init();
+            } else if(currentTimeMillis() - lastInitTime > TIME_REFRESH_TIME) {
+                init();
+            }
+            lastTime = newTime;
+            try {
+                Thread.sleep(500L);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
+
+    private void initSuccess() {
+        lastInitTime = System.currentTimeMillis();
+        if(!netTimeHasSync) {
+            netTimeHasSync = true;
+        }
+    }
+    private void initError() {
+        //1分钟后重试
+        lastInitTime = System.currentTimeMillis() - 60000L;
+
+        log.info("---------------本地时间调整出错---------------");
     }
 
     private static void processResponse(TimeInfo info) {
         NtpV3Packet message = info.getMessage();
         int stratum = message.getStratum();
-        String refType;
-        if (stratum <= 0){
-            refType = "(Unspecified or Unavailable)";
-        }
-        else if (stratum == 1){
-            // GPS, radio clock, etc.
-            refType = "(Primary Reference; e.g., GPS)";
-        }
-        else{
-            refType = "(Secondary Reference; e.g. via NTP or SNTP)";
-        }
-        // stratum should be 0..15...
-        System.out.println(" Stratum: " + stratum + " " + refType);
         int version = message.getVersion();
         int li = message.getLeapIndicator();
-        System.out.println(" leap=" + li + ", version="
+        log.info(" leap=" + li + ", version="
                 + version + ", precision=" + message.getPrecision());
-        System.out.println(" mode: " + message.getModeName() + " (" + message.getMode() + ")");
+        log.info(" mode: " + message.getModeName() + " (" + message.getMode() + ")");
         int poll = message.getPoll();
-        // poll value typically btwn MINPOLL (4) and MAXPOLL (14)
-        System.out.println(" poll: " + (poll <= 0 ? 1 : (int) Math.pow(2, poll))
+        log.info(" poll: " + (poll <= 0 ? 1 : (int) Math.pow(2, poll))
                 + " seconds" + " (2 ** " + poll + ")");
         double disp = message.getRootDispersionInMillisDouble();
-        System.out.println(" rootdelay=" + NUM_FORMAT.format(message.getRootDelayInMillisDouble())
+        log.info(" rootdelay=" + NUM_FORMAT.format(message.getRootDelayInMillisDouble())
                 + ", rootdispersion(ms): " + NUM_FORMAT.format(disp));
         int refId = message.getReferenceId();
         String refAddr = NtpUtils.getHostAddress(refId);
         String refName = null;
         if (refId != 0) {
             if (refAddr.equals("127.127.1.0")) {
-                // This is the ref address for the Local Clock
                 refName = "LOCAL";
             } else if (stratum >= 2) {
-                // If reference id has 127.127 prefix then it uses its own reference clock
-                // defined in the form 127.127.clock-type.unit-num (e.g. 127.127.8.0 mode 5
-                // for GENERIC DCF77 AM; see refclock.htm from the NTP software distribution.
                 if (!refAddr.startsWith("127.127")) {
                     try {
                         InetAddress addr = InetAddress.getByName(refAddr);
@@ -103,44 +152,75 @@ public class NtpTimeService {
                             refName = name;
                         }
                     } catch (UnknownHostException e) {
-                        // some stratum-2 servers sync to ref clock device but fudge stratum level higher... (e.g. 2)
-                        // ref not valid host maybe it's a reference clock name?
-                        // otherwise just show the ref IP address.
                         refName = NtpUtils.getReferenceClock(message);
                     }
                 }
             } else if (version >= 3 && (stratum == 0 || stratum == 1)) {
                 refName = NtpUtils.getReferenceClock(message);
-                // refname usually have at least 3 characters (e.g. GPS, WWV, LCL, etc.)
             }
-            // otherwise give up on naming the beast...
         }
         if (refName != null && refName.length() > 1){
             refAddr += " (" + refName + ")";
         }
-        System.out.println(" Reference Identifier:\t" + refAddr);
+        log.info(" 参考标识符:\t" + refAddr);
         TimeStamp refNtpTime = message.getReferenceTimeStamp();
-        System.out.println(" Reference Timestamp:\t" + refNtpTime + "  " + refNtpTime.toDateString());
-        // Originate Time is time request sent by client (t1)
+        log.info(" 参考时间戳:\t" + refNtpTime + "  " + refNtpTime.toDateString());
         TimeStamp origNtpTime = message.getOriginateTimeStamp();
-        System.out.println(" Originate Timestamp:\t" + origNtpTime + "  " + origNtpTime.toDateString());
+        log.info(" 起始时间戳:\t" + origNtpTime + "  " + origNtpTime.toDateString());
         long destTime = info.getReturnTime();
-        // Receive Time is time request received by server (t2)
         TimeStamp rcvNtpTime = message.getReceiveTimeStamp();
-        System.out.println(" Receive Timestamp:\t" + rcvNtpTime + "  " + rcvNtpTime.toDateString());
-        // Transmit time is time reply sent by server (t3)
+        log.info(" 接收时间戳:\t" + rcvNtpTime + "  " + rcvNtpTime.toDateString());
         TimeStamp xmitNtpTime = message.getTransmitTimeStamp();
-        System.out.println(" Transmit Timestamp:\t" + xmitNtpTime + "  " + xmitNtpTime.toDateString());
-        // Destination time is time reply received by client (t4)
+        log.info(" 发送时间戳:\t" + xmitNtpTime + "  " + xmitNtpTime.toDateString());
         TimeStamp destNtpTime = TimeStamp.getNtpTime(destTime);
-        System.out.println(" Destination Timestamp:\t" + destNtpTime + "  " + destNtpTime.toDateString());
-        info.computeDetails(); // compute offset/delay if not already done
+        log.info("目的时间戳:\t" + destNtpTime + "  " + destNtpTime.toDateString());
+        info.computeDetails();
         Long offsetValue = info.getOffset();
         Long delayValue = info.getDelay();
         String delay = (delayValue == null) ? "N/A" : delayValue.toString();
         String offset = (offsetValue == null) ? "N/A" : offsetValue.toString();
-        // offset in ms
-        System.out.println(" Roundtrip delay(ms)=" + delay
-                + ", clock offset(ms)=" + offset);
+        timeOffset =Long.parseLong(offset);
+        log.info(" 往返延迟(ms)=" + delay
+                + ", 时钟偏移(ms)=" + offset);
+    }
+
+    /**
+     * 当前毫秒时间
+     * @return long
+     */
+    public static long currentTimeMillis() {
+        return System.currentTimeMillis() + timeOffset;
+    }
+
+    /**
+     * 当前时间秒数
+     * @return long
+     */
+    public static long currentTimeSeconds() {
+        return currentTimeMillis() / 1000;
+    }
+
+    public long getLastInitTime() {
+        return lastInitTime;
+    }
+
+    public void setLastInitTime(long lastInitTime) {
+        this.lastInitTime = lastInitTime;
+    }
+
+    public static boolean isNetTimeHasSync() {
+        return netTimeHasSync;
+    }
+
+    public static void setNetTimeHasSync(boolean netTimeHasSync) {
+        NtpTimeService.netTimeHasSync = netTimeHasSync;
+    }
+
+    public static long getTimeOffset() {
+        return timeOffset;
+    }
+
+    public static void setTimeOffset(long timeOffset) {
+        NtpTimeService.timeOffset = timeOffset;
     }
 }

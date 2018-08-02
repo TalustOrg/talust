@@ -49,6 +49,7 @@ import org.talust.network.MessageValidator;
 import org.talust.network.NodeConsole;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
+import org.talust.network.netty.NtpTimeService;
 import org.talust.network.netty.PeersManager;
 import org.talust.network.netty.queue.MessageQueueHolder;
 import org.talust.storage.AccountStorage;
@@ -148,6 +149,7 @@ public class BlockChainServer {
         transactionStorage.init();
         accountStorage.init();
         PeersManager.get().initPeers();
+        NtpTimeService.get().start();
 
         log.info("初始化缓存...");
              byte[] nowBlockHash = blockStorage.get(Constant.NOW_BLOCK_HASH);

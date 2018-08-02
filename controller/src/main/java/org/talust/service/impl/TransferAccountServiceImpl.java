@@ -34,10 +34,13 @@ import org.talust.common.tools.CacheManager;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.ConnectionManager;
+import org.talust.network.netty.NtpTimeService;
 import org.talust.service.TransferAccountService;
 import org.talust.storage.AccountStorage;
 
 import java.util.Collection;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Axe-Liu
@@ -45,6 +48,7 @@ import java.util.Collection;
  */
 @Service
 public class TransferAccountServiceImpl implements TransferAccountService {
+    private final static Lock locker = new ReentrantLock();
     @Override
     public boolean decryptAccount(String password, Account account) {
         if(!validPassword(password)) {
@@ -89,7 +93,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 return resp;
             }
         }
-        if(System.currentTimeMillis()-localbestheighttime>60){
+        if(NtpTimeService.currentTimeMillis()-localbestheighttime>60){
             if(SynBlock.get().getSyning().get()) {
                 resp.put("retCode","1");
                 resp.put("message","正在同步区块中，请稍后再尝试");
@@ -101,8 +105,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 return resp;
             }
         }
-        //验证网络可用性
-        //验证区块是否已经同步完毕
+        locker.lock();
         //验证本账户金额与交易金额是否正常
         return resp;
     }
