@@ -34,7 +34,7 @@ import org.rocksdb.util.SizeUnit;
 
 import java.io.File;
 
-//交易存储
+//交易存储，存储于自身账户有关的交易
 @Slf4j
 public class TransactionStorage {
     private static TransactionStorage instance = new TransactionStorage();

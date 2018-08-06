@@ -26,13 +26,11 @@
 package org.talust.storage;
 
 import com.alibaba.fastjson.JSONObject;
-import com.sun.xml.internal.ws.api.ha.StickyFeature;
 import lombok.extern.slf4j.Slf4j;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.talust.account.Account;
 import org.talust.common.crypto.*;
 import org.talust.common.exception.AccountFileEmptyException;
-import org.talust.common.exception.AccountFileNotExistException;
 import org.talust.common.exception.ErrorPasswordException;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
@@ -229,7 +227,7 @@ public class AccountStorage {
                 }
 
             } else {
-                throw new AccountFileEmptyException();
+                throw new AccountFileEmptyException("error");
             }
         }
         return account;

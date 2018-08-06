@@ -1,5 +1,7 @@
 package org.talust.common.crypto;
 
+import org.talust.common.exception.AddressFormatException;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 
@@ -57,7 +59,7 @@ public class Base58 {
      * @return the decoded data bytes
      * @throws Exception if the given string is not a valid base58 string
      */
-    public static byte[] decode(String input) throws Exception {
+    public static byte[] decode(String input) throws AddressFormatException {
         if (input.length() == 0) {
             return new byte[0];
         }
@@ -67,7 +69,7 @@ public class Base58 {
             char c = input.charAt(i);
             int digit = c < 128 ? INDEXES[c] : -1;
             if (digit < 0) {
-                throw new Exception("Illegal character " + c + " at position " + i);
+                throw new AddressFormatException("Illegal character " + c + " at position " + i);
             }
             input58[i] = (byte) digit;
         }
@@ -105,16 +107,16 @@ public class Base58 {
      * @param input the base58-encoded string to decode (which should include the checksum)
      * @throws Exception if the input is not base 58 or the checksum does not validate.
      */
-    public static byte[] decodeChecked(String input) throws Exception {
+    public static byte[] decodeChecked(String input)  {
         byte[] decoded  = decode(input);
         if (decoded.length < 4) {
-            throw new Exception("Input too short");
+            throw new AddressFormatException("Input too short");
         }
         byte[] data = Arrays.copyOfRange(decoded, 0, decoded.length - 4);
         byte[] checksum = Arrays.copyOfRange(decoded, decoded.length - 4, decoded.length);
         byte[] actualChecksum = Arrays.copyOfRange(Sha256Hash.hashTwice(data), 0, 4);
         if (!Arrays.equals(checksum, actualChecksum)) {
-            throw new Exception("Checksum does not validate");
+            throw new AddressFormatException("Checksum does not validate");
         }
         return data;
     }
