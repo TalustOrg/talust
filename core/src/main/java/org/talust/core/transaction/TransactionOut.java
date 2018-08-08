@@ -49,6 +49,7 @@ public class TransactionOut {
     @Tag(7)
     private TransactionIn spentBy;
 
+    @Tag(8)
     private Integer coinBaseType;
 
 
