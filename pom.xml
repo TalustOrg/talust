@@ -8,7 +8,7 @@
     <modules>
         <module>network</module>
         <module>common</module>
-        <module>block</module>
+        <module>core</module>
         <module>account</module>
         <module>storage</module>
         <module>consensus</module>

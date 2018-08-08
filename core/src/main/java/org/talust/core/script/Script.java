@@ -22,17 +22,18 @@
  * SOFTWARE.
  *
  */
-package org.talust.block.script;
+package org.talust.core.script;
 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talust.account.Address;
 import org.talust.common.crypto.ECKey;
 import org.talust.common.crypto.UnsafeByteArrayOutputStream;
 import org.talust.common.crypto.Utils;
-import org.talust.network.netty.NtpTimeService;
-import static org.talust.block.script.ScriptOpCodes.*;
+import org.talust.core.model.Address;
+import org.talust.core.server.NtpTimeService;
+
+import static org.talust.core.script.ScriptOpCodes.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

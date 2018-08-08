@@ -26,14 +26,14 @@
 package org.talust.client.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talust.block.SynBlock;
-import org.talust.block.model.Block;
-import org.talust.block.model.BlockHead;
+import org.talust.client.SynBlock;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.SerializationUtil;
+import org.talust.core.model.Block;
+import org.talust.core.model.BlockHead;
 import org.talust.network.MessageValidator;
 import org.talust.storage.BlockStorage;
 

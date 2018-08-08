@@ -1,7 +1,7 @@
 package org.talust.consensus;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talust.block.data.Genesis;
+import org.talust.account.Genesis;
 import org.talust.common.model.SuperNode;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;

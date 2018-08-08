@@ -22,33 +22,19 @@
  * SOFTWARE.
  *
  */
+package org.talust.core.script;
 
-package org.talust.block.model;
+import org.talust.common.exception.VerificationException;
 
-import io.protostuff.Tag;
+public class ScriptException extends VerificationException {
 
-/**
- * 区块
- */
-public class Block {
-    @Tag(1)
-    private BlockHead head;
-    @Tag(2)
-    private BlockBody body;
+	private static final long serialVersionUID = 9178812267693577317L;
 
-    public BlockHead getHead() {
-        return head;
+	public ScriptException(String msg) {
+        super(msg);
     }
 
-    public void setHead(BlockHead head) {
-        this.head = head;
-    }
-
-    public BlockBody getBody() {
-        return body;
-    }
-
-    public void setBody(BlockBody body) {
-        this.body = body;
+    public ScriptException(String msg, Exception e) {
+        super(msg, e);
     }
 }

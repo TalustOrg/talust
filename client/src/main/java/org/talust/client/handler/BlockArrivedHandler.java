@@ -26,8 +26,7 @@
 package org.talust.client.handler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talust.block.data.DataContainer;
-import org.talust.block.model.Block;
+
 import org.talust.common.crypto.Hex;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.model.Message;
@@ -36,6 +35,8 @@ import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Constant;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.consensus.Conference;
+import org.talust.core.data.DataContainer;
+import org.talust.core.model.Block;
 import org.talust.network.MessageHandler;
 import org.talust.storage.BlockStorage;
 

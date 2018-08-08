@@ -2,21 +2,19 @@ package org.talust.consensus;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talust.account.Account;
-import org.talust.block.data.DataContainer;
-import org.talust.block.mining.MiningRule;
-import org.talust.block.model.*;
-import org.talust.common.crypto.Base58;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
-import org.talust.common.model.DepositAccount;
-import org.talust.common.model.Message;
-import org.talust.common.model.MessageChannel;
-import org.talust.common.model.MessageType;
+import org.talust.common.model.*;
 import org.talust.common.tools.*;
+import org.talust.consensus.mining.MiningRule;
+import org.talust.core.data.DataContainer;
+import org.talust.core.model.*;
+import org.talust.core.transaction.TranType;
+import org.talust.core.transaction.Transaction;
+import org.talust.core.transaction.TransactionOut;
 import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.queue.MessageQueue;
 import org.talust.storage.AccountStorage;
-import org.talust.storage.BlockStorage;
 import org.talust.storage.ChainStateStorage;
 
 import java.math.BigDecimal;
@@ -120,11 +118,8 @@ public class PackBlockTool {
         //矿机自身获得
         TransactionOut mining = new TransactionOut();
         mining.setAddress(StringUtils.hexStringToBytes(sn));
-        mining.setAmount(baseCoin.doubleValue());
-        mining.setStatus(OutStatus.ENABLE.getType());
-        mining.setItem(item++);
-        mining.setTime(packageTime);
-        mining.setCoinBaseType(CoinBaseType.MINING.getType());
+        mining.setAmount(baseCoin.longValue());
+        mining.setEnableHeight(packageTime);
         outs.add(mining);
         log.info("挖矿奖励给地址:{},高度:{},金额:{}", sn, height, mining.getAmount());
 
@@ -133,11 +128,7 @@ public class PackBlockTool {
         if (deposits.size() == 0) {
             TransactionOut tout = new TransactionOut();
             tout.setAddress(StringUtils.hexStringToBytes(sn));
-            tout.setAmount(depositCoin.doubleValue());
-            tout.setStatus(OutStatus.ENABLE.getType());
-            tout.setTime(packageTime);
-            tout.setItem(item++);
-            tout.setCoinBaseType(CoinBaseType.DEPOSITION.getType());
+            tout.setAmount(depositCoin.longValue());
             outs.add(tout);
             log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", sn, height,depositCoin.doubleValue());
         } else {//有储蓄者
@@ -145,12 +136,8 @@ public class PackBlockTool {
             for (DepositAccount deposit : deposits) {
                 TransactionOut tout = new TransactionOut();
                 tout.setAddress(deposit.getAddress());
-                double gain = (new BigDecimal(deposit.getAmount()).divide(totalAmount).multiply(depositCoin)).doubleValue();
+                long gain = (new BigDecimal(deposit.getAmount()).divide(totalAmount).multiply(depositCoin)).longValue();
                 tout.setAmount(gain);
-                tout.setStatus(OutStatus.ENABLE.getType());
-                tout.setTime(packageTime);
-                tout.setItem(item++);
-                tout.setCoinBaseType(CoinBaseType.DEPOSITION.getType());
                 outs.add(tout);
                 log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", Utils.showAddress(deposit.getAddress()),height, gain);
             }

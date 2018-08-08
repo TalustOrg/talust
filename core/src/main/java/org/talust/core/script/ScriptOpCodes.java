@@ -23,7 +23,7 @@
  *
  */
 
-package org.talust.block.script;
+package org.talust.core.script;
 
 import java.util.HashMap;
 import java.util.Map;

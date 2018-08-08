@@ -31,6 +31,9 @@ import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.RocksDBException;
+import org.talust.common.tools.SerializationUtil;
+import org.talust.core.transaction.TransactionOut;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -53,10 +56,10 @@ public  class TransactionStorage extends BaseStoreProvider {
     private final static byte[] ADDRESSES_KEY = Sha256Hash.ZERO_HASH.getBytes();
     //交易记录对应的账号列表
     private List<byte[]> addresses = new CopyOnWriteArrayList<byte[]>();
-//    //我的交易列表
-//    private List<TransactionStore> mineTxList = new CopyOnWriteArrayList<TransactionStore>();
-//    //未花费的交易
-//    private List<TransactionStore> unspendTxList = new CopyOnWriteArrayList<TransactionStore>();
+    //我的交易列表
+    private List<TransactionOut> mineTxList = new CopyOnWriteArrayList<TransactionOut>();
+    //未花费的交易
+    private List<TransactionOut> unspendTxList = new CopyOnWriteArrayList<TransactionOut>();
 
 
 
@@ -87,8 +90,15 @@ public  class TransactionStorage extends BaseStoreProvider {
             if(Arrays.equals(ADDRESSES_KEY, key)) {
                 continue;
             }
+            byte[] value = iter.value();
+            TransactionOut out =  SerializationUtil.deserializer(value,TransactionOut.class);
+            mineTxList.add(out);
         }
     }
+
+
+
+
 
 
 }

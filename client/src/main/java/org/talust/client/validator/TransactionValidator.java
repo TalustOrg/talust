@@ -29,23 +29,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.talust.account.Account;
 import org.talust.account.AccountStatus;
 import org.talust.account.AccountType;
-import org.talust.block.data.TransactionCache;
-import org.talust.block.mining.MiningRule;
-import org.talust.block.model.*;
 import org.talust.common.crypto.*;
-import org.talust.common.model.Message;
-import org.talust.common.model.MessageChannel;
+import org.talust.common.model.*;
+import org.talust.consensus.mining.MiningRule;
+import org.talust.core.model.CoinBaseType;
+import org.talust.core.transaction.TranType;
+import org.talust.core.transaction.Transaction;
+import org.talust.core.transaction.TransactionIn;
+import org.talust.core.transaction.TransactionOut;
 import org.talust.network.MessageValidator;
 import org.talust.network.netty.queue.MessageQueueHolder;
 import org.talust.storage.BlockStorage;
 import org.talust.storage.ChainStateStorage;
 import org.talust.common.tools.*;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
-
-import static javax.swing.UIManager.get;
 
 /**
  * 交易数据校验,是指的一条一条的交易数据
@@ -154,52 +152,52 @@ public class TransactionValidator implements MessageValidator {
      * @return
      */
     private boolean checkCoinBase(Transaction transaction) {
-        List<TransactionOut> outs = transaction.getOuts();
-        if (outs != null) {
-            boolean result = true;
-            for (TransactionOut out : outs) {
-                Integer coinBaseType = out.getCoinBaseType();
-                if (coinBaseType != null) {
-                    //@TODO 后续考虑验证接收地址是否与height匹配
-                    //是挖矿所得
-                    if (coinBaseType.intValue() == CoinBaseType.MINING.getType()) {
-                        byte[] address = out.getAddress();
-                        //将挖矿收益地址存于缓存中
-                        String cacheKey = new String(Constant.MINING_ADDRESS);
-                        List<String> madress = CacheManager.get().get(cacheKey);
-                        if (madress.contains(Utils.showAddress(address))) {
-                            int currentBlockHeight = CacheManager.get().getCurrentBlockHeight();
-                            double baseCoin = MiningRule.getBaseCoin(currentBlockHeight + 1);
-                            double amount = out.getAmount();
-                            //说明本次挖矿所得数量没有问题
-                            if (Math.abs(baseCoin - amount) > nearZero) {
-                                result = false;
-                                break;
-                            }
-                        }
-                    } else if (coinBaseType.intValue() == CoinBaseType.DEPOSITION.getType()) {//是储蓄所得
-                        byte[] address = out.getAddress();
-                        //将挖矿收益地址存于缓存中
-                        String cacheKey = new String(Constant.MINING_ADDRESS);
-                        List<String> madress = CacheManager.get().get(cacheKey);
-                        //储蓄地址中含有挖矿节点地址,则说明当前还没有其他的储蓄用户,则挖矿全部奖励给本次的挖矿节点帐户
-                        if (madress.contains(Utils.showAddress(address))) {
-                            int currentBlockHeight = CacheManager.get().getCurrentBlockHeight();
-                            double depositCoin = MiningRule.getDepositCoin(currentBlockHeight + 1);
-                            double amount = out.getAmount();
-                            if (Math.abs(depositCoin - amount) > nearZero) {//说明本次挖矿所得数量没有问题
-                                result = false;
-                                break;
-                            }
-                        } else {//含有储蓄地址 @TODO,实现时需要判断数量的合理性,即本次应该获得的总的挖矿奖励以及当前目标地址的储蓄占有多少
-                            //TODO   关于储蓄地址的获取与存储  是一个问题 ， 占比与金额总数 存储是个问题 ， 尝试用 挖矿地址 +  MAP<ADDR, AMOUNT > 去存储总数等
-
-                        }
-                    }
-                }
-            }
-            return result;
-        }
+//        List<TransactionOut> outs = transaction.getOuts();
+//        if (outs != null) {
+//            boolean result = true;
+//            for (TransactionOut out : outs) {
+//                Integer coinBaseType = out.getCoinBaseType();
+//                if (coinBaseType != null) {
+//                    //@TODO 后续考虑验证接收地址是否与height匹配
+//                    //是挖矿所得
+//                    if (coinBaseType.intValue() == CoinBaseType.MINING.getType()) {
+//                        byte[] address = out.getAddress();
+//                        //将挖矿收益地址存于缓存中
+//                        String cacheKey = new String(Constant.MINING_ADDRESS);
+//                        List<String> madress = CacheManager.get().get(cacheKey);
+//                        if (madress.contains(Utils.showAddress(address))) {
+//                            int currentBlockHeight = CacheManager.get().getCurrentBlockHeight();
+//                            double baseCoin = MiningRule.getBaseCoin(currentBlockHeight + 1);
+//                            double amount = out.getAmount();
+//                            //说明本次挖矿所得数量没有问题
+//                            if (Math.abs(baseCoin - amount) > nearZero) {
+//                                result = false;
+//                                break;
+//                            }
+//                        }
+//                    } else if (coinBaseType.intValue() == CoinBaseType.DEPOSITION.getType()) {//是储蓄所得
+//                        byte[] address = out.getAddress();
+//                        //将挖矿收益地址存于缓存中
+//                        String cacheKey = new String(Constant.MINING_ADDRESS);
+//                        List<String> madress = CacheManager.get().get(cacheKey);
+//                        //储蓄地址中含有挖矿节点地址,则说明当前还没有其他的储蓄用户,则挖矿全部奖励给本次的挖矿节点帐户
+//                        if (madress.contains(Utils.showAddress(address))) {
+//                            int currentBlockHeight = CacheManager.get().getCurrentBlockHeight();
+//                            double depositCoin = MiningRule.getDepositCoin(currentBlockHeight + 1);
+//                            double amount = out.getAmount();
+//                            if (Math.abs(depositCoin - amount) > nearZero) {//说明本次挖矿所得数量没有问题
+//                                result = false;
+//                                break;
+//                            }
+//                        } else {//含有储蓄地址 @TODO,实现时需要判断数量的合理性,即本次应该获得的总的挖矿奖励以及当前目标地址的储蓄占有多少
+//                            //TODO   关于储蓄地址的获取与存储  是一个问题 ， 占比与金额总数 存储是个问题 ， 尝试用 挖矿地址 +  MAP<ADDR, AMOUNT > 去存储总数等
+//
+//                        }
+//                    }
+//                }
+//            }
+//            return result;
+//        }
         return false;
     }
 
@@ -211,58 +209,58 @@ public class TransactionValidator implements MessageValidator {
      * @return
      */
     private boolean checkTransfer(byte[] signerPub, Transaction transaction) {
-        List<TransactionIn> ins = transaction.getIns();
-        if (ins != null && ins.size() > 0) {
-            List<TransactionOut> inOuts = new ArrayList<>();
-            //当前用户的账户总金额
-            BigDecimal userAmount = new BigDecimal(0);
-            //签名者的地址
-            byte[] signAddr = Base58.encode(Utils.sha256hash160(signerPub)).getBytes();
-            for (TransactionIn in : ins) {
-                long tranNumber = in.getTranNumber();
-                int item = in.getItem();
-                boolean disable = TransactionCache.get().isDisable(transaction.getTranNumber(), item);
-                //说明当前的票子已经有可能被使用过了,主要是为了防止双花
-                if (disable) {
-                    return false;
-                }
-                String tid = tranNumber + "-" + item;
-                byte[] transactionOut = stateStorage.get(tid.getBytes());
-                TransactionOut out = SerializationUtil.deserializer(transactionOut, TransactionOut.class);
-                if (out != null) {
-                    byte[] address = out.getAddress();
-                    //是当前签名者的余钱
-                    if (Utils.equals(address, signAddr)) {
-                        inOuts.add(out);
-                        userAmount.add(new BigDecimal(out.getAmount()));
-                    }
-                }
-            }
-            //说明当前帐户有票子
-            if (inOuts.size() > 0) {
-                List<TransactionOut> outs = transaction.getOuts();
-                if (outs != null && outs.size() > 0) {
-                    //转出的总金额
-                    BigDecimal outAmount = new BigDecimal(0);
-                    for (TransactionOut out : outs) {
-                        outAmount.add(new BigDecimal(out.getAmount()));
-                    }
-                    //说明本次转账成立,当前用户的余额减去目标帐户
-                    double ye = userAmount.subtract(outAmount).doubleValue();
-                    //将本次交易的输入项设置为不可用
-                    if (ye >= 0) {
-                        for (TransactionIn in : transaction.getIns()) {
-                            long tranNumber = in.getTranNumber();
-                            int item = in.getItem();
-                            TransactionCache.get().disableOut(tranNumber, item);
-                        }
-                        //TODO if transfer success ,we need  got the addrs in accountStorage
-                        // TODO  save the transfer in an local cache
-                        return true;
-                    }
-                }
-            }
-        }
+//        List<TransactionIn> ins = transaction.getIns();
+//        if (ins != null && ins.size() > 0) {
+//            List<TransactionOut> inOuts = new ArrayList<>();
+//            //当前用户的账户总金额
+//            BigDecimal userAmount = new BigDecimal(0);
+//            //签名者的地址
+//            byte[] signAddr = Base58.encode(Utils.sha256hash160(signerPub)).getBytes();
+//            for (TransactionIn in : ins) {
+//                long tranNumber = in.getTranNumber();
+//                int item = in.getItem();
+//                boolean disable = TransactionCache.get().isDisable(transaction.getTranNumber(), item);
+//                //说明当前的票子已经有可能被使用过了,主要是为了防止双花
+//                if (disable) {
+//                    return false;
+//                }
+//                String tid = tranNumber + "-" + item;
+//                byte[] transactionOut = stateStorage.get(tid.getBytes());
+//                TransactionOut out = SerializationUtil.deserializer(transactionOut, TransactionOut.class);
+//                if (out != null) {
+//                    byte[] address = out.getAddress();
+//                    //是当前签名者的余钱
+//                    if (Utils.equals(address, signAddr)) {
+//                        inOuts.add(out);
+//                        userAmount.add(new BigDecimal(out.getAmount()));
+//                    }
+//                }
+//            }
+//            //说明当前帐户有票子
+//            if (inOuts.size() > 0) {
+//                List<TransactionOut> outs = transaction.getOuts();
+//                if (outs != null && outs.size() > 0) {
+//                    //转出的总金额
+//                    BigDecimal outAmount = new BigDecimal(0);
+//                    for (TransactionOut out : outs) {
+//                        outAmount.add(new BigDecimal(out.getAmount()));
+//                    }
+//                    //说明本次转账成立,当前用户的余额减去目标帐户
+//                    double ye = userAmount.subtract(outAmount).doubleValue();
+//                    //将本次交易的输入项设置为不可用
+//                    if (ye >= 0) {
+//                        for (TransactionIn in : transaction.getIns()) {
+//                            long tranNumber = in.getTranNumber();
+//                            int item = in.getItem();
+//                            TransactionCache.get().disableOut(tranNumber, item);
+//                        }
+//                        //TODO if transfer success ,we need  got the addrs in accountStorage
+//                        // TODO  save the transfer in an local cache
+//                        return true;
+//                    }
+//                }
+//            }
+//        }
         return true;
     }
 

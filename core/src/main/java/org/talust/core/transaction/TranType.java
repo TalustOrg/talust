@@ -23,32 +23,47 @@
  *
  */
 
-package org.talust.block.mining;
 
-import lombok.extern.slf4j.Slf4j;
+package org.talust.core.transaction;
 
-@Slf4j //挖矿规则
-public class MiningRule {
+/**
+ * 交易类型
+ */
+public enum TranType {
+    //挖矿所得
+    COIN_BASE(1),
+    //转账
+    TRANSFER(2),
+    //储蓄
+    DEPOSIT(3),
+    //账户下发
+    ACCOUNT(4),
+    //业务数据
+    BUSINESS(5),
+    //冻结交易，按时间或高度释放
+    FROZEN(6);
+
+
+    private int type;
 
     /**
-     * 获取矿机挖矿币数,不同的区块高度时,所获取的奖励是不一样的
-     *
-     * @return
+     * @param type
      */
-    public static double getBaseCoin(int height) {
-
-        return 16;//先写死,后面再写具体的规则
+    TranType(int type) {
+        this.type = type;
     }
 
-    /**
-     * 获取
-     * @param height
-     * @return
-     */
-    public static double getDepositCoin(int height){
-
-        return 256;
+    public int getType() {
+        return type;
     }
 
+    public static TranType getMessageType(int type) {
+        for (TranType b : TranType.values()) {
+            if (b.getType() == type) {
+                return b;
+            }
+        }
+        return null;
+    }
 
 }

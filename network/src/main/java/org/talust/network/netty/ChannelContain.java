@@ -25,7 +25,6 @@
 
 package org.talust.network.netty;
 
-import io.protostuff.MessageMapSchema;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 

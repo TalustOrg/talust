@@ -1,4 +1,4 @@
-package org.talust.network.netty;/*
+package org.talust.core.server;/*
  * MIT License
  *
  * Copyright (c) 2017-2018 talust.org talust.io
@@ -26,9 +26,7 @@ package org.talust.network.netty;/*
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ntp.*;
 
-import java.io.IOException;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.NumberFormat;
 

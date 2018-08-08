@@ -22,12 +22,12 @@
  * SOFTWARE.
  *
  */
-package org.talust.block.script;
+package org.talust.core.script;
 
 
 import org.talust.common.crypto.Hex;
 import org.talust.common.crypto.Utils;
-import static org.talust.block.script.ScriptOpCodes.*;
+import static org.talust.core.script.ScriptOpCodes.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;

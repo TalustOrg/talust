@@ -30,16 +30,16 @@ import org.talust.account.Account;
 import org.talust.account.AccountStatus;
 import org.talust.account.AccountType;
 import org.talust.account.MiningAddress;
-import org.talust.block.model.TranType;
-import org.talust.block.model.Transaction;
-import org.talust.block.model.TransactionOut;
+
 import org.talust.common.crypto.Hex;
 import org.talust.common.crypto.Utils;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.tools.CacheManager;
-import org.talust.common.tools.Configure;
 import org.talust.common.tools.Constant;
 import org.talust.common.tools.SerializationUtil;
+import org.talust.core.transaction.TranType;
+import org.talust.core.transaction.Transaction;
+import org.talust.core.transaction.TransactionOut;
 import org.talust.network.MessageHandler;
 import org.talust.storage.BlockStorage;
 import org.talust.storage.ChainStateStorage;
@@ -93,7 +93,7 @@ public class TransactionHandler implements MessageHandler {
         List<TransactionOut> outs = transaction.getOuts();
         if (outs != null) {
             for (TransactionOut out : outs) {
-                String key = transaction.getTranNumber() + "-" + out.getItem();
+                String key = transaction.getTranNumber() + "-" ;
                 chainStateStorage.put(key.getBytes(), SerializationUtil.serializer(out));
             }
         }

@@ -28,7 +28,17 @@
         </dependency>
         <dependency>
             <groupId>org.talust</groupId>
-            <artifactId>block</artifactId>
+            <artifactId>network</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talust</groupId>
+            <artifactId>account</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.talust</groupId>
+            <artifactId>storage</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

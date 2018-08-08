@@ -36,7 +36,6 @@ import org.talust.common.model.MessageType;
 import org.talust.common.model.SuperNode;
 import org.talust.common.tools.*;
 import org.talust.network.netty.client.NodeClient;
-import org.talust.storage.AccountStorage;
 
 import java.io.*;
 import java.net.*;
@@ -95,10 +94,8 @@ public class ConnectionManager {
     public void init() {
         initSuperIps();
         if (!superNode) {
-            AccountStorage.get().nomorlNodeLogin();
             normalNodeJoin();
         } else {
-            AccountStorage.get().superNodeLogin();
             superNodeJoin();
         }
     }

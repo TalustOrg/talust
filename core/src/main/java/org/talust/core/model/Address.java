@@ -22,7 +22,7 @@
  * SOFTWARE.
  *
  */
-package org.talust.account;
+package org.talust.core.model;
 
 
 

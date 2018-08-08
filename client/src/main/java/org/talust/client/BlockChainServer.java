@@ -27,14 +27,12 @@ package org.talust.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talust.account.MiningAddress;
-import org.talust.block.SynBlock;
-import org.talust.block.model.Block;
+
 import org.talust.client.handler.*;
 import org.talust.client.validator.BlockArrivedValidator;
 import org.talust.client.validator.NodeExitValidator;
 import org.talust.client.validator.NodeJoinValidator;
 import org.talust.client.validator.TransactionValidator;
-import org.talust.common.NtpTimeService;
 import org.talust.common.model.MessageType;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Constant;
@@ -45,11 +43,14 @@ import org.talust.consensus.handler.MasterReqHandler;
 import org.talust.consensus.handler.MasterRespHandler;
 import org.talust.consensus.handler.NewMasterReqHandler;
 import org.talust.consensus.handler.NewMasterRespHandler;
+import org.talust.core.model.Block;
+import org.talust.core.server.NtpTimeService;
 import org.talust.network.MessageHandler;
 import org.talust.network.MessageValidator;
 import org.talust.network.NodeConsole;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
+import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.PeersManager;
 import org.talust.network.netty.queue.MessageQueueHolder;
 import org.talust.storage.AccountStorage;
@@ -86,7 +87,11 @@ public class BlockChainServer {
 
         NodeConsole nc = new NodeConsole();
         nc.start();//启动网络的收发
-
+        if(ConnectionManager.get().superNode){
+            accountStorage.superNodeLogin();
+        }else{
+            accountStorage.nomorlNodeLogin();
+        }
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
         log.info("当前节点所连接的节点数:{}", allChannel.size());
         if (allChannel != null && allChannel.size() > 0) {//说明有其他的节点
