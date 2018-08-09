@@ -1,5 +1,8 @@
-package org.talust.common.crypto;
+package org.talust.core.transaction;
 
+
+import org.talust.common.crypto.ECKey;
+import org.talust.common.crypto.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,17 +26,17 @@ public class TransactionSignature extends ECKey.ECDSASignature {
         this.sighashFlags = sighashFlags;
     }
 
-//    /** Constructs a transaction signature based on the ECDSA signature. */
-//    public TransactionSignature(ECKey.ECDSASignature signature, Transaction.SigHash mode) {
-//        super(signature.r, signature.s);
-//        sighashFlags = calcSigHashValue(mode);
-//    }
-//
-//    public static int calcSigHashValue(Transaction.SigHash mode) {
-//        Utils.checkState(SigHash.ALL == mode || SigHash.NONE == mode);
-//        int sighashFlags = mode.value;
-//        return sighashFlags;
-//    }
+    /** Constructs a transaction signature based on the ECDSA signature. */
+    public TransactionSignature(ECKey.ECDSASignature signature, Transaction.SigHash mode) {
+        super(signature.r, signature.s);
+        sighashFlags = calcSigHashValue(mode);
+    }
+
+    public static int calcSigHashValue(Transaction.SigHash mode) {
+        Utils.checkState(Transaction.SigHash.ALL == mode || Transaction.SigHash.NONE == mode);
+        int sighashFlags = mode.value;
+        return sighashFlags;
+    }
 //
 //    public Transaction.SigHash sigHashMode() {
 //        final int mode = sighashFlags & 0x1f;

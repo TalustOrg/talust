@@ -1,5 +1,6 @@
 package org.talust.common.crypto;
 
+import org.spongycastle.crypto.params.*;
 import org.talust.common.tools.AssertUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +13,6 @@ import org.spongycastle.crypto.AsymmetricCipherKeyPair;
 import org.spongycastle.crypto.digests.SHA256Digest;
 import org.spongycastle.crypto.ec.CustomNamedCurves;
 import org.spongycastle.crypto.generators.ECKeyPairGenerator;
-import org.spongycastle.crypto.params.ECDomainParameters;
-import org.spongycastle.crypto.params.ECKeyGenerationParameters;
-import org.spongycastle.crypto.params.ECPrivateKeyParameters;
-import org.spongycastle.crypto.params.ECPublicKeyParameters;
 import org.spongycastle.crypto.signers.ECDSASigner;
 import org.spongycastle.crypto.signers.HMacDSAKCalculator;
 import org.spongycastle.math.ec.ECPoint;
@@ -168,7 +165,7 @@ public class ECKey {
      *
      * @return byte[]
      */
-    protected byte[] getPubKey(boolean compressed) {
+    public byte[] getPubKey(boolean compressed) {
         return pub.getEncoded(compressed);
     }
 
@@ -365,25 +362,21 @@ public class ECKey {
      * @param hash
      * @return ECDSASignature
      */
-    public byte[] sign(byte[] hash) {
+
+    public ECDSASignature sign(Sha256Hash hash) {
         return sign(hash, null);
     }
 
-    public byte[] sign(Sha256Hash hash, BigInteger aesKey) {
-        return doSign(hash.getBytes(), priv);
-    }
-
-    public byte[] sign(byte [] hash, BigInteger aesKey) {
+    public ECDSASignature sign(Sha256Hash hash, KeyParameter aesKey) {
         return doSign(hash, priv);
     }
-
-    protected byte[] doSign(byte[] input, BigInteger privateKeyForSigning) {
+    protected ECDSASignature doSign(Sha256Hash input, BigInteger privateKeyForSigning) {
         Utils.checkNotNull(privateKeyForSigning);
         ECDSASigner signer = new ECDSASigner(new HMacDSAKCalculator(new SHA256Digest()));
         ECPrivateKeyParameters privKey = new ECPrivateKeyParameters(privateKeyForSigning, CURVE);
         signer.init(true, privKey);
-        BigInteger[] components = signer.generateSignature(input);
-        return new ECDSASignature(components[0], components[1]).toCanonicalised().encodeToDER();
+        BigInteger[] components = signer.generateSignature(input.getBytes());
+        return new ECDSASignature(components[0], components[1]).toCanonicalised();
     }
 
     /**

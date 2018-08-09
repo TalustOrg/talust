@@ -1,7 +1,6 @@
 package org.talust.consensus;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talust.account.Account;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.model.*;
@@ -9,9 +8,7 @@ import org.talust.common.tools.*;
 import org.talust.consensus.mining.MiningRule;
 import org.talust.core.data.DataContainer;
 import org.talust.core.model.*;
-import org.talust.core.transaction.TranType;
 import org.talust.core.transaction.Transaction;
-import org.talust.core.transaction.TransactionOut;
 import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.queue.MessageQueue;
 import org.talust.storage.AccountStorage;

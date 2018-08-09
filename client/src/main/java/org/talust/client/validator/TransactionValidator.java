@@ -26,24 +26,16 @@
 package org.talust.client.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talust.account.Account;
 import org.talust.account.AccountStatus;
 import org.talust.account.AccountType;
 import org.talust.common.crypto.*;
 import org.talust.common.model.*;
-import org.talust.consensus.mining.MiningRule;
-import org.talust.core.model.CoinBaseType;
-import org.talust.core.transaction.TranType;
 import org.talust.core.transaction.Transaction;
-import org.talust.core.transaction.TransactionIn;
-import org.talust.core.transaction.TransactionOut;
 import org.talust.network.MessageValidator;
 import org.talust.network.netty.queue.MessageQueueHolder;
 import org.talust.storage.BlockStorage;
 import org.talust.storage.ChainStateStorage;
 import org.talust.common.tools.*;
-
-import java.util.List;
 
 /**
  * 交易数据校验,是指的一条一条的交易数据

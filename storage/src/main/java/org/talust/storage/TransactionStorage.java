@@ -26,13 +26,11 @@
 package org.talust.storage;
 
 import org.rocksdb.RocksIterator;
-import org.talust.account.Account;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.RocksDBException;
 import org.talust.common.tools.SerializationUtil;
-import org.talust.core.transaction.TransactionOut;
 
 import java.util.Arrays;
 import java.util.List;

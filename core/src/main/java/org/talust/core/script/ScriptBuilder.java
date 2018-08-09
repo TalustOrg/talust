@@ -28,7 +28,7 @@ package org.talust.core.script;
 import static org.talust.core.script.ScriptOpCodes.*;
 
 import org.talust.common.crypto.ECKey;
-import org.talust.common.crypto.TransactionSignature;
+import org.talust.core.transaction.TransactionSignature;
 import org.talust.common.crypto.Utils;
 import org.talust.core.model.Address;
 
@@ -642,24 +642,24 @@ public class ScriptBuilder {
 ////            .build();
 ////    }
 //
-//	/**
-//	 * 创建通用的普通账户验证脚本
-//	 * @param pubkey	公钥
-//	 * @param sign		签名
-//	 * @return Script
-//	 */
-//	public static Script createSystemAccountScript(byte[] hash160, byte[] pubkey, byte[] sign) {
-//        return new ScriptBuilder()
-//    		.data(pubkey)
-//    		.op(OP_DUP)
-//    		.op(OP_HASH160)
-//    		.data(hash160)
-//    		.op(OP_EQUALVERIFY)
-//    		.data(sign)
-//            .op(OP_CHECKSIG)
-//            .build();
-//    }
-//
+	/**
+	 * 创建通用的普通账户验证脚本
+	 * @param pubkey	公钥
+	 * @param sign		签名
+	 * @return Script
+	 */
+	public static Script createSystemAccountScript(byte[] hash160, byte[] pubkey, byte[] sign) {
+        return new ScriptBuilder()
+    		.data(pubkey)
+    		.op(OP_DUP)
+    		.op(OP_HASH160)
+    		.data(hash160)
+    		.op(OP_EQUALVERIFY)
+    		.data(sign)
+            .op(OP_CHECKSIG)
+            .build();
+    }
+
 //	/**
 //	 * 创建认证账户签名脚本
 //	 * @param type  1账户管理，2交易

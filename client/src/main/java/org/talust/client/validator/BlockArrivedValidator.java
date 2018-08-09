@@ -33,7 +33,6 @@ import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.core.model.Block;
-import org.talust.core.model.BlockHead;
 import org.talust.network.MessageValidator;
 import org.talust.storage.BlockStorage;
 
