@@ -71,7 +71,7 @@ public class DataContainer {
             lock.writeLock().lock();
             for (int idx = 0; idx < datas.size(); idx++) {
                 byte[] data = datas.get(idx);
-                if (Utils.equals(data, record)) {
+                if (data.equals(record)) {
                     datas.remove(idx);
                     break;
                 }

@@ -22,23 +22,39 @@
  * SOFTWARE.
  *
  */
-package org.talust.storage;
 
-import org.rocksdb.RocksDBException;
+package org.talust.core.core;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
-/**
- * @author Axe-Liu
- * @date 2018/8/6.
- */
-public interface StoreProvider {
+public class AccountKeyValue extends KeyValue {
+	
+	public final static AccountKeyValue NAME = new AccountKeyValue("name", "名称");
+	public final static AccountKeyValue LOGO = new AccountKeyValue("logo", "图标");
 
-    void put(byte[] key, byte[] value) throws RocksDBException;
+	public AccountKeyValue(String code, String name) {
+		this.code = code;
+		this.name = name;
+	}
+	
+	public AccountKeyValue(String code, String name, byte[] value) {
+		this.code = code;
+		this.name = name;
+		this.value = value;
+	}
+	
+	public AccountKeyValue(String code, String name, String value) {
+		this.code = code;
+		this.name = name;
+		try {
+			this.value = value.getBytes(CHARSET);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public AccountKeyValue(byte[] content) {
+		super(content);
+	}
 
-    byte[] get(byte[] key) throws RocksDBException;
-
-    void delete(byte[] key) throws RocksDBException;
-
-    void close() throws IOException;
 }

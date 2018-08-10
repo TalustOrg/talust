@@ -332,7 +332,7 @@ public class ConnectionManager {
             SuperNode snode = new SuperNode();
             snode.setCode(Integer.parseInt((String) ((Map.Entry) map).getKey()));
             snode.setIp(ip);
-            snode.setAddress(Utils.showAddress(Utils.getAddress(ipContent.getBytes("address"))));
+//            snode.setAddress(Utils.showAddress(Utils.getAddress(ipContent.getBytes("address"))));
             if (!myIps.contains(ip)) {
                 superIps.add(ip);
             } else {

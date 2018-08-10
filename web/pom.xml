@@ -1,5 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!DOCTYPE project [
+        <!ELEMENT project (parent|modelVersion|artifactId|name|properties|dependencies|build)*>
+        <!ATTLIST project
+                xmlns CDATA #REQUIRED
+                xmlns:xsi CDATA #REQUIRED
+                xsi:schemaLocation CDATA #REQUIRED>
+        <!ELEMENT parent (artifactId|groupId|version)*>
+        <!ELEMENT artifactId (#PCDATA)>
+        <!ELEMENT groupId (#PCDATA)>
+        <!ELEMENT version (#PCDATA)>
+        <!ELEMENT modelVersion (#PCDATA)>
+        <!ELEMENT name (#PCDATA)>
+        <!ELEMENT properties (start-class)*>
+        <!ELEMENT start-class (#PCDATA)>
+        <!ELEMENT dependencies (dependency)*>
+        <!ELEMENT dependency (groupId|artifactId|version)*>
+        <!ELEMENT build (resources|plugins)*>
+        <!ELEMENT resources (resource)*>
+        <!ELEMENT resource (directory|filtering|excludes|includes)*>
+        <!ELEMENT directory (#PCDATA)>
+        <!ELEMENT filtering (#PCDATA)>
+        <!ELEMENT excludes (exclude)*>
+        <!ELEMENT exclude (#PCDATA)>
+        <!ELEMENT includes (include)*>
+        <!ELEMENT include (#PCDATA)>
+        <!ELEMENT plugins (plugin)*>
+        <!ELEMENT plugin (groupId|artifactId|version|dependencies|executions|configuration)*>
+        <!ELEMENT executions (execution)*>
+        <!ELEMENT execution (goals)*>
+        <!ELEMENT goals (goal)*>
+        <!ELEMENT goal (#PCDATA)>
+        <!ELEMENT configuration (mainClass|fork|skip)*>
+        <!ELEMENT mainClass (#PCDATA)>
+        <!ELEMENT fork (#PCDATA)>
+        <!ELEMENT skip (#PCDATA)>
+        ]>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>

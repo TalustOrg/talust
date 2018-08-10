@@ -14,6 +14,7 @@ public interface Constant {
      */
     String BH_PRIX = "bh_";
 
+    long START_HEIGHT =10;
     /**
      * 根证书的存储key
      */
@@ -28,5 +29,7 @@ public interface Constant {
      * 帐户的前缀,主要用于存储帐户地址为标识的帐户信息,一般情况下存储的是经过平台认证的信息
      */
     byte[] ACC_PREFIX = "acc_".getBytes();
+
+
 
 }

@@ -26,15 +26,12 @@
 package org.talust.client.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talust.account.AccountStatus;
-import org.talust.account.AccountType;
-import org.talust.common.crypto.*;
 import org.talust.common.model.*;
 import org.talust.core.transaction.Transaction;
 import org.talust.network.MessageValidator;
 import org.talust.network.netty.queue.MessageQueueHolder;
-import org.talust.storage.BlockStorage;
-import org.talust.storage.ChainStateStorage;
+import org.talust.core.storage.BlockStorage;
+import org.talust.core.storage.ChainStateStorage;
 import org.talust.common.tools.*;
 
 /**
@@ -71,14 +68,14 @@ public class TransactionValidator implements MessageValidator {
      * @return
      */
     private boolean checkReasonable(byte[] signerPub, Transaction transaction) {
-        int tranType = transaction.getTranType();
-        if (tranType == TranType.ACCOUNT.getType()) {//是帐户下发的交易类型
-            return checkAccountPub(transaction);
-        } else if (tranType == TranType.TRANSFER.getType()) {//是转账的交易类型
-            return checkTransfer(signerPub, transaction);
-        } else if (tranType == TranType.COIN_BASE.getType()) {//是挖矿的数据
-            return checkCoinBase(transaction);
-        }
+//        int tranType = transaction.getTranType();
+//        if (tranType == TranType.ACCOUNT.getType()) {//是帐户下发的交易类型
+//            return checkAccountPub(transaction);
+//        } else if (tranType == TranType.TRANSFER.getType()) {//是转账的交易类型
+//            return checkTransfer(signerPub, transaction);
+//        } else if (tranType == TranType.COIN_BASE.getType()) {//是挖矿的数据
+//            return checkCoinBase(transaction);
+//        }
         //TODO 业务的交易类型以及储蓄的交易类型后续需要实现
         return false;
     }
@@ -91,49 +88,49 @@ public class TransactionValidator implements MessageValidator {
      */
     private boolean checkAccountPub(Transaction transaction) {
         boolean isOk = false;
-        Account account = SerializationUtil.deserializer(transaction.getDatas(), Account.class);
-        Integer accType = account.getAccType();
-        if (accType != null) {
-            if (accType == AccountType.ROOT.getType() || accType == AccountType.TALUST.getType() || accType == AccountType.MINING.getType()
-                    || accType == AccountType.USER.getType() || accType == AccountType.ADMIN.getType() || accType == AccountType.HR.getType()) {
-                byte[] parentPub = account.getParentPub();
-                if (parentPub != null) {
-                    Sha256Hash hash = Sha256Hash.of(account.getPublicKey());
-                    boolean verify = ECKey.verify(hash.getBytes(), account.getParentSign(), account.getParentPub());
-                    if (verify) {
-                        byte[] parentAddr = Utils.getAddress(parentPub);//父级节点地址
-                        byte[] parentAddrKey = Utils.addBytes(Constant.ACC_PREFIX, parentAddr);
-                        byte[] parentBytes = blockStorage.get(parentAddrKey);
-                        if (parentBytes == null) {
-                            parentBytes = CacheManager.get().get(Hex.encode(parentAddrKey));
-                        }
-                        if (parentBytes == null) {//有可能是根用户
-                            if (Utils.equals(account.getPublicKey(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//根证书验证正确
-                                isOk = true;
-                            }
-                        } else {
-                            if (accType == AccountType.TALUST.getType()) {//是运营方类型
-                                if (Utils.equals(account.getParentPub(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//运营方的父级证书只能是根
-                                    isOk = true;
-                                }
-                            } else {
-                                //其余类型,则检测父类型是运营方类型即可
-                                Account tp = SerializationUtil.deserializer(parentBytes, Account.class);
-                                if (tp != null && tp.getStatus() == AccountStatus.ENABLE.getType() && tp.getAccType().intValue() == AccountType.TALUST.getType()) {
-                                    isOk = true;
-                                }
-                            }
-                        }
-                        if (isOk) {
-                            //父级节点地址
-                            byte[] slfAddr = account.getAddress();
-                            byte[] slfAddrKey = Utils.addBytes(Constant.ACC_PREFIX, slfAddr);
-                            CacheManager.get().put(Hex.encode(slfAddrKey), transaction.getDatas(), 5);
-                        }
-                    }
-                }
-            }
-        }
+//        Account account = SerializationUtil.deserializer(transaction.getDatas(), Account.class);
+//        Integer accType = account.getAccType();
+//        if (accType != null) {
+//            if (accType == AccountType.ROOT.getType() || accType == AccountType.TALUST.getType() || accType == AccountType.MINING.getType()
+//                    || accType == AccountType.USER.getType() || accType == AccountType.ADMIN.getType() || accType == AccountType.HR.getType()) {
+//                byte[] parentPub = account.getParentPub();
+//                if (parentPub != null) {
+//                    Sha256Hash hash = Sha256Hash.of(account.getPublicKey());
+//                    boolean verify = ECKey.verify(hash.getBytes(), account.getParentSign(), account.getParentPub());
+//                    if (verify) {
+//                        byte[] parentAddr = Utils.getAddress(parentPub);//父级节点地址
+//                        byte[] parentAddrKey = Utils.addBytes(Constant.ACC_PREFIX, parentAddr);
+//                        byte[] parentBytes = blockStorage.get(parentAddrKey);
+//                        if (parentBytes == null) {
+//                            parentBytes = CacheManager.get().get(Hex.encode(parentAddrKey));
+//                        }
+//                        if (parentBytes == null) {//有可能是根用户
+//                            if (Utils.equals(account.getPublicKey(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//根证书验证正确
+//                                isOk = true;
+//                            }
+//                        } else {
+//                            if (accType == AccountType.TALUST.getType()) {//是运营方类型
+//                                if (Utils.equals(account.getParentPub(), Hex.decode(CacheManager.get().get("ROOT_PK")))) {//运营方的父级证书只能是根
+//                                    isOk = true;
+//                                }
+//                            } else {
+//                                //其余类型,则检测父类型是运营方类型即可
+//                                Account tp = SerializationUtil.deserializer(parentBytes, Account.class);
+//                                if (tp != null && tp.getStatus() == AccountStatus.ENABLE.getType() && tp.getAccType().intValue() == AccountType.TALUST.getType()) {
+//                                    isOk = true;
+//                                }
+//                            }
+//                        }
+//                        if (isOk) {
+//                            //父级节点地址
+//                            byte[] slfAddr = account.getAddress();
+//                            byte[] slfAddrKey = Utils.addBytes(Constant.ACC_PREFIX, slfAddr);
+//                            CacheManager.get().put(Hex.encode(slfAddrKey), transaction.getDatas(), 5);
+//                        }
+//                    }
+//                }
+//            }
+//        }
         return isOk;
     }
 

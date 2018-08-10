@@ -1,16 +1,41 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017-2018 talust.org talust.io
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
 package org.talust.core.model;
 
-import org.inchain.core.Definition;
-import org.inchain.core.exception.ProtocolException;
-import org.inchain.core.exception.VerificationException;
-import org.inchain.crypto.Sha256Hash;
-import org.inchain.network.NetworkParams;
-import org.inchain.script.Script;
-import org.inchain.transaction.Transaction;
-import org.inchain.utils.ConsensusCalculationUtil;
-import org.inchain.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.talust.common.crypto.Sha256Hash;
+import org.talust.common.crypto.Utils;
+import org.talust.common.exception.ProtocolException;
+import org.talust.common.exception.VerificationException;
+import org.talust.core.core.Definition;
+import org.talust.core.core.NetworkParams;
+import org.talust.core.data.ConsensusCalculationUtil;
+import org.talust.core.script.Script;
+import org.talust.core.transaction.Transaction;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -19,8 +44,7 @@ import java.util.List;
 
 /**
  * 区块消息
- * @author ln
- *
+
  */
 public class Block extends BlockHeader {
 

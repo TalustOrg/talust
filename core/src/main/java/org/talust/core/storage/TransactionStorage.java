@@ -23,53 +23,54 @@
  *
  */
 
-package org.talust.storage;
+package org.talust.core.storage;
 
-import org.rocksdb.RocksIterator;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.RocksDBException;
-import org.talust.common.tools.SerializationUtil;
+import org.talust.core.transaction.TransactionOutput;
+import org.talust.storage.BaseStoreProvider;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 //交易存储，存储于自身账户有关的交易
 @Slf4j
-public  class TransactionStorage extends BaseStoreProvider {
+public class TransactionStorage extends BaseStoreProvider {
     private static TransactionStorage instance = new TransactionStorage();
 
     private TransactionStorage() {
         this(Configure.DATA_TRANSACTION);
     }
+
     public static TransactionStorage get() {
         return instance;
     }
+
     public TransactionStorage(String dir) {
         super(dir);
     }
+
     //存放交易记录账号的key
     private final static byte[] ADDRESSES_KEY = Sha256Hash.ZERO_HASH.getBytes();
     //交易记录对应的账号列表
     private List<byte[]> addresses = new CopyOnWriteArrayList<byte[]>();
     //我的交易列表
-    private List<TransactionOut> mineTxList = new CopyOnWriteArrayList<TransactionOut>();
+    private List<TransactionOutput> myTxList = new CopyOnWriteArrayList<TransactionOutput>();
     //未花费的交易
-    private List<TransactionOut> unspendTxList = new CopyOnWriteArrayList<TransactionOut>();
+    private List<TransactionOutput> unspendTxList = new CopyOnWriteArrayList<TransactionOutput>();
 
 
-
-
-    public void put(byte[] key, byte[] value) {
+    public void put(byte[] key, byte[] value)  {
         try {
             db.put(key, value);
-        } catch (Exception e) {
+        } catch (RocksDBException e) {
+            e.printStackTrace();
         }
     }
 
-    public byte[] get(byte[] key) {
+    public byte[] get(byte[] key)  {
         try {
             return db.get(key);
         } catch (RocksDBException e) {
@@ -78,25 +79,21 @@ public  class TransactionStorage extends BaseStoreProvider {
         return null;
     }
 
-    //初始化所有交易中对应本地已经存在的地址的相关交易
-    public void init() {
-       List<Account> accounts =  AccountStorage.get().getAccounts();
-        RocksIterator iter = db.newIterator();
-        for(iter.seekToFirst(); iter.isValid(); iter.next()) {
-            System.out.println("iter key:" + new String(iter.key()) + ", iter value:" + new String(iter.value()));
-            byte[] key = iter.key();
-            if(Arrays.equals(ADDRESSES_KEY, key)) {
-                continue;
-            }
-            byte[] value = iter.value();
-            TransactionOut out =  SerializationUtil.deserializer(value,TransactionOut.class);
-            mineTxList.add(out);
-        }
-    }
-
-
-
-
+//    //初始化所有交易中对应本地已经存在的地址的相关交易
+//    public void init() {
+//       List<Account> accounts =  AccountStorage.get().getAccounts();
+//        RocksIterator iter = db.newIterator();
+//        for(iter.seekToFirst(); iter.isValid(); iter.next()) {
+//            System.out.println("iter key:" + new String(iter.key()) + ", iter value:" + new String(iter.value()));
+//            byte[] key = iter.key();
+//            if(Arrays.equals(ADDRESSES_KEY, key)) {
+//                continue;
+//            }
+//            byte[] value = iter.value();
+//            TransactionOut out =  SerializationUtil.deserializer(value,TransactionOut.class);
+//            mineTxList.add(out);
+//        }
+//    }
 
 
 }

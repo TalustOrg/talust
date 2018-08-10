@@ -37,7 +37,6 @@ import org.talust.common.model.MessageType;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Constant;
 import org.talust.common.tools.SerializationUtil;
-import org.talust.consensus.Conference;
 import org.talust.consensus.ConsensusService;
 import org.talust.consensus.handler.MasterReqHandler;
 import org.talust.consensus.handler.MasterRespHandler;
@@ -50,13 +49,12 @@ import org.talust.network.MessageValidator;
 import org.talust.network.NodeConsole;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
-import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.PeersManager;
 import org.talust.network.netty.queue.MessageQueueHolder;
-import org.talust.storage.AccountStorage;
-import org.talust.storage.BlockStorage;
-import org.talust.storage.ChainStateStorage;
-import org.talust.storage.TransactionStorage;
+import org.talust.core.storage.AccountStorage;
+import org.talust.core.storage.BlockStorage;
+import org.talust.core.storage.ChainStateStorage;
+import org.talust.core.storage.TransactionStorage;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,11 +85,11 @@ public class BlockChainServer {
 
         NodeConsole nc = new NodeConsole();
         nc.start();//启动网络的收发
-        if(ConnectionManager.get().superNode){
-            accountStorage.superNodeLogin();
-        }else{
-            accountStorage.nomorlNodeLogin();
-        }
+//        if(ConnectionManager.get().superNode){
+//            accountStorage.superNodeLogin();
+//        }else{
+//            accountStorage.nomorlNodeLogin();
+//        }
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
         log.info("当前节点所连接的节点数:{}", allChannel.size());
         if (allChannel != null && allChannel.size() > 0) {//说明有其他的节点
@@ -149,10 +147,10 @@ public class BlockChainServer {
      */
     public void initStorage() throws Exception {
         log.info("初始化存储...");
-        blockStorage.init();
-        chainStateStorage.init();
-        transactionStorage.init();
-        accountStorage.init();
+//        blockStorage.init();
+//        chainStateStorage.init();
+//        transactionStorage.init();
+//        accountStorage.init();
         PeersManager.get().initPeers();
         NtpTimeService.get().start();
 
@@ -171,10 +169,10 @@ public class BlockChainServer {
                 CacheManager.get().put(new String(Constant.MINING_ADDRESS), miningAddress);
             }
             if (nowBlock != null) {
-                Block block = SerializationUtil.deserializer(nowBlock, Block.class);
+//                Block block = SerializationUtil.deserializer(nowBlock, Block.class);
                 //将区块的最新打包时间写入缓存
-                CacheManager.get().setCurrentBlockTime(block.getHead().getTime());
-                CacheManager.get().setCurrentBlockHeight(block.getHead().getHeight());
+//                CacheManager.get().setCurrentBlockTime(block.getHead().getTime());
+//                CacheManager.get().setCurrentBlockHeight(block.getHead().getHeight());
                 CacheManager.get().setCurrentBlockHash(nowBlockHash);
             }
         }

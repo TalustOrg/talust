@@ -27,16 +27,11 @@ package org.talust.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import org.talust.ResponseMessage;
-import org.talust.account.Account;
-import org.talust.client.BlockChainServer;
-import org.talust.common.crypto.Utils;
 import org.talust.common.exception.AccountFileNotExistException;
 import org.talust.common.exception.EncryptedExistException;
 import org.talust.common.exception.ErrorPasswordException;
-import org.talust.storage.AccountStorage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -75,7 +70,7 @@ public class AccountController {
         System.out.println(accPassword);
         String address = "";
         try {
-            address =   AccountStorage.get().createAccount(accPassword);
+//            address =   AccountStorage.get().createAccount(accPassword);
         } catch (Exception e) {
             if (e instanceof ErrorPasswordException) {
                 return ResponseMessage.error("登录的账户和密码不匹配,请确认后输入!");
@@ -90,19 +85,19 @@ public class AccountController {
         return ResponseMessage.ok(address);
     }
 
-    @ApiOperation(value = "查看地址", notes = "查看当前登录用户的地址信息")
-    @GetMapping(value = "showAddr", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseMessage showAddr() {
-        List<Account> usrAccs = AccountStorage.get().getAccounts();
-        if (usrAccs != null) {
-            String addrs = "";
-            for(Account account: usrAccs){
-                addrs = addrs+Utils.showAddress(account.getAddress())+",";
-            }
-            return ResponseMessage.ok(addrs);
-        }
-        return ResponseMessage.error("当前无登录用户");
-    }
+//    @ApiOperation(value = "查看地址", notes = "查看当前登录用户的地址信息")
+//    @GetMapping(value = "showAddr", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    ResponseMessage showAddr() {
+//        List<Account> usrAccs = AccountStorage.get().getAccounts();
+//        if (usrAccs != null) {
+//            String addrs = "";
+//            for(Account account: usrAccs){
+//                addrs = addrs+Utils.showAddress(account.getAddress())+",";
+//            }
+//            return ResponseMessage.ok(addrs);
+//        }
+//        return ResponseMessage.error("当前无登录用户");
+//    }
 
 
 }

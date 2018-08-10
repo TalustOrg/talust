@@ -44,9 +44,9 @@ public class CAGenTool {
     }
 
     //签名公钥,用户父key签名自身公钥,以体现继承关系
-    public static byte[] signPub(ECKey parentKey,ECKey selfKey){
-        return parentKey.sign(selfKey.getPubKey());
-    }
+//    public static byte[] signPub(ECKey parentKey,ECKey selfKey){
+//        return parentKey.sign(selfKey.getPubKey());
+//    }
 
 
     //根据密码生成ECKey对象

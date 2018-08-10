@@ -52,19 +52,19 @@ public class AccountTest {
 
         //non Root account create Test
         ECKey key = ECKey.fromPrivate(new BigInteger(Hex.decode("00c9f079f45601872d6d2ae9425c2a1245202db3f19d2d6c6f0ae1bde9618f2f30")));
-        ECKey ecKey = new ECKey();
-        System.out.println("public key:"+Hex.encode(ecKey.getPubKey()));
-        System.out.println("private key :"+ecKey.getPrivateKeyAsHex());
-        Sha256Hash hash = Sha256Hash.of(ecKey.getPubKey());
-        byte[] sign_bytes = key.sign(hash.getBytes());
-        System.out.println("sign : "+ StringUtils.bytesToHexString(sign_bytes));
-        byte[] address = Utils.getAddress(ecKey.getPubKey());
-        String addr = StringUtils.bytesToHexString(address);
-        System.out.println("address haxString:"+addr);
-        System.out.println("address haxString to  bytes and Base58:"+Base58.encode(StringUtils.hexStringToBytes(addr)));
-        System.out.println("address Base58:"+Base58.encode(address));
-        boolean verify = ECKey.verify(hash.getBytes(), sign_bytes, key.getPubKey());
-        System.out.println(verify);
+//        ECKey ecKey = new ECKey();
+//        System.out.println("public key:"+Hex.encode(ecKey.getPubKey()));
+//        System.out.println("private key :"+ecKey.getPrivateKeyAsHex());
+//        Sha256Hash hash = Sha256Hash.of(ecKey.getPubKey());
+//        byte[] sign_bytes = key.sign(hash.getBytes());
+//        System.out.println("sign : "+ StringUtils.bytesToHexString(sign_bytes));
+//        byte[] address = Utils.getAddress(ecKey.getPubKey());
+//        String addr = StringUtils.bytesToHexString(address);
+//        System.out.println("address haxString:"+addr);
+//        System.out.println("address haxString to  bytes and Base58:"+Base58.encode(StringUtils.hexStringToBytes(addr)));
+//        System.out.println("address Base58:"+Base58.encode(address));
+//        boolean verify = ECKey.verify(hash.getBytes(), sign_bytes, key.getPubKey());
+//        System.out.println(verify);
 
         //root account create Test
 //        ECKey ecKey = new ECKey();

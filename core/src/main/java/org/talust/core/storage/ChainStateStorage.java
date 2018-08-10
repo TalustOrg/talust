@@ -22,7 +22,7 @@
  * SOFTWARE.
  *
  */
-package org.talust.storage;
+package org.talust.core.storage;
 
 import org.talust.common.model.DepositAccount;
 import org.talust.common.tools.Configure;
@@ -31,7 +31,7 @@ import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.util.SizeUnit;
-import org.talust.common.tools.SerializationUtil;
+import org.talust.storage.BaseStoreProvider;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,57 +40,37 @@ import java.util.concurrent.atomic.AtomicLong;
 
 //交易帐户余额存储,用于存储每一个帐户的每一个交易过来的余额,针对UTXO模型实现的
 @Slf4j
-public class ChainStateStorage {
+public class ChainStateStorage extends BaseStoreProvider {
     private static ChainStateStorage instance = new ChainStateStorage();
 
     private ChainStateStorage() {
+        this(Configure.DATA_CHAINSTATE);
     }
-    private byte[] TRAN_NUMBER = "tranNumber".getBytes();
-    private byte[] ADDRESS_AMOUNT = "addressAmount".getBytes();
-    private AtomicLong tranNumber;
+
     public static ChainStateStorage get() {
         return instance;
     }
-    private RocksDB db;
-    final Options options = new Options()
-            .setCreateIfMissing(true)
-            .setWriteBufferSize(8 * SizeUnit.KB)
-            .setMaxWriteBufferNumber(3)
-            .setMaxBackgroundCompactions(10);
 
-
-    static {
-        try {
-            RocksDB.loadLibrary();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public ChainStateStorage(String dir) {
+        super(dir);
     }
 
-    public void init() {
+
+    private byte[] TRAN_NUMBER = "tranNumber".getBytes();
+    private byte[] ADDRESS_AMOUNT = "addressAmount".getBytes();
+    private AtomicLong tranNumber;
+
+
+    public void put(byte[] key, byte[] value)  {
         try {
-            String dataBlock = Configure.DATA_CHAINSTATE;
-            File file = new File(dataBlock);
-            if (!file.exists()) {
-                file.mkdirs();
-            }
-            log.info("保存区块链状态数据路径为:{}", dataBlock);
-            db = RocksDB.open(options, dataBlock);
-            //初始化交易号,便于打包交易时使用
-            initTranNumber();
+            db.put(key, value);
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
+
     }
 
-    public void put(byte[] key, byte[] value) {
-        try {
-            db.put(key, value);
-        } catch (Exception e) {
-        }
-    }
-
-    public byte[] get(byte[] key) {
+    public byte[] get(byte[] key)  {
         try {
             return db.get(key);
         } catch (RocksDBException e) {
@@ -98,7 +78,6 @@ public class ChainStateStorage {
         }
         return null;
     }
-
 
 
     private void initTranNumber() {

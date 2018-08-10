@@ -32,7 +32,7 @@ import org.talust.common.model.MessageType;
 import org.talust.common.tools.Constant;
 import org.talust.network.MessageHandler;
 import org.talust.network.netty.queue.MessageQueue;
-import org.talust.storage.BlockStorage;
+import org.talust.core.storage.BlockStorage;
 
 /**
  * 远端向当前节点请求获取某数据取内容

@@ -22,23 +22,37 @@
  * SOFTWARE.
  *
  */
-package org.talust.storage;
 
-import org.rocksdb.RocksDBException;
+package org.talust.core.core;
 
-import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Axe-Liu
- * @date 2018/8/6.
+ * Utility class that holds all the registered NetworkParameters types used for Address auto discovery.
+ * By default only MainNetParams and TestNet3Params are used. If you want to use TestNet2, RegTestParams or
+ * UnitTestParams use the register and unregister the TestNet3Params as they don't have their own address
+ * version/type code.
  */
-public interface StoreProvider {
+public class Networks {
+    /** Registered networks */
+    private static Set<NetworkParams> networks = new HashSet<NetworkParams>();
 
-    void put(byte[] key, byte[] value) throws RocksDBException;
+    public static Set<? extends NetworkParams> get() {
+        return networks;
+    }
 
-    byte[] get(byte[] key) throws RocksDBException;
+    public static void register(NetworkParams network) {
+    	networks.add(network);
+    }
 
-    void delete(byte[] key) throws RocksDBException;
+    public static void register(Set<NetworkParams> networks) {
+        Networks.networks = networks;
+    }
 
-    void close() throws IOException;
+    public static void unregister(NetworkParams network) {
+        if (networks.contains(network)) {
+            networks.remove(network);
+        }
+    }
 }

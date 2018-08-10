@@ -20,15 +20,13 @@ import java.io.IOException;
 @Slf4j
 public abstract class BaseStoreProvider implements StoreProvider {
 
-    //所有存储提供器都使用单例，这里定义一个用于实例化的单例锁
-    protected static Object locker = new Object();
-
     protected RocksDB db;
     final Options options = new Options()
             .setCreateIfMissing(true)
             .setWriteBufferSize(8 * SizeUnit.KB)
             .setMaxWriteBufferNumber(3)
             .setMaxBackgroundCompactions(10);
+
     static {
         try {
             RocksDB.loadLibrary();
@@ -51,33 +49,22 @@ public abstract class BaseStoreProvider implements StoreProvider {
         }
     }
 
-    public void put(byte[] key, byte[] value) {
-        try {
-            db.put(key, value);
-        } catch (Exception e) {
-        }
+    public void put(byte[] key, byte[] value) throws RocksDBException {
+        db.put(key, value);
     }
 
-    public byte[] getBytes(byte[] key) {
-        try {
-            return db.get(key);
-        } catch (RocksDBException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public byte[] getBytes(byte[] key) throws RocksDBException {
+        return db.get(key);
     }
 
     @Override
-    public void delete(byte[] key) {
-        try {
-            db.delete(key);
-        } catch (RocksDBException e) {
-            e.printStackTrace();
-        }
+    public void delete(byte[] key) throws RocksDBException {
+        db.delete(key);
     }
 
     /**
      * 释放资源
+     *
      * @throws IOException
      */
     public void close() throws IOException {
