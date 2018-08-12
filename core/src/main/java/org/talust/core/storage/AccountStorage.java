@@ -31,54 +31,32 @@ import org.talust.common.crypto.*;
 import org.talust.common.tools.Configure;
 import org.talust.storage.BaseStoreProvider;
 
+import java.io.File;
+import java.io.IOException;
+
 @Slf4j //帐户存储服务
-public class AccountStorage  extends BaseStoreProvider {
+public class AccountStorage   {
     private static AccountStorage instance = new AccountStorage();
     private AccountStorage() {
-        this(Configure.DATA_ACCOUNT);
+        init(Configure.DATA_ACCOUNT);
     }
     public static AccountStorage get() {
         return instance;
     }
-    public AccountStorage(String dir) {
-        super(dir);
-    }
 
-    @Override
-    public byte[] get(byte[] key) {
-        try {
-            return db.get(key);
-        } catch (RocksDBException e) {
-            e.printStackTrace();
+    /**
+     * 初始化帐户存储的路径
+     *
+     * @throws IOException
+     */
+    public void init(String filePath){
+        File fp = new File(filePath);
+        if (!fp.exists()) {
+            fp.mkdirs();
         }
-        return null;
+        log.info("帐户信息存储路径文件:{}", filePath);
     }
 
-
-//    private List<Account> accounts = new ArrayList<>();
-//    private Account account = new Account();
-//
-//    public Account getAccount() {
-//        return account;
-//    }
-//
-//    public void setAccount(Account account) {
-//        this.account = account;
-//    }
-//
-//    /**
-//     * 初始化帐户存储的路径
-//     *
-//     * @throws IOException
-//     */
-//    public void init() throws IOException {
-//        File fp = new File(filePath);
-//        if (!fp.exists()) {
-//            fp.mkdirs();
-//        }
-//        log.info("帐户信息存储路径文件:{}", filePath);
-//    }
-//
 //    /**
 //     * 创建新帐户,会产生一对密钥对,以即会生成一个地址。
 //     *

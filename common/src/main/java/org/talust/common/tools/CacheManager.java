@@ -101,9 +101,9 @@ public class CacheManager {
     }
 
     //当前区块时间
-    private int currentBlockTime;
+    private long currentBlockTime;
     //当前区块高度
-    private int currentBlockHeight = 0;
+    private long currentBlockHeight = 0;
     //当前区块的hash值
     private byte[] currentBlockHash;
     //当前区块产生的ip地址
@@ -111,19 +111,19 @@ public class CacheManager {
 
     private List<DepositAccount> deposits = new ArrayList<>();
 
-    public int getCurrentBlockTime() {
+    public long getCurrentBlockTime() {
         return currentBlockTime;
     }
 
-    public void setCurrentBlockTime(int currentBlockTime) {
+    public void setCurrentBlockTime(long currentBlockTime) {
         this.currentBlockTime = currentBlockTime;
     }
 
-    public int getCurrentBlockHeight() {
+    public long getCurrentBlockHeight() {
         return currentBlockHeight;
     }
 
-    public void setCurrentBlockHeight(int currentBlockHeight) {
+    public void setCurrentBlockHeight(long currentBlockHeight) {
         this.currentBlockHeight = currentBlockHeight;
     }
 

@@ -42,6 +42,7 @@ import org.talust.consensus.handler.MasterReqHandler;
 import org.talust.consensus.handler.MasterRespHandler;
 import org.talust.consensus.handler.NewMasterReqHandler;
 import org.talust.consensus.handler.NewMasterRespHandler;
+import org.talust.core.core.SynBlock;
 import org.talust.core.model.Block;
 import org.talust.core.server.NtpTimeService;
 import org.talust.network.MessageHandler;
@@ -147,10 +148,6 @@ public class BlockChainServer {
      */
     public void initStorage() throws Exception {
         log.info("初始化存储...");
-//        blockStorage.init();
-//        chainStateStorage.init();
-//        transactionStorage.init();
-//        accountStorage.init();
         PeersManager.get().initPeers();
         NtpTimeService.get().start();
 
@@ -169,10 +166,10 @@ public class BlockChainServer {
                 CacheManager.get().put(new String(Constant.MINING_ADDRESS), miningAddress);
             }
             if (nowBlock != null) {
-//                Block block = SerializationUtil.deserializer(nowBlock, Block.class);
+                Block block = SerializationUtil.deserializer(nowBlock, Block.class);
                 //将区块的最新打包时间写入缓存
-//                CacheManager.get().setCurrentBlockTime(block.getHead().getTime());
-//                CacheManager.get().setCurrentBlockHeight(block.getHead().getHeight());
+                CacheManager.get().setCurrentBlockTime(block.getTime());
+                CacheManager.get().setCurrentBlockHeight(block.getHeight());
                 CacheManager.get().setCurrentBlockHash(nowBlockHash);
             }
         }

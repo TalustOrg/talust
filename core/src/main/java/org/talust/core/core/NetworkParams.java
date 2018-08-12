@@ -23,6 +23,7 @@
  *
  */
 
+
 package org.talust.core.core;
 
 
@@ -30,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talust.common.tools.Constant;
 import org.talust.core.model.MessageSerializer;
+import org.talust.core.network.SeedManager;
 
 /**
  * 网络参数，网络协议参数配置都在本类下面
@@ -51,7 +53,8 @@ public abstract class NetworkParams {
     //允许的地址前缀
     protected int[] acceptableAddressCodes = {};
 
-	
+	protected SeedManager seedManager;
+
 	//消息序列化工具
 	protected transient MessageSerializer defaultSerializer = null;
 	
@@ -181,10 +184,6 @@ public abstract class NetworkParams {
 		return port;
 	}
 	
-//	public SeedManager getSeedManager() {
-//		return seedManager;
-//	}
-	
 	public long getPacketMagic() {
         return packetMagic;
     }
@@ -203,5 +202,9 @@ public abstract class NetworkParams {
 
 	public void setBestHeight(long bestHeight) {
 		this.bestHeight = bestHeight;
+	}
+
+	public SeedManager getSeedManager() {
+		return seedManager;
 	}
 }
