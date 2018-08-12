@@ -44,12 +44,14 @@ import org.talust.consensus.handler.NewMasterReqHandler;
 import org.talust.consensus.handler.NewMasterRespHandler;
 import org.talust.core.core.SynBlock;
 import org.talust.core.model.Block;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.core.server.NtpTimeService;
 import org.talust.network.MessageHandler;
 import org.talust.network.MessageValidator;
 import org.talust.network.NodeConsole;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
+import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.PeersManager;
 import org.talust.network.netty.queue.MessageQueueHolder;
 import org.talust.core.storage.AccountStorage;
@@ -86,11 +88,11 @@ public class BlockChainServer {
 
         NodeConsole nc = new NodeConsole();
         nc.start();//启动网络的收发
-//        if(ConnectionManager.get().superNode){
-//            accountStorage.superNodeLogin();
-//        }else{
+        if(ConnectionManager.get().superNode){
+            accountStorage.superNodeLogin(MainNetworkParams.get());
+        }else{
 //            accountStorage.nomorlNodeLogin();
-//        }
+        }
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
         log.info("当前节点所连接的节点数:{}", allChannel.size());
         if (allChannel != null && allChannel.size() > 0) {//说明有其他的节点
@@ -148,7 +150,6 @@ public class BlockChainServer {
      */
     public void initStorage() throws Exception {
         log.info("初始化存储...");
-        PeersManager.get().initPeers();
         NtpTimeService.get().start();
 
         log.info("初始化缓存...");

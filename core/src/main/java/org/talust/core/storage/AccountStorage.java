@@ -25,21 +25,36 @@
 
 package org.talust.core.storage;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.RocksDBException;
 import org.talust.common.crypto.*;
 import org.talust.common.tools.Configure;
+import org.talust.common.tools.FileUtil;
+import org.talust.common.tools.StringUtils;
+import org.talust.core.core.NetworkParams;
+import org.talust.core.model.Account;
+import org.talust.core.model.Address;
 import org.talust.storage.BaseStoreProvider;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j //帐户存储服务
-public class AccountStorage   {
+public class AccountStorage {
+
+    private ECKey ecKey;
+    private Account account;
     private static AccountStorage instance = new AccountStorage();
+
     private AccountStorage() {
         init(Configure.DATA_ACCOUNT);
     }
+
     public static AccountStorage get() {
         return instance;
     }
@@ -49,7 +64,7 @@ public class AccountStorage   {
      *
      * @throws IOException
      */
-    public void init(String filePath){
+    public void init(String filePath) {
         File fp = new File(filePath);
         if (!fp.exists()) {
             fp.mkdirs();
@@ -57,11 +72,11 @@ public class AccountStorage   {
         log.info("帐户信息存储路径文件:{}", filePath);
     }
 
-//    /**
-//     * 创建新帐户,会产生一对密钥对,以即会生成一个地址。
-//     *
-//     * @throws Exception
-//     */
+    /**
+     * 创建新帐户,会产生一对密钥对,以即会生成一个地址。
+     *
+     * @throws Exception
+     */
 //    public String createAccount(String accPs, int accType) throws Exception {
 //        ecKey = new ECKey();
 //        JSONObject fileJson = new JSONObject();
@@ -110,7 +125,7 @@ public class AccountStorage   {
 //        accounts.add(account);
 //        return Utils.showAddress(address);
 //    }
-//
+
 //
 //    public String createAccount(String accPs) throws Exception {
 //        return createAccount(accPs, 0);
@@ -209,49 +224,47 @@ public class AccountStorage   {
 //        return account;
 //    }
 //
-//    /**
-//     * 根据PK 登录
-//     */
-//    public void superNodeLogin() {
-//        try {
-//            List<String> list = getAllFile(filePath, true);
-//            File file = new File(list.get(0));
-//            String content = FileUtil.fileToTxt(file);
-//            JSONObject fileJson = JSONObject.parseObject(content);
-//            ecKey = ECKey.fromPrivate(new BigInteger(Hex.decode(fileJson.getString("privateKey"))));
-//            account.setPublicKey(ecKey.getPubKey());
-//            String fileAddress = fileJson.getString("address");
-//            byte[] address = Base58.decodeChecked(Base58.encode(StringUtils.hexStringToBytes(fileAddress)));
-//            if (Utils.getAddress(ecKey.getPubKey()).equals(address)) {
-//                account.setAddress(StringUtils.hexStringToBytes(fileAddress));
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    /**
-//     * 获取路径下的所有文件/文件夹
-//     */
-//    public static List<String> getAllFile(String directoryPath, boolean isAddDirectory) {
-//        List<String> list = new ArrayList<String>();
-//        File baseFile = new File(directoryPath);
-//        if (baseFile.isFile() || !baseFile.exists()) {
-//            return list;
-//        }
-//        File[] files = baseFile.listFiles();
-//        for (File file : files) {
-//            if (file.isDirectory()) {
-//                if (isAddDirectory) {
-//                    list.add(file.getAbsolutePath());
-//                }
-//                list.addAll(getAllFile(file.getAbsolutePath(), isAddDirectory));
-//            } else {
-//                list.add(file.getAbsolutePath());
-//            }
-//        }
-//        return list;
-//    }
+
+    /**
+     * 根据PK 登录
+     */
+    public void superNodeLogin(NetworkParams networkParams) {
+        try {
+            List<String> list = getAllFile(Configure.DATA_ACCOUNT, true);
+            File file = new File(list.get(0));
+            String content = FileUtil.fileToTxt(file);
+            JSONObject fileJson = JSONObject.parseObject(content);
+            ecKey = ECKey.fromPrivate(new BigInteger(Hex.decode(fileJson.getString("privateKey"))));
+            account = Account.parse(fileJson.getBytes("data"), 0, networkParams);
+            String fileAddress = fileJson.getString("address");
+            account.setAddress(Address.fromBase58(networkParams, fileAddress));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 获取路径下的所有文件/文件夹
+     */
+    public static List<String> getAllFile(String directoryPath, boolean isAddDirectory) {
+        List<String> list = new ArrayList<String>();
+        File baseFile = new File(directoryPath);
+        if (baseFile.isFile() || !baseFile.exists()) {
+            return list;
+        }
+        File[] files = baseFile.listFiles();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                if (isAddDirectory) {
+                    list.add(file.getAbsolutePath());
+                }
+                list.addAll(getAllFile(file.getAbsolutePath(), isAddDirectory));
+            } else {
+                list.add(file.getAbsolutePath());
+            }
+        }
+        return list;
+    }
 //
 //    /**
 //     * @return
