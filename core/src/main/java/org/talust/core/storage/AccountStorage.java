@@ -234,10 +234,10 @@ public class AccountStorage {
             File file = new File(list.get(0));
             String content = FileUtil.fileToTxt(file);
             JSONObject fileJson = JSONObject.parseObject(content);
-            ecKey = ECKey.fromPrivate(new BigInteger(Hex.decode(fileJson.getString("privateKey"))));
             account = Account.parse(fileJson.getBytes("data"), 0, networkParams);
             String fileAddress = fileJson.getString("address");
             account.setAddress(Address.fromBase58(networkParams, fileAddress));
+            ecKey=account.getEcKey();
         } catch (Exception e) {
             e.printStackTrace();
         }
