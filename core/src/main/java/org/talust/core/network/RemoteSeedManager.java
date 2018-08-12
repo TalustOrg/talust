@@ -38,8 +38,6 @@ import java.util.*;
 
 /**
  * 远程种子节点管理
- * @author ln
- *
  */
 public class RemoteSeedManager implements SeedManager {
 	
