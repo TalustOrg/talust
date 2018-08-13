@@ -31,6 +31,7 @@ import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.ProtocolException;
 import org.talust.common.exception.VerificationException;
+import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.data.ConsensusCalculationUtil;
 import org.talust.core.script.Script;

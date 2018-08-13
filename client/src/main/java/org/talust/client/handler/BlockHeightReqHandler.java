@@ -41,7 +41,7 @@ public class BlockHeightReqHandler implements MessageHandler {
         MessageChannel mc = new MessageChannel();
         Message msg = new Message();
         msg.setType(MessageType.HEIGHT_RESP.getType());
-        msg.setContent(Integer.toString(CacheManager.get().getCurrentBlockHeight()).getBytes());
+        msg.setContent(Long.toString(CacheManager.get().getCurrentBlockHeight()).getBytes());
         msg.setMsgCount(message.getMessage().getMsgCount());
         mc.setToIp(message.getFromIp());
         mc.setMessage(msg);

@@ -48,9 +48,9 @@ public class ConsensusService {
     }
 
     private void genBlock() {
-        int delay = 0;
+        long delay = 0;
         //当前最新区块生成时间
-        int currentBlockTime = CacheManager.get().getCurrentBlockTime();
+        long currentBlockTime = CacheManager.get().getCurrentBlockTime();
         if (currentBlockTime > 0) {
             int timeSecond = DateUtil.getTimeSecond();
             delay = Configure.BLOCK_GEN_TIME - timeSecond + currentBlockTime;
@@ -90,7 +90,7 @@ public class ConsensusService {
                 try {
                     //检测master是否正常,通过块判断
                     int nowSecond = DateUtil.getTimeSecond();
-                    int ct = cu.getCurrentBlockTime();
+                    long ct = cu.getCurrentBlockTime();
                     if (ct > 0) {
                         if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {//未收到区块响应
                             conference.changeMaster();

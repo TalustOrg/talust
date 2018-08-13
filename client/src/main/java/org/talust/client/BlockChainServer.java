@@ -26,6 +26,7 @@
 package org.talust.client;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.talust.account.MiningAddress;
 
 import org.talust.client.handler.*;
@@ -42,6 +43,7 @@ import org.talust.consensus.handler.MasterReqHandler;
 import org.talust.consensus.handler.MasterRespHandler;
 import org.talust.consensus.handler.NewMasterReqHandler;
 import org.talust.consensus.handler.NewMasterRespHandler;
+import org.talust.core.core.NetworkParams;
 import org.talust.core.core.SynBlock;
 import org.talust.core.model.Block;
 import org.talust.core.network.MainNetworkParams;
@@ -67,8 +69,6 @@ import java.util.List;
 public class BlockChainServer {
     private BlockStorage blockStorage = BlockStorage.get();
     private AccountStorage accountStorage = AccountStorage.get();
-    private ChainStateStorage chainStateStorage = ChainStateStorage.get();
-    private TransactionStorage transactionStorage = TransactionStorage.get();
     private MessageQueueHolder queueHolder = MessageQueueHolder.get();
 
     private static BlockChainServer instance = new BlockChainServer();
@@ -89,9 +89,9 @@ public class BlockChainServer {
         NodeConsole nc = new NodeConsole();
         nc.start();//启动网络的收发
         if(ConnectionManager.get().superNode){
-            accountStorage.superNodeLogin(MainNetworkParams.get());
+            accountStorage.superNodeLogin();
         }else{
-//            accountStorage.nomorlNodeLogin();
+            accountStorage.nomorlNodeLogin();
         }
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
         log.info("当前节点所连接的节点数:{}", allChannel.size());
@@ -151,6 +151,7 @@ public class BlockChainServer {
     public void initStorage() throws Exception {
         log.info("初始化存储...");
         NtpTimeService.get().start();
+        PeersManager.get().initPeers();
 
         log.info("初始化缓存...");
              byte[] nowBlockHash = blockStorage.get(Constant.NOW_BLOCK_HASH);
