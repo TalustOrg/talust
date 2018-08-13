@@ -25,19 +25,13 @@
 
 package org.talust.core.network;
 
-import com.alibaba.fastjson.JSONObject;
-import org.talust.common.tools.Configure;
+
 import org.talust.common.tools.Constant;
-import org.talust.common.tools.FileUtil;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.message.DefaultMessageSerializer;
 import org.talust.core.model.MessageSerializer;
 import org.talust.network.netty.ConnectionManager;
-
-import java.io.File;
-import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
-import java.util.Map;
 
 /**
  * 主网参数
