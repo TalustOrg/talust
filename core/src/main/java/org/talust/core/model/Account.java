@@ -386,10 +386,10 @@ public class Account {
      * @param mgkey2
      * @throws IOException
      */
-    public void signAccount(ECKey mgkey1, ECKey mgkey2) throws IOException {
+    public byte[][] signAccount(ECKey mgkey1, ECKey mgkey2) throws IOException {
         signs = null;
         if(mgkey1 == null && mgkey2 == null) {
-            return;
+            return signs;
         } else if(mgkey1 != null && mgkey2 == null) {
             //用户帐户管理私匙签名
             Sha256Hash hash = Sha256Hash.of(serialize());
@@ -406,9 +406,9 @@ public class Account {
             ECDSASignature signature2 = mgkey2.sign(hash);
             //签名结果
             byte[] signbs2 = signature2.encodeToDER();
-
             signs = new byte[][] {signbs1, signbs2};
         }
+        return signs;
     }
 
     /**

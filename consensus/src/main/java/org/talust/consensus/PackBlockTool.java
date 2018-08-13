@@ -1,12 +1,24 @@
 package org.talust.consensus;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.model.*;
 import org.talust.common.tools.*;
+import org.talust.core.core.NetworkParams;
 import org.talust.core.data.DataContainer;
+import org.talust.core.model.Account;
+import org.talust.core.model.Block;
+import org.talust.core.model.BlockHeader;
+import org.talust.core.network.MainNetworkParams;
+import org.talust.core.storage.AccountStorage;
+import org.talust.core.storage.BlockStorage;
 import org.talust.core.storage.ChainStateStorage;
+import org.talust.core.transaction.Transaction;
+import org.talust.network.netty.ConnectionManager;
+import org.talust.network.netty.queue.MessageQueue;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,55 +27,60 @@ import java.util.List;
 @Slf4j
 public class PackBlockTool {
     private DataContainer dataContainer = DataContainer.get();
-    private ChainStateStorage chainStateStorage = ChainStateStorage.get();
+    private BlockStorage blockStorage = BlockStorage.get();
+    private NetworkParams networkParams = MainNetworkParams.get();
     private CacheManager cu = CacheManager.get();
+
 
     //打包
     public void  pack(int packageTime) {
         try {
-//            Account account = AccountStorage.get().getAccount();
-//            //批量获取需要打包的数据
-//            List<byte[]> batchRecord = dataContainer.getBatchRecord();
-//            if (batchRecord == null) {
-//                batchRecord = new ArrayList<>();
-//            }
-//            int height = cu.getCurrentBlockHeight();
-//            height++;
-//            byte[] coinBase = getCoinBase(packageTime, height);
-//            if (coinBase != null) {
-//                //加入挖矿奖励
-//                batchRecord.add(coinBase);
-//            }
-//
-//            BlockBody blockBody = new BlockBody();
-//            blockBody.setData(batchRecord);
-//            byte[] bb = SerializationUtil.serializer(blockBody);
-//            byte[] bbHash = Sha256Hash.hash(bb);
-//            BlockHead head = new BlockHead();
-//            head.setHeight(height);
-//            head.setTime(packageTime);
-//            head.setBodyHash(bbHash);
-//            head.setPrevBlock(CacheManager.get().getCurrentBlockHash());
-//            Block block = new Block();
-//            block.setHead(head);
-//            block.setBody(blockBody);
-//            byte[] data = SerializationUtil.serializer(block);
-//            byte[] hash = Sha256Hash.of(data).getBytes();
-//
-//            byte[] sign = AccountStorage.get().getEcKey().sign(hash);
-//
-//            Message message = new Message();
-//            message.setTime(block.getHead().getTime());
-//            //对于接收方来说,是区块到来,因为此消息有明确的接收方
-//            message.setType(MessageType.BLOCK_ARRIVED.getType());
-//            message.setContent(data);
-//            message.setSigner(account.getPublicKey());
-//            message.setSignContent(sign);
-//
-//            MessageChannel mc = new MessageChannel();
-//            mc.setMessage(message);
-//            mc.setFromIp(ConnectionManager.get().selfIp);
-//            MessageQueue.get().addMessage(mc);
+            Account account = AccountStorage.get().getAccount();
+            //批量获取需要打包的数据
+            List<Transaction> transactionList = dataContainer.getBatchRecord();
+            if (transactionList == null) {
+                transactionList = new ArrayList<>();
+            }
+            long height = cu.getCurrentBlockHeight();
+            height++;
+            Transaction coinBase = getCoinBase(packageTime, height);
+            if (coinBase != null) {
+                //加入挖矿奖励,挖矿交易生成
+                transactionList.add(coinBase);
+            }
+            //本地最新区块
+            BlockHeader bestBlockHeader = blockStorage.getBestBlockHeader().getBlockHeader();
+            //获取我的时段开始时间
+            Block block = new Block(networkParams);
+            long currentHeight = bestBlockHeader.getHeight() + 1;
+            block.setHeight(currentHeight);
+            block.setPreHash(bestBlockHeader.getHash());
+            block.setTime(packageTime);
+            block.setVersion(networkParams.getProtocolVersionNum(NetworkParams.ProtocolVersion.CURRENT));
+            block.setTxs(transactionList);
+            block.setTxCount(transactionList.size());
+            block.setMerkleHash(block.buildMerkleHash());
+            block.sign(account);
+            block.verify();
+            block.verifyScript();
+
+
+
+            byte[] data = SerializationUtil.serializer(block);
+            byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
+
+            Message message = new Message();
+            message.setTime(packageTime);
+            //对于接收方来说,是区块到来,因为此消息有明确的接收方
+            message.setType(MessageType.BLOCK_ARRIVED.getType());
+            message.setContent(data);
+            message.setSigner(account.getEcKey().getPubKey());
+            message.setSignContent(sign);
+
+            MessageChannel mc = new MessageChannel();
+            mc.setMessage(message);
+            mc.setFromIp(ConnectionManager.get().selfIp);
+            MessageQueue.get().addMessage(mc);
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -76,7 +93,7 @@ public class PackBlockTool {
      * @param height
      * @return
      */
-    private byte[] getCoinBase(int packageTime, int height) throws Exception {
+    private Transaction getCoinBase(int packageTime, long height) throws Exception {
         //创世块不挖矿
 //        if (height == 1) {
 //            return null;
@@ -140,7 +157,7 @@ public class PackBlockTool {
 //        byte[] sign = AccountStorage.get().getEcKey().sign(hash);
 //        message.setSigner(AccountStorage.get().getAccount().getPublicKey());
 //        message.setSignContent(sign);
-        return SerializationUtil.serializer("");
+        return null;
     }
 
     private BigDecimal calTotalAmount(List<DepositAccount> deposits) {

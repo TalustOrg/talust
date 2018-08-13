@@ -2,8 +2,6 @@ package org.talust.common.tools;
 
 /**
  * 随机数工具
- * @author ln
- *
  */
 public final class RandomUtil {
 

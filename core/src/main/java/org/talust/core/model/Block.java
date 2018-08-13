@@ -87,9 +87,6 @@ public class Block extends BlockHeader {
 		merkleHash = Sha256Hash.wrap(readBytes(32));
 		time = readUint32();
 		height = readUint32();
-		periodCount = (int) readVarInt();
-		timePeriod = (int) readVarInt();
-		periodStartTime = readUint32();
 		scriptBytes = readBytes((int) readVarInt());
 		scriptSig = new Script(scriptBytes);
 		txCount = readVarInt();
@@ -219,12 +216,6 @@ public class Block extends BlockHeader {
 		builder.append(height);
 		builder.append(", txCount=");
 		builder.append(txCount);
-		builder.append(", periodCount=");
-		builder.append(periodCount);
-		builder.append(", timePeriod=");
-		builder.append(timePeriod);
-		builder.append(", periodStartPoint=");
-		builder.append(periodStartTime);
 		builder.append("]");
 		return builder.toString();
 	}

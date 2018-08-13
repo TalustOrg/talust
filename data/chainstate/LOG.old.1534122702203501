@@ -1,0 +1,165 @@
+2018/08/13-09:11:11.194968 2c24 RocksDB version: 5.3.6
+2018/08/13-09:11:11.195041 2c24 Git sha rocksdb_build_git_sha:@88724cc719784c78df0c0ff87cca7cafd7abbe37@
+2018/08/13-09:11:11.195098 2c24 Compile date May 23 2017
+2018/08/13-09:11:11.195143 2c24 DB SUMMARY
+2018/08/13-09:11:11.195681 2c24 CURRENT file:  CURRENT
+2018/08/13-09:11:11.195730 2c24 IDENTITY file:  IDENTITY
+2018/08/13-09:11:11.195790 2c24 MANIFEST file:  MANIFEST-000014 size: 59 Bytes
+2018/08/13-09:11:11.195837 2c24 SST files in F:\workspace\data\chainstate dir, Total Num: 0, files: 
+2018/08/13-09:11:11.195880 2c24 Write Ahead Log file in F:\workspace\data\chainstate: 000015.log size: 0 ; 
+2018/08/13-09:11:11.195923 2c24                         Options.error_if_exists: 0
+2018/08/13-09:11:11.195966 2c24                       Options.create_if_missing: 1
+2018/08/13-09:11:11.196234 2c24                         Options.paranoid_checks: 1
+2018/08/13-09:11:11.196262 2c24                                     Options.env: 0000000002A06F90
+2018/08/13-09:11:11.196284 2c24                                Options.info_log: 000000001F0AB440
+2018/08/13-09:11:11.196304 2c24                          Options.max_open_files: -1
+2018/08/13-09:11:11.196323 2c24                Options.max_file_opening_threads: 16
+2018/08/13-09:11:11.196343 2c24                               Options.use_fsync: 0
+2018/08/13-09:11:11.196363 2c24                       Options.max_log_file_size: 0
+2018/08/13-09:11:11.196382 2c24                  Options.max_manifest_file_size: 18446744073709551615
+2018/08/13-09:11:11.196402 2c24                   Options.log_file_time_to_roll: 0
+2018/08/13-09:11:11.196421 2c24                       Options.keep_log_file_num: 1000
+2018/08/13-09:11:11.196441 2c24                    Options.recycle_log_file_num: 0
+2018/08/13-09:11:11.196460 2c24                         Options.allow_fallocate: 1
+2018/08/13-09:11:11.196479 2c24                        Options.allow_mmap_reads: 0
+2018/08/13-09:11:11.196499 2c24                       Options.allow_mmap_writes: 0
+2018/08/13-09:11:11.196518 2c24                        Options.use_direct_reads: 0
+2018/08/13-09:11:11.196537 2c24                        Options.use_direct_writes: 0
+2018/08/13-09:11:11.196557 2c24          Options.create_missing_column_families: 0
+2018/08/13-09:11:11.196576 2c24                              Options.db_log_dir: 
+2018/08/13-09:11:11.196595 2c24                                 Options.wal_dir: F:\workspace\data\chainstate
+2018/08/13-09:11:11.196614 2c24                Options.table_cache_numshardbits: 6
+2018/08/13-09:11:11.196634 2c24                      Options.max_subcompactions: 1
+2018/08/13-09:11:11.196653 2c24                  Options.max_background_flushes: 1
+2018/08/13-09:11:11.196672 2c24                         Options.WAL_ttl_seconds: 0
+2018/08/13-09:11:11.196691 2c24                       Options.WAL_size_limit_MB: 0
+2018/08/13-09:11:11.196710 2c24             Options.manifest_preallocation_size: 4194304
+2018/08/13-09:11:11.196730 2c24                     Options.is_fd_close_on_exec: 1
+2018/08/13-09:11:11.196750 2c24                   Options.stats_dump_period_sec: 600
+2018/08/13-09:11:11.196769 2c24                   Options.advise_random_on_open: 1
+2018/08/13-09:11:11.196788 2c24                    Options.db_write_buffer_size: 0
+2018/08/13-09:11:11.196807 2c24         Options.access_hint_on_compaction_start: 1
+2018/08/13-09:11:11.196827 2c24  Options.new_table_reader_for_compaction_inputs: 0
+2018/08/13-09:11:11.196846 2c24               Options.compaction_readahead_size: 0
+2018/08/13-09:11:11.196865 2c24           Options.random_access_max_buffer_size: 1048576
+2018/08/13-09:11:11.196885 2c24           Options.writable_file_max_buffer_size: 1048576
+2018/08/13-09:11:11.196904 2c24                      Options.use_adaptive_mutex: 0
+2018/08/13-09:11:11.196923 2c24                            Options.rate_limiter: 0000000000000000
+2018/08/13-09:11:11.196943 2c24     Options.sst_file_manager.rate_bytes_per_sec: 0
+2018/08/13-09:11:11.196962 2c24                          Options.bytes_per_sync: 0
+2018/08/13-09:11:11.196981 2c24                      Options.wal_bytes_per_sync: 0
+2018/08/13-09:11:11.197042 2c24                       Options.wal_recovery_mode: 2
+2018/08/13-09:11:11.197067 2c24                  Options.enable_thread_tracking: 0
+2018/08/13-09:11:11.197091 2c24         Options.allow_concurrent_memtable_write: 1
+2018/08/13-09:11:11.197111 2c24      Options.enable_write_thread_adaptive_yield: 1
+2018/08/13-09:11:11.197131 2c24             Options.write_thread_max_yield_usec: 100
+2018/08/13-09:11:11.197150 2c24            Options.write_thread_slow_yield_usec: 3
+2018/08/13-09:11:11.197170 2c24                               Options.row_cache: None
+2018/08/13-09:11:11.197189 2c24                              Options.wal_filter: None
+2018/08/13-09:11:11.197208 2c24             Options.avoid_flush_during_recovery: 0
+2018/08/13-09:11:11.197228 2c24             Options.base_background_compactions: 1
+2018/08/13-09:11:11.197247 2c24             Options.max_background_compactions: 10
+2018/08/13-09:11:11.197266 2c24             Options.avoid_flush_during_shutdown: 0
+2018/08/13-09:11:11.197286 2c24             Options.delayed_write_rate : 16777216
+2018/08/13-09:11:11.197305 2c24             Options.max_total_wal_size: 0
+2018/08/13-09:11:11.197324 2c24             Options.delete_obsolete_files_period_micros: 21600000000
+2018/08/13-09:11:11.197344 2c24 Compression algorithms supported:
+2018/08/13-09:11:11.197363 2c24 	Snappy supported: 0
+2018/08/13-09:11:11.197382 2c24 	Zlib supported: 0
+2018/08/13-09:11:11.197401 2c24 	Bzip supported: 0
+2018/08/13-09:11:11.197420 2c24 	LZ4 supported: 0
+2018/08/13-09:11:11.197439 2c24 	ZSTD supported: 0
+2018/08/13-09:11:11.197458 2c24 Fast CRC32 supported: 0
+2018/08/13-09:11:11.198178 2c24 Recovering from manifest file: MANIFEST-000014
+2018/08/13-09:11:11.198271 2c24 --------------- Options for column family [default]:
+2018/08/13-09:11:11.198298 2c24               Options.comparator: leveldb.BytewiseComparator
+2018/08/13-09:11:11.198319 2c24           Options.merge_operator: None
+2018/08/13-09:11:11.198338 2c24        Options.compaction_filter: None
+2018/08/13-09:11:11.198358 2c24        Options.compaction_filter_factory: None
+2018/08/13-09:11:11.198378 2c24         Options.memtable_factory: SkipListFactory
+2018/08/13-09:11:11.198397 2c24            Options.table_factory: BlockBasedTable
+2018/08/13-09:11:11.198454 2c24            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0000000020C2CB10)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0000000002A8A820
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 8388608
+    num_shard_bits : 4
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0000000000000000
+  persistent_cache: 0000000000000000
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: nullptr
+  whole_key_filtering: 1
+  format_version: 2
+2018/08/13-09:11:11.198476 2c24        Options.write_buffer_size: 65536
+2018/08/13-09:11:11.198496 2c24  Options.max_write_buffer_number: 3
+2018/08/13-09:11:11.198516 2c24          Options.compression: NoCompression
+2018/08/13-09:11:11.198536 2c24                  Options.bottommost_compression: Disabled
+2018/08/13-09:11:11.198556 2c24       Options.prefix_extractor: nullptr
+2018/08/13-09:11:11.198575 2c24   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2018/08/13-09:11:11.198595 2c24             Options.num_levels: 7
+2018/08/13-09:11:11.198614 2c24        Options.min_write_buffer_number_to_merge: 1
+2018/08/13-09:11:11.198633 2c24     Options.max_write_buffer_number_to_maintain: 0
+2018/08/13-09:11:11.198653 2c24            Options.compression_opts.window_bits: -14
+2018/08/13-09:11:11.198672 2c24                  Options.compression_opts.level: -1
+2018/08/13-09:11:11.198692 2c24               Options.compression_opts.strategy: 0
+2018/08/13-09:11:11.198753 2c24         Options.compression_opts.max_dict_bytes: 0
+2018/08/13-09:11:11.198777 2c24      Options.level0_file_num_compaction_trigger: 4
+2018/08/13-09:11:11.198797 2c24          Options.level0_slowdown_writes_trigger: 20
+2018/08/13-09:11:11.198817 2c24              Options.level0_stop_writes_trigger: 36
+2018/08/13-09:11:11.198836 2c24                   Options.target_file_size_base: 67108864
+2018/08/13-09:11:11.198856 2c24             Options.target_file_size_multiplier: 1
+2018/08/13-09:11:11.198875 2c24                Options.max_bytes_for_level_base: 268435456
+2018/08/13-09:11:11.198894 2c24 Options.level_compaction_dynamic_level_bytes: 0
+2018/08/13-09:11:11.198913 2c24          Options.max_bytes_for_level_multiplier: 10.000000
+2018/08/13-09:11:11.198935 2c24 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2018/08/13-09:11:11.198955 2c24 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2018/08/13-09:11:11.198974 2c24 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2018/08/13-09:11:11.198993 2c24 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2018/08/13-09:11:11.199012 2c24 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2018/08/13-09:11:11.199031 2c24 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2018/08/13-09:11:11.199051 2c24 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2018/08/13-09:11:11.199070 2c24       Options.max_sequential_skip_in_iterations: 8
+2018/08/13-09:11:11.199090 2c24                    Options.max_compaction_bytes: 1677721600
+2018/08/13-09:11:11.199124 2c24                        Options.arena_block_size: 8192
+2018/08/13-09:11:11.199151 2c24   Options.soft_pending_compaction_bytes_limit: 68719476736
+2018/08/13-09:11:11.199174 2c24   Options.hard_pending_compaction_bytes_limit: 274877906944
+2018/08/13-09:11:11.199194 2c24       Options.rate_limit_delay_max_milliseconds: 100
+2018/08/13-09:11:11.199213 2c24                Options.disable_auto_compactions: 0
+2018/08/13-09:11:11.199234 2c24                         Options.compaction_style: kCompactionStyleLevel
+2018/08/13-09:11:11.199254 2c24                           Options.compaction_pri: kByCompensatedSize
+2018/08/13-09:11:11.199274 2c24  Options.compaction_options_universal.size_ratio: 1
+2018/08/13-09:11:11.199293 2c24 Options.compaction_options_universal.min_merge_width: 2
+2018/08/13-09:11:11.199313 2c24 Options.compaction_options_universal.max_merge_width: 4294967295
+2018/08/13-09:11:11.199332 2c24 Options.compaction_options_universal.max_size_amplification_percent: 200
+2018/08/13-09:11:11.199352 2c24 Options.compaction_options_universal.compression_size_percent: -1
+2018/08/13-09:11:11.199371 2c24 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2018/08/13-09:11:11.199391 2c24                   Options.table_properties_collectors: 
+2018/08/13-09:11:11.199410 2c24                   Options.inplace_update_support: 0
+2018/08/13-09:11:11.199430 2c24                 Options.inplace_update_num_locks: 10000
+2018/08/13-09:11:11.199449 2c24               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2018/08/13-09:11:11.199470 2c24   Options.memtable_huge_page_size: 0
+2018/08/13-09:11:11.199489 2c24                           Options.bloom_locality: 0
+2018/08/13-09:11:11.199508 2c24                    Options.max_successive_merges: 0
+2018/08/13-09:11:11.199527 2c24                Options.optimize_filters_for_hits: 0
+2018/08/13-09:11:11.199546 2c24                Options.paranoid_file_checks: 0
+2018/08/13-09:11:11.199566 2c24                Options.force_consistency_checks: 0
+2018/08/13-09:11:11.199585 2c24                Options.report_bg_io_stats: 0
+2018/08/13-09:11:11.200892 2c24 Recovered from manifest file:F:\workspace\data\chainstate/MANIFEST-000014 succeeded,manifest_file_number is 14, next_file_number is 16, last_sequence is 0, log_number is 0,prev_log_number is 0,max_column_family is 0
+2018/08/13-09:11:11.200929 2c24 Column family [default] (ID 0), log number is 13
+2018/08/13-09:11:11.201100 2c24 EVENT_LOG_v1 {"time_micros": 1534122671201087, "job": 1, "event": "recovery_started", "log_files": [15]}
+2018/08/13-09:11:11.201174 2c24 Recovering log #15 mode 2
+2018/08/13-09:11:11.201301 2c24 Creating manifest 17
+2018/08/13-09:11:11.299443 2c24 EVENT_LOG_v1 {"time_micros": 1534122671299429, "job": 1, "event": "recovery_finished"}
+2018/08/13-09:11:11.351119 2c24 DB pointer 0000000020C5CE60

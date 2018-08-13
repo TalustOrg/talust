@@ -1,0 +1,165 @@
+2018/08/13-09:12:29.075673 2af8 RocksDB version: 5.3.6
+2018/08/13-09:12:29.075752 2af8 Git sha rocksdb_build_git_sha:@88724cc719784c78df0c0ff87cca7cafd7abbe37@
+2018/08/13-09:12:29.075804 2af8 Compile date May 23 2017
+2018/08/13-09:12:29.075848 2af8 DB SUMMARY
+2018/08/13-09:12:29.076425 2af8 CURRENT file:  CURRENT
+2018/08/13-09:12:29.076477 2af8 IDENTITY file:  IDENTITY
+2018/08/13-09:12:29.076537 2af8 MANIFEST file:  MANIFEST-000020 size: 59 Bytes
+2018/08/13-09:12:29.076584 2af8 SST files in F:\workspace\data\transaction dir, Total Num: 0, files: 
+2018/08/13-09:12:29.076628 2af8 Write Ahead Log file in F:\workspace\data\transaction: 000021.log size: 0 ; 
+2018/08/13-09:12:29.076671 2af8                         Options.error_if_exists: 0
+2018/08/13-09:12:29.076972 2af8                       Options.create_if_missing: 1
+2018/08/13-09:12:29.077012 2af8                         Options.paranoid_checks: 1
+2018/08/13-09:12:29.077035 2af8                                     Options.env: 0000000002CC1790
+2018/08/13-09:12:29.077056 2af8                                Options.info_log: 000000001F02D350
+2018/08/13-09:12:29.077076 2af8                          Options.max_open_files: -1
+2018/08/13-09:12:29.077169 2af8                Options.max_file_opening_threads: 16
+2018/08/13-09:12:29.077202 2af8                               Options.use_fsync: 0
+2018/08/13-09:12:29.077225 2af8                       Options.max_log_file_size: 0
+2018/08/13-09:12:29.077246 2af8                  Options.max_manifest_file_size: 18446744073709551615
+2018/08/13-09:12:29.077267 2af8                   Options.log_file_time_to_roll: 0
+2018/08/13-09:12:29.077286 2af8                       Options.keep_log_file_num: 1000
+2018/08/13-09:12:29.077306 2af8                    Options.recycle_log_file_num: 0
+2018/08/13-09:12:29.077325 2af8                         Options.allow_fallocate: 1
+2018/08/13-09:12:29.077345 2af8                        Options.allow_mmap_reads: 0
+2018/08/13-09:12:29.077364 2af8                       Options.allow_mmap_writes: 0
+2018/08/13-09:12:29.077384 2af8                        Options.use_direct_reads: 0
+2018/08/13-09:12:29.077404 2af8                        Options.use_direct_writes: 0
+2018/08/13-09:12:29.077424 2af8          Options.create_missing_column_families: 0
+2018/08/13-09:12:29.077443 2af8                              Options.db_log_dir: 
+2018/08/13-09:12:29.077463 2af8                                 Options.wal_dir: F:\workspace\data\transaction
+2018/08/13-09:12:29.077482 2af8                Options.table_cache_numshardbits: 6
+2018/08/13-09:12:29.077502 2af8                      Options.max_subcompactions: 1
+2018/08/13-09:12:29.077521 2af8                  Options.max_background_flushes: 1
+2018/08/13-09:12:29.077540 2af8                         Options.WAL_ttl_seconds: 0
+2018/08/13-09:12:29.077560 2af8                       Options.WAL_size_limit_MB: 0
+2018/08/13-09:12:29.077579 2af8             Options.manifest_preallocation_size: 4194304
+2018/08/13-09:12:29.077598 2af8                     Options.is_fd_close_on_exec: 1
+2018/08/13-09:12:29.077618 2af8                   Options.stats_dump_period_sec: 600
+2018/08/13-09:12:29.077637 2af8                   Options.advise_random_on_open: 1
+2018/08/13-09:12:29.077656 2af8                    Options.db_write_buffer_size: 0
+2018/08/13-09:12:29.077676 2af8         Options.access_hint_on_compaction_start: 1
+2018/08/13-09:12:29.077695 2af8  Options.new_table_reader_for_compaction_inputs: 0
+2018/08/13-09:12:29.077714 2af8               Options.compaction_readahead_size: 0
+2018/08/13-09:12:29.077733 2af8           Options.random_access_max_buffer_size: 1048576
+2018/08/13-09:12:29.077753 2af8           Options.writable_file_max_buffer_size: 1048576
+2018/08/13-09:12:29.077772 2af8                      Options.use_adaptive_mutex: 0
+2018/08/13-09:12:29.077791 2af8                            Options.rate_limiter: 0000000000000000
+2018/08/13-09:12:29.077812 2af8     Options.sst_file_manager.rate_bytes_per_sec: 0
+2018/08/13-09:12:29.077831 2af8                          Options.bytes_per_sync: 0
+2018/08/13-09:12:29.077895 2af8                      Options.wal_bytes_per_sync: 0
+2018/08/13-09:12:29.077920 2af8                       Options.wal_recovery_mode: 2
+2018/08/13-09:12:29.077940 2af8                  Options.enable_thread_tracking: 0
+2018/08/13-09:12:29.077959 2af8         Options.allow_concurrent_memtable_write: 1
+2018/08/13-09:12:29.077978 2af8      Options.enable_write_thread_adaptive_yield: 1
+2018/08/13-09:12:29.077998 2af8             Options.write_thread_max_yield_usec: 100
+2018/08/13-09:12:29.078017 2af8            Options.write_thread_slow_yield_usec: 3
+2018/08/13-09:12:29.078036 2af8                               Options.row_cache: None
+2018/08/13-09:12:29.078056 2af8                              Options.wal_filter: None
+2018/08/13-09:12:29.078075 2af8             Options.avoid_flush_during_recovery: 0
+2018/08/13-09:12:29.078096 2af8             Options.base_background_compactions: 1
+2018/08/13-09:12:29.078115 2af8             Options.max_background_compactions: 10
+2018/08/13-09:12:29.078134 2af8             Options.avoid_flush_during_shutdown: 0
+2018/08/13-09:12:29.078154 2af8             Options.delayed_write_rate : 16777216
+2018/08/13-09:12:29.078173 2af8             Options.max_total_wal_size: 0
+2018/08/13-09:12:29.078192 2af8             Options.delete_obsolete_files_period_micros: 21600000000
+2018/08/13-09:12:29.078211 2af8 Compression algorithms supported:
+2018/08/13-09:12:29.078230 2af8 	Snappy supported: 0
+2018/08/13-09:12:29.078250 2af8 	Zlib supported: 0
+2018/08/13-09:12:29.078269 2af8 	Bzip supported: 0
+2018/08/13-09:12:29.078288 2af8 	LZ4 supported: 0
+2018/08/13-09:12:29.078307 2af8 	ZSTD supported: 0
+2018/08/13-09:12:29.078325 2af8 Fast CRC32 supported: 0
+2018/08/13-09:12:29.079049 2af8 Recovering from manifest file: MANIFEST-000020
+2018/08/13-09:12:29.079141 2af8 --------------- Options for column family [default]:
+2018/08/13-09:12:29.079167 2af8               Options.comparator: leveldb.BytewiseComparator
+2018/08/13-09:12:29.079188 2af8           Options.merge_operator: None
+2018/08/13-09:12:29.079207 2af8        Options.compaction_filter: None
+2018/08/13-09:12:29.079227 2af8        Options.compaction_filter_factory: None
+2018/08/13-09:12:29.079246 2af8         Options.memtable_factory: SkipListFactory
+2018/08/13-09:12:29.079266 2af8            Options.table_factory: BlockBasedTable
+2018/08/13-09:12:29.079321 2af8            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (000000001F08EB80)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 000000001F0852F0
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 8388608
+    num_shard_bits : 4
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0000000000000000
+  persistent_cache: 0000000000000000
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: nullptr
+  whole_key_filtering: 1
+  format_version: 2
+2018/08/13-09:12:29.079344 2af8        Options.write_buffer_size: 65536
+2018/08/13-09:12:29.079364 2af8  Options.max_write_buffer_number: 3
+2018/08/13-09:12:29.079384 2af8          Options.compression: NoCompression
+2018/08/13-09:12:29.079403 2af8                  Options.bottommost_compression: Disabled
+2018/08/13-09:12:29.079423 2af8       Options.prefix_extractor: nullptr
+2018/08/13-09:12:29.079442 2af8   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2018/08/13-09:12:29.079461 2af8             Options.num_levels: 7
+2018/08/13-09:12:29.079480 2af8        Options.min_write_buffer_number_to_merge: 1
+2018/08/13-09:12:29.079501 2af8     Options.max_write_buffer_number_to_maintain: 0
+2018/08/13-09:12:29.079520 2af8            Options.compression_opts.window_bits: -14
+2018/08/13-09:12:29.079541 2af8                  Options.compression_opts.level: -1
+2018/08/13-09:12:29.079561 2af8               Options.compression_opts.strategy: 0
+2018/08/13-09:12:29.079622 2af8         Options.compression_opts.max_dict_bytes: 0
+2018/08/13-09:12:29.079646 2af8      Options.level0_file_num_compaction_trigger: 4
+2018/08/13-09:12:29.079666 2af8          Options.level0_slowdown_writes_trigger: 20
+2018/08/13-09:12:29.079686 2af8              Options.level0_stop_writes_trigger: 36
+2018/08/13-09:12:29.079705 2af8                   Options.target_file_size_base: 67108864
+2018/08/13-09:12:29.079726 2af8             Options.target_file_size_multiplier: 1
+2018/08/13-09:12:29.079745 2af8                Options.max_bytes_for_level_base: 268435456
+2018/08/13-09:12:29.079765 2af8 Options.level_compaction_dynamic_level_bytes: 0
+2018/08/13-09:12:29.079784 2af8          Options.max_bytes_for_level_multiplier: 10.000000
+2018/08/13-09:12:29.079807 2af8 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2018/08/13-09:12:29.079827 2af8 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2018/08/13-09:12:29.079846 2af8 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2018/08/13-09:12:29.079867 2af8 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2018/08/13-09:12:29.079886 2af8 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2018/08/13-09:12:29.079906 2af8 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2018/08/13-09:12:29.079925 2af8 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2018/08/13-09:12:29.079944 2af8       Options.max_sequential_skip_in_iterations: 8
+2018/08/13-09:12:29.079964 2af8                    Options.max_compaction_bytes: 1677721600
+2018/08/13-09:12:29.079983 2af8                        Options.arena_block_size: 8192
+2018/08/13-09:12:29.080002 2af8   Options.soft_pending_compaction_bytes_limit: 68719476736
+2018/08/13-09:12:29.080022 2af8   Options.hard_pending_compaction_bytes_limit: 274877906944
+2018/08/13-09:12:29.080041 2af8       Options.rate_limit_delay_max_milliseconds: 100
+2018/08/13-09:12:29.080061 2af8                Options.disable_auto_compactions: 0
+2018/08/13-09:12:29.080081 2af8                         Options.compaction_style: kCompactionStyleLevel
+2018/08/13-09:12:29.080103 2af8                           Options.compaction_pri: kByCompensatedSize
+2018/08/13-09:12:29.080123 2af8  Options.compaction_options_universal.size_ratio: 1
+2018/08/13-09:12:29.080210 2af8 Options.compaction_options_universal.min_merge_width: 2
+2018/08/13-09:12:29.080233 2af8 Options.compaction_options_universal.max_merge_width: 4294967295
+2018/08/13-09:12:29.080253 2af8 Options.compaction_options_universal.max_size_amplification_percent: 200
+2018/08/13-09:12:29.080272 2af8 Options.compaction_options_universal.compression_size_percent: -1
+2018/08/13-09:12:29.080292 2af8 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2018/08/13-09:12:29.080311 2af8                   Options.table_properties_collectors: 
+2018/08/13-09:12:29.080331 2af8                   Options.inplace_update_support: 0
+2018/08/13-09:12:29.080352 2af8                 Options.inplace_update_num_locks: 10000
+2018/08/13-09:12:29.080371 2af8               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2018/08/13-09:12:29.080392 2af8   Options.memtable_huge_page_size: 0
+2018/08/13-09:12:29.080411 2af8                           Options.bloom_locality: 0
+2018/08/13-09:12:29.080430 2af8                    Options.max_successive_merges: 0
+2018/08/13-09:12:29.080450 2af8                Options.optimize_filters_for_hits: 0
+2018/08/13-09:12:29.080469 2af8                Options.paranoid_file_checks: 0
+2018/08/13-09:12:29.080488 2af8                Options.force_consistency_checks: 0
+2018/08/13-09:12:29.080507 2af8                Options.report_bg_io_stats: 0
+2018/08/13-09:12:29.081855 2af8 Recovered from manifest file:F:\workspace\data\transaction/MANIFEST-000020 succeeded,manifest_file_number is 20, next_file_number is 22, last_sequence is 0, log_number is 0,prev_log_number is 0,max_column_family is 0
+2018/08/13-09:12:29.081895 2af8 Column family [default] (ID 0), log number is 19
+2018/08/13-09:12:29.082081 2af8 EVENT_LOG_v1 {"time_micros": 1534122749082069, "job": 1, "event": "recovery_started", "log_files": [21]}
+2018/08/13-09:12:29.082132 2af8 Recovering log #21 mode 2
+2018/08/13-09:12:29.082270 2af8 Creating manifest 23
+2018/08/13-09:12:29.196286 2af8 EVENT_LOG_v1 {"time_micros": 1534122749196241, "job": 1, "event": "recovery_finished"}
+2018/08/13-09:12:29.232421 2af8 DB pointer 0000000020BCD360

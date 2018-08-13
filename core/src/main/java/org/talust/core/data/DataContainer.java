@@ -26,6 +26,7 @@
 package org.talust.core.data;
 
 import org.talust.common.crypto.Utils;
+import org.talust.core.transaction.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,7 @@ public class DataContainer {
 
     private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private List<byte[]> datas = new ArrayList<>();
+    private List<Transaction> datas = new ArrayList<>();
     private int max_record_count = 1000;//一次最多能够打包的记录条数
 
     /**
@@ -52,7 +53,7 @@ public class DataContainer {
      *
      * @param record
      */
-    public void addRecord(byte[] record) {
+    public void addRecord(Transaction record) {
         try {
             lock.readLock().lock();
             datas.add(record);
@@ -66,11 +67,11 @@ public class DataContainer {
      *
      * @param record
      */
-    public void removeRecord(byte[] record) {
+    public void removeRecord(Transaction record) {
         try {
             lock.writeLock().lock();
             for (int idx = 0; idx < datas.size(); idx++) {
-                byte[] data = datas.get(idx);
+                Transaction data = datas.get(idx);
                 if (data.equals(record)) {
                     datas.remove(idx);
                     break;
@@ -86,19 +87,19 @@ public class DataContainer {
      *
      * @return
      */
-    public List<byte[]> getBatchRecord() {
+    public List<Transaction> getBatchRecord() {
         try {
             lock.writeLock().lock();
             if (datas.size() < max_record_count) {
-                List<byte[]> tmp = datas;
+                List<Transaction> tmp = datas;
                 datas = new ArrayList<>();
                 return tmp;
             } else {
-                List<byte[]> sub = new ArrayList<>(max_record_count);
+                List<Transaction> sub = new ArrayList<>(max_record_count);
                 for (int idx = 0; idx < max_record_count; idx++) {
                     sub.add(datas.get(idx));
                 }
-                List<byte[]> tmp = new ArrayList<>();
+                List<Transaction> tmp = new ArrayList<>();
                 int size = datas.size();
                 for (int idx = max_record_count; idx < size; idx++) {
                     tmp.add(datas.get(idx));

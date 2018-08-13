@@ -35,13 +35,18 @@ import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.DateUtil;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.common.tools.StringUtils;
+import org.talust.core.core.Definition;
+import org.talust.core.core.NetworkParams;
 import org.talust.core.data.DataContainer;
 import org.talust.core.model.Account;
+import org.talust.core.model.Block;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.core.transaction.Transaction;
 
 @Slf4j
 public class Genesis {
     private DataContainer dataContainer = DataContainer.get();
+    private NetworkParams networkParams =  MainNetworkParams.get();
 
     /**
      * 生成创世块所需要的内容
@@ -57,44 +62,29 @@ public class Genesis {
      * 加入根帐户
      */
     private void addRootAccount() {
-//        Account rootAcc = new Account();
-//        rootAcc.setAccType(AccountType.ROOT.getType());
-//        rootAcc.setPublicKey(Hex.decode( CacheManager.get().get("ROOT_PK")));
-//        rootAcc.setAddress(Utils.getAddress(rootAcc.getPublicKey()));
-//        rootAcc.setParentPub(Hex.decode( CacheManager.get().get("ROOT_PK")));
-//        rootAcc.setParentSign(StringUtils.hexStringToBytes( CacheManager.get().get("ROOT_SIGN")));
-//        Transaction transaction = new Transaction();
-//        //设定为账户下发类型
-//        transaction.setTranType(TranType.ACCOUNT.getType());
-//        //存储账户下发的具体数据
-//        transaction.setDatas(SerializationUtil.serializer(rootAcc));
-//        Message message = new Message();
-//        message.setContent(SerializationUtil.serializer(transaction));
-//        message.setType(MessageType.TRANSACTION.getType());
-//        message.setTime(DateUtil.getTimeSecond());
-//        dataContainer.addRecord(SerializationUtil.serializer(message));
+        Account root =  Account.parse(CacheManager.get().get("ROOT_DATA"),networkParams);
+        Transaction transaction = new Transaction(networkParams);
+        //设定为账户下发类型
+        transaction.setType(Definition.TYPE_ACCOUNT);
+        transaction.setData(SerializationUtil.serializer(root));
+        //存储账户下发的具体数据
+        dataContainer.addRecord(transaction);
     }
 
     /**
      * 加入talust帐户
      */
     private void addTalustAccount() {
-        Account rootAcc = new Account();
-//        rootAcc.setAccType(AccountType.TALUST.getType());
-//        rootAcc.setPublicKey(Hex.decode( CacheManager.get().get("TALUST_PK")));
-//        rootAcc.setAddress(Utils.getAddress(rootAcc.getPublicKey()));
-//        rootAcc.setParentPub(Hex.decode(CacheManager.get().get("ROOT_PK")));
-//        rootAcc.setParentSign(StringUtils.hexStringToBytes(CacheManager.get().get("TALUST_SIGN")));
-//        Transaction transaction = new Transaction();
-//        //设定为账户下发类型
-//        transaction.setTranType(TranType.ACCOUNT.getType());
-//        //存储账户下发的具体数据
-//        transaction.setDatas(SerializationUtil.serializer(rootAcc));
-//        Message message = new Message();
-//        message.setContent(SerializationUtil.serializer(transaction));
-//        message.setType(MessageType.TRANSACTION.getType());
-//        message.setTime(DateUtil.getTimeSecond());
-//
-//        dataContainer.addRecord(SerializationUtil.serializer(message));
+        Account talust =  Account.parse(CacheManager.get().get("TALUST_DATA"),networkParams);
+        Transaction transaction = new Transaction(networkParams);
+        //设定为账户下发类型
+        transaction.setType(Definition.TYPE_ACCOUNT);
+        transaction.setData(SerializationUtil.serializer(talust));
+        //存储账户下发的具体数据
+        Message message = new Message();
+        message.setContent(SerializationUtil.serializer(transaction));
+        message.setType(MessageType.TRANSACTION.getType());
+        message.setTime(DateUtil.getTimeSecond());
+        dataContainer.addRecord(transaction);
     }
 }

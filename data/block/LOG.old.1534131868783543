@@ -1,0 +1,165 @@
+2018/08/13-11:43:25.531432 25dc RocksDB version: 5.3.6
+2018/08/13-11:43:25.531666 25dc Git sha rocksdb_build_git_sha:@88724cc719784c78df0c0ff87cca7cafd7abbe37@
+2018/08/13-11:43:25.531728 25dc Compile date May 23 2017
+2018/08/13-11:43:25.532133 25dc DB SUMMARY
+2018/08/13-11:43:25.534948 25dc CURRENT file:  CURRENT
+2018/08/13-11:43:25.535020 25dc IDENTITY file:  IDENTITY
+2018/08/13-11:43:25.535093 25dc MANIFEST file:  MANIFEST-000038 size: 59 Bytes
+2018/08/13-11:43:25.535399 25dc SST files in F:\workspace\data\block dir, Total Num: 0, files: 
+2018/08/13-11:43:25.535448 25dc Write Ahead Log file in F:\workspace\data\block: 000039.log size: 0 ; 
+2018/08/13-11:43:25.535500 25dc                         Options.error_if_exists: 0
+2018/08/13-11:43:25.535576 25dc                       Options.create_if_missing: 1
+2018/08/13-11:43:25.535900 25dc                         Options.paranoid_checks: 1
+2018/08/13-11:43:25.535929 25dc                                     Options.env: 0000000002E9F800
+2018/08/13-11:43:25.535964 25dc                                Options.info_log: 000000001F540F00
+2018/08/13-11:43:25.535986 25dc                          Options.max_open_files: -1
+2018/08/13-11:43:25.536012 25dc                Options.max_file_opening_threads: 16
+2018/08/13-11:43:25.536037 25dc                               Options.use_fsync: 0
+2018/08/13-11:43:25.536058 25dc                       Options.max_log_file_size: 0
+2018/08/13-11:43:25.536078 25dc                  Options.max_manifest_file_size: 18446744073709551615
+2018/08/13-11:43:25.536098 25dc                   Options.log_file_time_to_roll: 0
+2018/08/13-11:43:25.536118 25dc                       Options.keep_log_file_num: 1000
+2018/08/13-11:43:25.536138 25dc                    Options.recycle_log_file_num: 0
+2018/08/13-11:43:25.536158 25dc                         Options.allow_fallocate: 1
+2018/08/13-11:43:25.536178 25dc                        Options.allow_mmap_reads: 0
+2018/08/13-11:43:25.536198 25dc                       Options.allow_mmap_writes: 0
+2018/08/13-11:43:25.536217 25dc                        Options.use_direct_reads: 0
+2018/08/13-11:43:25.536237 25dc                        Options.use_direct_writes: 0
+2018/08/13-11:43:25.536263 25dc          Options.create_missing_column_families: 0
+2018/08/13-11:43:25.536283 25dc                              Options.db_log_dir: 
+2018/08/13-11:43:25.536312 25dc                                 Options.wal_dir: F:\workspace\data\block
+2018/08/13-11:43:25.536333 25dc                Options.table_cache_numshardbits: 6
+2018/08/13-11:43:25.536352 25dc                      Options.max_subcompactions: 1
+2018/08/13-11:43:25.536374 25dc                  Options.max_background_flushes: 1
+2018/08/13-11:43:25.536394 25dc                         Options.WAL_ttl_seconds: 0
+2018/08/13-11:43:25.536414 25dc                       Options.WAL_size_limit_MB: 0
+2018/08/13-11:43:25.536434 25dc             Options.manifest_preallocation_size: 4194304
+2018/08/13-11:43:25.536454 25dc                     Options.is_fd_close_on_exec: 1
+2018/08/13-11:43:25.536473 25dc                   Options.stats_dump_period_sec: 600
+2018/08/13-11:43:25.536493 25dc                   Options.advise_random_on_open: 1
+2018/08/13-11:43:25.536512 25dc                    Options.db_write_buffer_size: 0
+2018/08/13-11:43:25.536532 25dc         Options.access_hint_on_compaction_start: 1
+2018/08/13-11:43:25.536553 25dc  Options.new_table_reader_for_compaction_inputs: 0
+2018/08/13-11:43:25.536572 25dc               Options.compaction_readahead_size: 0
+2018/08/13-11:43:25.536592 25dc           Options.random_access_max_buffer_size: 1048576
+2018/08/13-11:43:25.536612 25dc           Options.writable_file_max_buffer_size: 1048576
+2018/08/13-11:43:25.536631 25dc                      Options.use_adaptive_mutex: 0
+2018/08/13-11:43:25.536652 25dc                            Options.rate_limiter: 0000000000000000
+2018/08/13-11:43:25.536671 25dc     Options.sst_file_manager.rate_bytes_per_sec: 0
+2018/08/13-11:43:25.536693 25dc                          Options.bytes_per_sync: 0
+2018/08/13-11:43:25.536713 25dc                      Options.wal_bytes_per_sync: 0
+2018/08/13-11:43:25.536799 25dc                       Options.wal_recovery_mode: 2
+2018/08/13-11:43:25.536836 25dc                  Options.enable_thread_tracking: 0
+2018/08/13-11:43:25.536858 25dc         Options.allow_concurrent_memtable_write: 1
+2018/08/13-11:43:25.536881 25dc      Options.enable_write_thread_adaptive_yield: 1
+2018/08/13-11:43:25.536902 25dc             Options.write_thread_max_yield_usec: 100
+2018/08/13-11:43:25.536922 25dc            Options.write_thread_slow_yield_usec: 3
+2018/08/13-11:43:25.536942 25dc                               Options.row_cache: None
+2018/08/13-11:43:25.536961 25dc                              Options.wal_filter: None
+2018/08/13-11:43:25.536981 25dc             Options.avoid_flush_during_recovery: 0
+2018/08/13-11:43:25.537002 25dc             Options.base_background_compactions: 1
+2018/08/13-11:43:25.537021 25dc             Options.max_background_compactions: 10
+2018/08/13-11:43:25.537136 25dc             Options.avoid_flush_during_shutdown: 0
+2018/08/13-11:43:25.537162 25dc             Options.delayed_write_rate : 16777216
+2018/08/13-11:43:25.537186 25dc             Options.max_total_wal_size: 0
+2018/08/13-11:43:25.537279 25dc             Options.delete_obsolete_files_period_micros: 21600000000
+2018/08/13-11:43:25.537306 25dc Compression algorithms supported:
+2018/08/13-11:43:25.537350 25dc 	Snappy supported: 0
+2018/08/13-11:43:25.537376 25dc 	Zlib supported: 0
+2018/08/13-11:43:25.537397 25dc 	Bzip supported: 0
+2018/08/13-11:43:25.537417 25dc 	LZ4 supported: 0
+2018/08/13-11:43:25.537437 25dc 	ZSTD supported: 0
+2018/08/13-11:43:25.537466 25dc Fast CRC32 supported: 0
+2018/08/13-11:43:25.539049 25dc Recovering from manifest file: MANIFEST-000038
+2018/08/13-11:43:25.539251 25dc --------------- Options for column family [default]:
+2018/08/13-11:43:25.539287 25dc               Options.comparator: leveldb.BytewiseComparator
+2018/08/13-11:43:25.539310 25dc           Options.merge_operator: None
+2018/08/13-11:43:25.539331 25dc        Options.compaction_filter: None
+2018/08/13-11:43:25.539351 25dc        Options.compaction_filter_factory: None
+2018/08/13-11:43:25.539379 25dc         Options.memtable_factory: SkipListFactory
+2018/08/13-11:43:25.539399 25dc            Options.table_factory: BlockBasedTable
+2018/08/13-11:43:25.539461 25dc            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0000000002E872E0)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0000000002F498B0
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 8388608
+    num_shard_bits : 4
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0000000000000000
+  persistent_cache: 0000000000000000
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: nullptr
+  whole_key_filtering: 1
+  format_version: 2
+2018/08/13-11:43:25.539485 25dc        Options.write_buffer_size: 65536
+2018/08/13-11:43:25.539506 25dc  Options.max_write_buffer_number: 3
+2018/08/13-11:43:25.539526 25dc          Options.compression: NoCompression
+2018/08/13-11:43:25.539546 25dc                  Options.bottommost_compression: Disabled
+2018/08/13-11:43:25.539566 25dc       Options.prefix_extractor: nullptr
+2018/08/13-11:43:25.539585 25dc   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2018/08/13-11:43:25.539605 25dc             Options.num_levels: 7
+2018/08/13-11:43:25.539625 25dc        Options.min_write_buffer_number_to_merge: 1
+2018/08/13-11:43:25.539645 25dc     Options.max_write_buffer_number_to_maintain: 0
+2018/08/13-11:43:25.539665 25dc            Options.compression_opts.window_bits: -14
+2018/08/13-11:43:25.539685 25dc                  Options.compression_opts.level: -1
+2018/08/13-11:43:25.539705 25dc               Options.compression_opts.strategy: 0
+2018/08/13-11:43:25.539787 25dc         Options.compression_opts.max_dict_bytes: 0
+2018/08/13-11:43:25.539813 25dc      Options.level0_file_num_compaction_trigger: 4
+2018/08/13-11:43:25.539834 25dc          Options.level0_slowdown_writes_trigger: 20
+2018/08/13-11:43:25.539853 25dc              Options.level0_stop_writes_trigger: 36
+2018/08/13-11:43:25.539875 25dc                   Options.target_file_size_base: 67108864
+2018/08/13-11:43:25.539896 25dc             Options.target_file_size_multiplier: 1
+2018/08/13-11:43:25.539957 25dc                Options.max_bytes_for_level_base: 268435456
+2018/08/13-11:43:25.539980 25dc Options.level_compaction_dynamic_level_bytes: 0
+2018/08/13-11:43:25.539999 25dc          Options.max_bytes_for_level_multiplier: 10.000000
+2018/08/13-11:43:25.540029 25dc Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2018/08/13-11:43:25.540049 25dc Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2018/08/13-11:43:25.540069 25dc Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2018/08/13-11:43:25.540088 25dc Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2018/08/13-11:43:25.540109 25dc Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2018/08/13-11:43:25.540128 25dc Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2018/08/13-11:43:25.540148 25dc Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2018/08/13-11:43:25.540170 25dc       Options.max_sequential_skip_in_iterations: 8
+2018/08/13-11:43:25.540190 25dc                    Options.max_compaction_bytes: 1677721600
+2018/08/13-11:43:25.540210 25dc                        Options.arena_block_size: 8192
+2018/08/13-11:43:25.540230 25dc   Options.soft_pending_compaction_bytes_limit: 68719476736
+2018/08/13-11:43:25.540250 25dc   Options.hard_pending_compaction_bytes_limit: 274877906944
+2018/08/13-11:43:25.540270 25dc       Options.rate_limit_delay_max_milliseconds: 100
+2018/08/13-11:43:25.540289 25dc                Options.disable_auto_compactions: 0
+2018/08/13-11:43:25.540311 25dc                         Options.compaction_style: kCompactionStyleLevel
+2018/08/13-11:43:25.540332 25dc                           Options.compaction_pri: kByCompensatedSize
+2018/08/13-11:43:25.540352 25dc  Options.compaction_options_universal.size_ratio: 1
+2018/08/13-11:43:25.540372 25dc Options.compaction_options_universal.min_merge_width: 2
+2018/08/13-11:43:25.540402 25dc Options.compaction_options_universal.max_merge_width: 4294967295
+2018/08/13-11:43:25.540423 25dc Options.compaction_options_universal.max_size_amplification_percent: 200
+2018/08/13-11:43:25.540443 25dc Options.compaction_options_universal.compression_size_percent: -1
+2018/08/13-11:43:25.540463 25dc Options.compaction_options_fifo.max_table_files_size: 1073741824
+2018/08/13-11:43:25.540483 25dc                   Options.table_properties_collectors: 
+2018/08/13-11:43:25.540505 25dc                   Options.inplace_update_support: 0
+2018/08/13-11:43:25.540525 25dc                 Options.inplace_update_num_locks: 10000
+2018/08/13-11:43:25.540545 25dc               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2018/08/13-11:43:25.540566 25dc   Options.memtable_huge_page_size: 0
+2018/08/13-11:43:25.540585 25dc                           Options.bloom_locality: 0
+2018/08/13-11:43:25.540606 25dc                    Options.max_successive_merges: 0
+2018/08/13-11:43:25.540626 25dc                Options.optimize_filters_for_hits: 0
+2018/08/13-11:43:25.540646 25dc                Options.paranoid_file_checks: 0
+2018/08/13-11:43:25.540665 25dc                Options.force_consistency_checks: 0
+2018/08/13-11:43:25.540685 25dc                Options.report_bg_io_stats: 0
+2018/08/13-11:43:25.542908 25dc Recovered from manifest file:F:\workspace\data\block/MANIFEST-000038 succeeded,manifest_file_number is 38, next_file_number is 40, last_sequence is 0, log_number is 0,prev_log_number is 0,max_column_family is 0
+2018/08/13-11:43:25.542956 25dc Column family [default] (ID 0), log number is 37
+2018/08/13-11:43:25.543382 25dc EVENT_LOG_v1 {"time_micros": 1534131805543316, "job": 1, "event": "recovery_started", "log_files": [39]}
+2018/08/13-11:43:25.543422 25dc Recovering log #39 mode 2
+2018/08/13-11:43:25.543591 25dc Creating manifest 41
+2018/08/13-11:43:25.658553 25dc EVENT_LOG_v1 {"time_micros": 1534131805658537, "job": 1, "event": "recovery_finished"}
+2018/08/13-11:43:25.692820 25dc DB pointer 0000000020DB2020

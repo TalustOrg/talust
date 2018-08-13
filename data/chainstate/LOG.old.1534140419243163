@@ -1,0 +1,165 @@
+2018/08/13-11:47:57.487122 f14 RocksDB version: 5.3.6
+2018/08/13-11:47:57.487198 f14 Git sha rocksdb_build_git_sha:@88724cc719784c78df0c0ff87cca7cafd7abbe37@
+2018/08/13-11:47:57.487251 f14 Compile date May 23 2017
+2018/08/13-11:47:57.487302 f14 DB SUMMARY
+2018/08/13-11:47:57.487917 f14 CURRENT file:  CURRENT
+2018/08/13-11:47:57.487967 f14 IDENTITY file:  IDENTITY
+2018/08/13-11:47:57.488029 f14 MANIFEST file:  MANIFEST-000047 size: 59 Bytes
+2018/08/13-11:47:57.488077 f14 SST files in F:\workspace\data\chainstate dir, Total Num: 0, files: 
+2018/08/13-11:47:57.488120 f14 Write Ahead Log file in F:\workspace\data\chainstate: 000048.log size: 0 ; 
+2018/08/13-11:47:57.488163 f14                         Options.error_if_exists: 0
+2018/08/13-11:47:57.488206 f14                       Options.create_if_missing: 1
+2018/08/13-11:47:57.488491 f14                         Options.paranoid_checks: 1
+2018/08/13-11:47:57.488524 f14                                     Options.env: 0000000003001400
+2018/08/13-11:47:57.488549 f14                                Options.info_log: 000000001F24FAD0
+2018/08/13-11:47:57.488571 f14                          Options.max_open_files: -1
+2018/08/13-11:47:57.488590 f14                Options.max_file_opening_threads: 16
+2018/08/13-11:47:57.488610 f14                               Options.use_fsync: 0
+2018/08/13-11:47:57.488629 f14                       Options.max_log_file_size: 0
+2018/08/13-11:47:57.488649 f14                  Options.max_manifest_file_size: 18446744073709551615
+2018/08/13-11:47:57.488669 f14                   Options.log_file_time_to_roll: 0
+2018/08/13-11:47:57.488688 f14                       Options.keep_log_file_num: 1000
+2018/08/13-11:47:57.488708 f14                    Options.recycle_log_file_num: 0
+2018/08/13-11:47:57.488727 f14                         Options.allow_fallocate: 1
+2018/08/13-11:47:57.488746 f14                        Options.allow_mmap_reads: 0
+2018/08/13-11:47:57.488766 f14                       Options.allow_mmap_writes: 0
+2018/08/13-11:47:57.488785 f14                        Options.use_direct_reads: 0
+2018/08/13-11:47:57.488804 f14                        Options.use_direct_writes: 0
+2018/08/13-11:47:57.488823 f14          Options.create_missing_column_families: 0
+2018/08/13-11:47:57.488843 f14                              Options.db_log_dir: 
+2018/08/13-11:47:57.488862 f14                                 Options.wal_dir: F:\workspace\data\chainstate
+2018/08/13-11:47:57.488881 f14                Options.table_cache_numshardbits: 6
+2018/08/13-11:47:57.488901 f14                      Options.max_subcompactions: 1
+2018/08/13-11:47:57.488920 f14                  Options.max_background_flushes: 1
+2018/08/13-11:47:57.488939 f14                         Options.WAL_ttl_seconds: 0
+2018/08/13-11:47:57.488959 f14                       Options.WAL_size_limit_MB: 0
+2018/08/13-11:47:57.488978 f14             Options.manifest_preallocation_size: 4194304
+2018/08/13-11:47:57.488997 f14                     Options.is_fd_close_on_exec: 1
+2018/08/13-11:47:57.489016 f14                   Options.stats_dump_period_sec: 600
+2018/08/13-11:47:57.489036 f14                   Options.advise_random_on_open: 1
+2018/08/13-11:47:57.489055 f14                    Options.db_write_buffer_size: 0
+2018/08/13-11:47:57.489074 f14         Options.access_hint_on_compaction_start: 1
+2018/08/13-11:47:57.489094 f14  Options.new_table_reader_for_compaction_inputs: 0
+2018/08/13-11:47:57.489113 f14               Options.compaction_readahead_size: 0
+2018/08/13-11:47:57.489132 f14           Options.random_access_max_buffer_size: 1048576
+2018/08/13-11:47:57.489152 f14           Options.writable_file_max_buffer_size: 1048576
+2018/08/13-11:47:57.489171 f14                      Options.use_adaptive_mutex: 0
+2018/08/13-11:47:57.489190 f14                            Options.rate_limiter: 0000000000000000
+2018/08/13-11:47:57.489210 f14     Options.sst_file_manager.rate_bytes_per_sec: 0
+2018/08/13-11:47:57.489229 f14                          Options.bytes_per_sync: 0
+2018/08/13-11:47:57.489248 f14                      Options.wal_bytes_per_sync: 0
+2018/08/13-11:47:57.489351 f14                       Options.wal_recovery_mode: 2
+2018/08/13-11:47:57.489376 f14                  Options.enable_thread_tracking: 0
+2018/08/13-11:47:57.489396 f14         Options.allow_concurrent_memtable_write: 1
+2018/08/13-11:47:57.489416 f14      Options.enable_write_thread_adaptive_yield: 1
+2018/08/13-11:47:57.489435 f14             Options.write_thread_max_yield_usec: 100
+2018/08/13-11:47:57.489454 f14            Options.write_thread_slow_yield_usec: 3
+2018/08/13-11:47:57.489473 f14                               Options.row_cache: None
+2018/08/13-11:47:57.489493 f14                              Options.wal_filter: None
+2018/08/13-11:47:57.489512 f14             Options.avoid_flush_during_recovery: 0
+2018/08/13-11:47:57.489532 f14             Options.base_background_compactions: 1
+2018/08/13-11:47:57.489551 f14             Options.max_background_compactions: 10
+2018/08/13-11:47:57.489570 f14             Options.avoid_flush_during_shutdown: 0
+2018/08/13-11:47:57.489589 f14             Options.delayed_write_rate : 16777216
+2018/08/13-11:47:57.489608 f14             Options.max_total_wal_size: 0
+2018/08/13-11:47:57.489628 f14             Options.delete_obsolete_files_period_micros: 21600000000
+2018/08/13-11:47:57.489647 f14 Compression algorithms supported:
+2018/08/13-11:47:57.489666 f14 	Snappy supported: 0
+2018/08/13-11:47:57.489685 f14 	Zlib supported: 0
+2018/08/13-11:47:57.489704 f14 	Bzip supported: 0
+2018/08/13-11:47:57.489723 f14 	LZ4 supported: 0
+2018/08/13-11:47:57.489741 f14 	ZSTD supported: 0
+2018/08/13-11:47:57.489760 f14 Fast CRC32 supported: 0
+2018/08/13-11:47:57.490500 f14 Recovering from manifest file: MANIFEST-000047
+2018/08/13-11:47:57.490595 f14 --------------- Options for column family [default]:
+2018/08/13-11:47:57.490622 f14               Options.comparator: leveldb.BytewiseComparator
+2018/08/13-11:47:57.490642 f14           Options.merge_operator: None
+2018/08/13-11:47:57.490662 f14        Options.compaction_filter: None
+2018/08/13-11:47:57.490681 f14        Options.compaction_filter_factory: None
+2018/08/13-11:47:57.490700 f14         Options.memtable_factory: SkipListFactory
+2018/08/13-11:47:57.490719 f14            Options.table_factory: BlockBasedTable
+2018/08/13-11:47:57.490774 f14            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (00000000212C3C40)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0000000003099F10
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 8388608
+    num_shard_bits : 4
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0000000000000000
+  persistent_cache: 0000000000000000
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: nullptr
+  whole_key_filtering: 1
+  format_version: 2
+2018/08/13-11:47:57.490796 f14        Options.write_buffer_size: 65536
+2018/08/13-11:47:57.490816 f14  Options.max_write_buffer_number: 3
+2018/08/13-11:47:57.490836 f14          Options.compression: NoCompression
+2018/08/13-11:47:57.490855 f14                  Options.bottommost_compression: Disabled
+2018/08/13-11:47:57.490874 f14       Options.prefix_extractor: nullptr
+2018/08/13-11:47:57.490893 f14   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2018/08/13-11:47:57.490913 f14             Options.num_levels: 7
+2018/08/13-11:47:57.490932 f14        Options.min_write_buffer_number_to_merge: 1
+2018/08/13-11:47:57.490951 f14     Options.max_write_buffer_number_to_maintain: 0
+2018/08/13-11:47:57.490970 f14            Options.compression_opts.window_bits: -14
+2018/08/13-11:47:57.490990 f14                  Options.compression_opts.level: -1
+2018/08/13-11:47:57.491009 f14               Options.compression_opts.strategy: 0
+2018/08/13-11:47:57.491028 f14         Options.compression_opts.max_dict_bytes: 0
+2018/08/13-11:47:57.491092 f14      Options.level0_file_num_compaction_trigger: 4
+2018/08/13-11:47:57.491116 f14          Options.level0_slowdown_writes_trigger: 20
+2018/08/13-11:47:57.491136 f14              Options.level0_stop_writes_trigger: 36
+2018/08/13-11:47:57.491156 f14                   Options.target_file_size_base: 67108864
+2018/08/13-11:47:57.491175 f14             Options.target_file_size_multiplier: 1
+2018/08/13-11:47:57.491194 f14                Options.max_bytes_for_level_base: 268435456
+2018/08/13-11:47:57.491214 f14 Options.level_compaction_dynamic_level_bytes: 0
+2018/08/13-11:47:57.491233 f14          Options.max_bytes_for_level_multiplier: 10.000000
+2018/08/13-11:47:57.491256 f14 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2018/08/13-11:47:57.491277 f14 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2018/08/13-11:47:57.491298 f14 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2018/08/13-11:47:57.491317 f14 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2018/08/13-11:47:57.491336 f14 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2018/08/13-11:47:57.491356 f14 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2018/08/13-11:47:57.491375 f14 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2018/08/13-11:47:57.491394 f14       Options.max_sequential_skip_in_iterations: 8
+2018/08/13-11:47:57.491413 f14                    Options.max_compaction_bytes: 1677721600
+2018/08/13-11:47:57.491433 f14                        Options.arena_block_size: 8192
+2018/08/13-11:47:57.491452 f14   Options.soft_pending_compaction_bytes_limit: 68719476736
+2018/08/13-11:47:57.491471 f14   Options.hard_pending_compaction_bytes_limit: 274877906944
+2018/08/13-11:47:57.491491 f14       Options.rate_limit_delay_max_milliseconds: 100
+2018/08/13-11:47:57.491510 f14                Options.disable_auto_compactions: 0
+2018/08/13-11:47:57.491531 f14                         Options.compaction_style: kCompactionStyleLevel
+2018/08/13-11:47:57.491551 f14                           Options.compaction_pri: kByCompensatedSize
+2018/08/13-11:47:57.491570 f14  Options.compaction_options_universal.size_ratio: 1
+2018/08/13-11:47:57.491590 f14 Options.compaction_options_universal.min_merge_width: 2
+2018/08/13-11:47:57.491609 f14 Options.compaction_options_universal.max_merge_width: 4294967295
+2018/08/13-11:47:57.491628 f14 Options.compaction_options_universal.max_size_amplification_percent: 200
+2018/08/13-11:47:57.491648 f14 Options.compaction_options_universal.compression_size_percent: -1
+2018/08/13-11:47:57.491667 f14 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2018/08/13-11:47:57.491687 f14                   Options.table_properties_collectors: 
+2018/08/13-11:47:57.491706 f14                   Options.inplace_update_support: 0
+2018/08/13-11:47:57.491725 f14                 Options.inplace_update_num_locks: 10000
+2018/08/13-11:47:57.491745 f14               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2018/08/13-11:47:57.491764 f14   Options.memtable_huge_page_size: 0
+2018/08/13-11:47:57.491784 f14                           Options.bloom_locality: 0
+2018/08/13-11:47:57.491803 f14                    Options.max_successive_merges: 0
+2018/08/13-11:47:57.491822 f14                Options.optimize_filters_for_hits: 0
+2018/08/13-11:47:57.491841 f14                Options.paranoid_file_checks: 0
+2018/08/13-11:47:57.491860 f14                Options.force_consistency_checks: 0
+2018/08/13-11:47:57.491880 f14                Options.report_bg_io_stats: 0
+2018/08/13-11:47:57.493290 f14 Recovered from manifest file:F:\workspace\data\chainstate/MANIFEST-000047 succeeded,manifest_file_number is 47, next_file_number is 49, last_sequence is 0, log_number is 0,prev_log_number is 0,max_column_family is 0
+2018/08/13-11:47:57.493335 f14 Column family [default] (ID 0), log number is 46
+2018/08/13-11:47:57.493612 f14 EVENT_LOG_v1 {"time_micros": 1534132077493600, "job": 1, "event": "recovery_started", "log_files": [48]}
+2018/08/13-11:47:57.493642 f14 Recovering log #48 mode 2
+2018/08/13-11:47:57.493769 f14 Creating manifest 50
+2018/08/13-11:47:57.577477 f14 EVENT_LOG_v1 {"time_micros": 1534132077577465, "job": 1, "event": "recovery_finished"}
+2018/08/13-11:47:57.611520 f14 DB pointer 00000000212F2F10

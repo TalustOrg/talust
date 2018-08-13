@@ -30,7 +30,9 @@ import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 import org.talust.common.tools.CacheManager;
+import org.talust.common.tools.SerializationUtil;
 import org.talust.common.tools.ThreadPool;
+import org.talust.core.model.Block;
 import org.talust.network.MessageHandler;
 import org.talust.network.MessageValidator;
 import org.talust.network.model.MyChannel;
@@ -131,107 +133,107 @@ public class SynBlock {
      * @param channelBlockHeight
      */
     private void downBlock(long selfBlockHeight, int maxBlockHeight, Map<String, Integer> channelBlockHeight) {
-//        List<String> ac = new ArrayList<>();//用于存储每个远端ip
-//        Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
-//        for (MyChannel channel : allChannel) {
-//            ac.add(channel.getRemoteIp());
-//        }
-//
-//        Random rand = new Random();
-//        int needBlock = maxBlockHeight - selfBlockHeight;//需要下载的块数
-//        int times = needBlock / THREAD_POOL_SIZE;//区块需要下载的轮数,每一轮下载的区块数与线程池最大数一样,分批下载区块
-//        int mod = needBlock % THREAD_POOL_SIZE;
-//        if (mod != 0) {
-//            times++;
-//        }
-//        for (int time = 0; time < times; time++) {//循环每一轮
-//            List<Future<MessageChannel>> results = new ArrayList<>();
-//            int start = selfBlockHeight + time * THREAD_POOL_SIZE + 1;//开始下载的区块数
-//            int end = start + THREAD_POOL_SIZE;
-//            if (end > maxBlockHeight + 1) {
-//                end = maxBlockHeight + 1;
-//            }
-//            int needBlockCount = end - start;//需要下载的区块数
-//            List<Block> blocks = new ArrayList<>();
-//            Map<Integer, MessageChannel> mapHeightData = new HashMap<>();
-//            while (true) {//始终要保证每一轮下载完成该下的任务
-//                if (blocks.size() >= needBlockCount) {
-//                    break;
-//                }
-//                for (int idx = start; idx < end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
-//                    boolean needGain = true;//当前块需要下载
-//                    for (Block block : blocks) {
-//                        int height = block.getHead().getHeight();
-//                        if (height == idx) {
-//                            needGain = false;//说明不需要下载该块,因为已经下载下来了
-//                            break;
-//                        }
-//                    }
-//                    if (needGain) {
-//                        int selectChannel = rand.nextInt(ac.size());//所选中的块所在的channel进行获取块,选中的channel是随机选择的
-//                        String scId = ac.get(selectChannel);
-//                        while (true) {
-//                            //log.info("当前请求的通道id:{},整个通道数量情况:{}", scId, channelBlockHeight);
-//                            Integer bh = channelBlockHeight.get(scId);//选中的通道拥有的块的高度
-//                            if (bh < idx) {//选中的通道拥有的块高度不满足要求所取的块高度,则将此通道从备选通道中移除
-//                                ac.remove(scId);
-//                                selectChannel = rand.nextInt(ac.size());
-//                                scId = ac.get(selectChannel);
-//                            } else {
-//                                break;
-//                            }
-//                        }
-//                        final String selectIp = scId;
-//                        final int selectBlockHeight = idx;
-//                        Future<MessageChannel> submit = threadPool.submit(() -> {
-//                            Message nodeMessage = new Message();
-//                            nodeMessage.setType(MessageType.BLOCK_REQ.getType());
-//                            nodeMessage.setContent(Integer.toString(selectBlockHeight).getBytes());//所请求的块的高度
-//                            log.info("向网络节点:{} 请求区块高度为:{}的区块...", selectIp, selectBlockHeight);
-//                            MessageChannel message = SynRequest.get().synReq(nodeMessage, selectIp);
-//                            return message;
-//                        });
-//                        results.add(submit);
-//                    }
-//                }
-//                for (Future<MessageChannel> result : results) {
-//                    try {
-//                        MessageChannel message = result.get();
-//                        if (message != null) {
-//                            byte[] content = message.getMessage().getContent();
-//                            Block block = SerializationUtil.deserializer(content, Block.class);//远端返回来的区块
-//                            blocks.add(block);
-//                            mapHeightData.put(block.getHead().getHeight(), message);
-//                        }
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//            Collections.sort(blocks, (Block o1, Block o2) -> {//对本次返回的区块进行排序
-//                int i = o1.getHead().getHeight() - o2.getHead().getHeight();
-//                if (i == 0) {
-//                    return 0;
-//                }
-//                return i;
-//            });
-//            log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
-//            for (Block block : blocks) {
-//                try {
-//                    log.info("经过排序后的区块高度为:{}", block.getHead().getHeight());
-//                    MessageChannel messageChannel = mapHeightData.get(block.getHead().getHeight());
-//                    if (messageChannel != null) {
-//                        if (blockArrivedValidator.check(messageChannel)) {
-//                            blockArrivedHandler.handle(messageChannel);
-//                        }
-//                    } else {
-//                        log.error("未获取到区块高度:{} 对应的数据内容...", block.getHead().getHeight());
-//                    }
-//                } catch (Throwable e) {//本次下载的一批区块,其中有区块有问题
-//                    //@TODO 需要将区块有问题的下载节点加入黑名单,本处暂时忽略
-//                }
-//            }
-//        }
+        List<String> ac = new ArrayList<>();//用于存储每个远端ip
+        Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
+        for (MyChannel channel : allChannel) {
+            ac.add(channel.getRemoteIp());
+        }
+
+        Random rand = new Random();
+        long needBlock = maxBlockHeight - selfBlockHeight;//需要下载的块数
+        long times = needBlock / THREAD_POOL_SIZE;//区块需要下载的轮数,每一轮下载的区块数与线程池最大数一样,分批下载区块
+        long mod = needBlock % THREAD_POOL_SIZE;
+        if (mod != 0) {
+            times++;
+        }
+        for (int time = 0; time < times; time++) {//循环每一轮
+            List<Future<MessageChannel>> results = new ArrayList<>();
+            long start = selfBlockHeight + time * THREAD_POOL_SIZE + 1;//开始下载的区块数
+            long end = start + THREAD_POOL_SIZE;
+            if (end > maxBlockHeight + 1) {
+                end = maxBlockHeight + 1;
+            }
+            long needBlockCount = end - start;//需要下载的区块数
+            List<Block> blocks = new ArrayList<>();
+            Map<Long, MessageChannel> mapHeightData = new HashMap<>();
+            while (true) {//始终要保证每一轮下载完成该下的任务
+                if (blocks.size() >= needBlockCount) {
+                    break;
+                }
+                for (long idx = start; idx < end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
+                    boolean needGain = true;//当前块需要下载
+                    for (Block block : blocks) {
+                        long height = block.getBlockHeader().getHeight();
+                        if (height == idx) {
+                            needGain = false;//说明不需要下载该块,因为已经下载下来了
+                            break;
+                        }
+                    }
+                    if (needGain) {
+                        int selectChannel = rand.nextInt(ac.size());//所选中的块所在的channel进行获取块,选中的channel是随机选择的
+                        String scId = ac.get(selectChannel);
+                        while (true) {
+                            //log.info("当前请求的通道id:{},整个通道数量情况:{}", scId, channelBlockHeight);
+                            Integer bh = channelBlockHeight.get(scId);//选中的通道拥有的块的高度
+                            if (bh < idx) {//选中的通道拥有的块高度不满足要求所取的块高度,则将此通道从备选通道中移除
+                                ac.remove(scId);
+                                selectChannel = rand.nextInt(ac.size());
+                                scId = ac.get(selectChannel);
+                            } else {
+                                break;
+                            }
+                        }
+                        final String selectIp = scId;
+                        final long selectBlockHeight = idx;
+                        Future<MessageChannel> submit = threadPool.submit(() -> {
+                            Message nodeMessage = new Message();
+                            nodeMessage.setType(MessageType.BLOCK_REQ.getType());
+                            nodeMessage.setContent(Long.toString(selectBlockHeight).getBytes());//所请求的块的高度
+                            log.info("向网络节点:{} 请求区块高度为:{}的区块...", selectIp, selectBlockHeight);
+                            MessageChannel message = SynRequest.get().synReq(nodeMessage, selectIp);
+                            return message;
+                        });
+                        results.add(submit);
+                    }
+                }
+                for (Future<MessageChannel> result : results) {
+                    try {
+                        MessageChannel message = result.get();
+                        if (message != null) {
+                            byte[] content = message.getMessage().getContent();
+                            Block block = SerializationUtil.deserializer(content, Block.class);//远端返回来的区块
+                            blocks.add(block);
+                            mapHeightData.put(block.getBlockHeader().getHeight(), message);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            Collections.sort(blocks, (Block o1, Block o2) -> {//对本次返回的区块进行排序
+                long i = o1.getBlockHeader().getHeight() - o2.getBlockHeader().getHeight();
+                if (i == 0) {
+                    return 0;
+                }
+                return 1;
+            });
+            log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
+            for (Block block : blocks) {
+                try {
+                    log.info("经过排序后的区块高度为:{}", block.getBlockHeader().getHeight());
+                    MessageChannel messageChannel = mapHeightData.get(block.getBlockHeader().getHeight());
+                    if (messageChannel != null) {
+                        if (blockArrivedValidator.check(messageChannel)) {
+                            blockArrivedHandler.handle(messageChannel);
+                        }
+                    } else {
+                        log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlockHeader().getHeight());
+                    }
+                } catch (Throwable e) {//本次下载的一批区块,其中有区块有问题
+                    //@TODO 需要将区块有问题的下载节点加入黑名单,本处暂时忽略
+                }
+            }
+        }
         synBlock();
     }
 

@@ -25,26 +25,43 @@
 
 package org.talust.core.storage;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.talust.common.crypto.Sha256Hash;
+import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.*;
 import org.rocksdb.util.SizeUnit;
+import org.talust.core.core.ByteHash;
+import org.talust.core.core.NetworkParams;
+import org.talust.core.model.BlockHeader;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.storage.BaseStoreProvider;
 
 import java.io.File;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 //区块存储
 @Slf4j
 public class BlockStorage extends BaseStoreProvider {
+
+    private final static Lock blockLock = new ReentrantLock();
     private static BlockStorage instance = new BlockStorage();
 
     private BlockStorage() {
         this(Configure.DATA_BLOCK);
     }
-
+    //最新区块hash缓存
+    private byte[] bestHashCacher = null;
     public static BlockStorage get() {
         return instance;
     }
+
+    protected NetworkParams network = MainNetworkParams.get();
+
+    //最新区块标识
+    private final static byte[] bestBlockKey = Sha256Hash.ZERO_HASH.getBytes();
 
     public BlockStorage(String dir) {
         super(dir);
@@ -58,5 +75,52 @@ public class BlockStorage extends BaseStoreProvider {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public BlockHeaderStore getBestBlockHeader() {
+        blockLock.lock();
+        byte[] bestBlockHash = null;
+        try {
+            if(bestHashCacher == null) {
+                bestBlockHash = db.get(bestBlockKey);
+                bestHashCacher = bestBlockHash;
+            } else {
+                bestBlockHash = bestHashCacher;
+            }
+        } catch (Exception e) {
+            return null;
+        } finally {
+            blockLock.unlock();
+        }
+        if(bestBlockHash == null) {
+            return null;
+        } else {
+            return getHeader(bestBlockHash);
+        }
+    }
+
+    /**
+     * 获取区块头信息
+     * @param hash
+     * @return BlockHeaderStore
+     */
+    public BlockHeaderStore getHeader(byte[] hash) {
+
+        byte[] content = null;
+        content = CacheManager.get().get(hash.toString());
+        if(content == null) {
+            try {
+                content = db.get(hash);
+            } catch (RocksDBException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(content == null) {
+            return null;
+        }
+        BlockHeaderStore blockHeaderStore = new BlockHeaderStore(network, content);
+        blockHeaderStore.getBlockHeader().setHash(Sha256Hash.wrap(hash));
+        return blockHeaderStore;
     }
 }

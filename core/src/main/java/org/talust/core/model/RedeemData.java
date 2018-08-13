@@ -36,8 +36,6 @@ import java.util.List;
 
 /**
  * 交易赎回信息，包含赎回脚步和接收的公匙，以及使用该笔交易的私匙
- * @author ln
- *
  */
 public class RedeemData {
 	//赎回脚本

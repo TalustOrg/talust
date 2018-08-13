@@ -63,27 +63,21 @@ public final class Definition {
 
 //	/** 转账最低手续费,0.1个talc */
 //	public static final Coin MIN_PAY_FEE = Coin.COIN.divide(10);
-	
+
+	public static final int TYPE_ACCOUNT = 0;					//账户下发
 	public static final int TYPE_COINBASE = 1;					//coinbase交易
 	public static final int TYPE_PAY = 2;						//普通支付交易
 	public static final int TYPE_REG_CONSENSUS = 3;				//注册成为共识节点
 	public static final int TYPE_REM_CONSENSUS = 4;				//注销共识节点
 	public static final int TYPE_VIOLATION = 5;					// 违规事件处理
-	/** 信用累积 **/
-	public static final int TYPE_CREDIT = 6;
-	/** 注册别名 **/
-	public static final int TYPE_REG_ALIAS = 7;
-	/** 修改别名 **/
-	public static final int TYPE_UPDATE_ALIAS = 8;
+
+
 	
 	/** 认证账户注册 **/
 	public static final int TYPE_CERT_ACCOUNT_REGISTER = 11;
 	/** 认证账户修改信息 **/
 	public static final int TYPE_CERT_ACCOUNT_UPDATE = 12;
-	/** 商家关联子账户 **/
-	public static final int TYPE_RELEVANCE_SUBACCOUNT = 13;
-	/** 商家解除子账户的关联 **/
-	public static final int TYPE_REMOVE_SUBACCOUNT = 14;
+
 
 	public static final int TYPE_CERT_ACCOUNT_REVOKE = 15;
 	
@@ -118,22 +112,18 @@ public final class Definition {
 		MESSAGE_COMMANDS.put(Transaction.class, "tx_0");
 		//===========================-分割线=============================//
 		TRANSACTION_COMMANDS.add("tx_0");
-		TRANSACTION_COMMANDS.add("tx_" + TYPE_REG_ALIAS);
-		TRANSACTION_COMMANDS.add("tx_" + TYPE_UPDATE_ALIAS);
 		TRANSACTION_COMMANDS.add("tx_" + TYPE_CERT_ACCOUNT_REGISTER);
 		TRANSACTION_COMMANDS.add("tx_" + TYPE_CERT_ACCOUNT_UPDATE);
 		TRANSACTION_COMMANDS.add("tx_" + TYPE_CERT_ACCOUNT_REVOKE);
 		TRANSACTION_COMMANDS.add("tx_" + TYPE_REG_CONSENSUS);
 		TRANSACTION_COMMANDS.add("tx_" + TYPE_REM_CONSENSUS);
-		TRANSACTION_COMMANDS.add("tx_" + TYPE_RELEVANCE_SUBACCOUNT);
-		TRANSACTION_COMMANDS.add("tx_" + TYPE_REMOVE_SUBACCOUNT);
 		TRANSACTION_COMMANDS.add("tx_" + TYPE_VIOLATION);
-		TRANSACTION_COMMANDS.add("tx_" + TYPE_CREDIT);
 
     	//===========================-分割线=============================//
     	
     	TRANSACTION_RELATION.put(TYPE_COINBASE, Transaction.class);
 		TRANSACTION_RELATION.put(TYPE_PAY, Transaction.class);
+		TRANSACTION_RELATION.put(TYPE_ACCOUNT, Transaction.class);
 
 		
 

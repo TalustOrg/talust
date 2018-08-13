@@ -259,7 +259,24 @@ public class AccountStorage {
         }
         return list;
     }
-//
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
+
+    public List<Account> getAccountList() {
+        return accountList;
+    }
+
+    public void setAccountList(List<Account> accountList) {
+        this.accountList = accountList;
+    }
+
+    //
 //    /**
 //     * @return
 //     */

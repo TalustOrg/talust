@@ -46,8 +46,6 @@ import static org.spongycastle.crypto.tls.TlsUtils.readUint32;
 
 /**
  * 区块头信息
- *
- * @author ln
  */
 public class BlockHeader extends Message {
 
@@ -65,12 +63,6 @@ public class BlockHeader extends Message {
     protected long height;
     //交易数
     protected long txCount;
-    //该时段共识人数
-    protected int periodCount;
-    //本轮开始的时间点，单位（秒）
-    protected long periodStartTime;
-    //时段，一轮共识中的第几个时间段，可验证对应的共识人
-    protected int timePeriod;
     //签名脚本，包含共识打包人信息和签名，签名是对以上信息的签名
     protected byte[] scriptBytes;
     protected Script scriptSig;
@@ -95,9 +87,6 @@ public class BlockHeader extends Message {
         merkleHash = Sha256Hash.wrap(readBytes(32));
         time = readUint32();
         height = readUint32();
-        periodCount = (int) readVarInt();
-        timePeriod = (int) readVarInt();
-        periodStartTime = readUint32();
         scriptBytes = readBytes((int) readVarInt());
 
         scriptSig = new Script(scriptBytes);
@@ -122,10 +111,6 @@ public class BlockHeader extends Message {
         stream.write(merkleHash.getBytes());
         Utils.uint32ToByteStreamLE(time, stream);
         Utils.uint32ToByteStreamLE(height, stream);
-
-        stream.write(new VarInt(periodCount).encode());
-        stream.write(new VarInt(timePeriod).encode());
-        Utils.uint32ToByteStreamLE(periodStartTime, stream);
 
         stream.write(new VarInt(scriptBytes.length).encode());
         stream.write(scriptBytes);
@@ -153,9 +138,6 @@ public class BlockHeader extends Message {
             stream.write(merkleHash.getBytes());
             Utils.int64ToByteStreamLE(time, stream);
             Utils.uint32ToByteStreamLE(height, stream);
-            stream.write(new VarInt(periodCount).encode());
-            stream.write(new VarInt(timePeriod).encode());
-            Utils.uint32ToByteStreamLE(periodStartTime, stream);
             //交易数量
             stream.write(new VarInt(txCount).encode());
             return Sha256Hash.twiceOf(stream.toByteArray());
@@ -303,14 +285,6 @@ public class BlockHeader extends Message {
         this.txHashs = txHashs;
     }
 
-    public int getTimePeriod() {
-        return timePeriod;
-    }
-
-    public void setTimePeriod(int timePeriod) {
-        this.timePeriod = timePeriod;
-    }
-
     public byte[] getScriptBytes() {
         return scriptBytes;
     }
@@ -328,19 +302,4 @@ public class BlockHeader extends Message {
         this.scriptSig = scriptSig;
     }
 
-    public long getPeriodStartTime() {
-        return periodStartTime;
-    }
-
-    public void setPeriodStartTime(long periodStartTime) {
-        this.periodStartTime = periodStartTime;
-    }
-
-    public int getPeriodCount() {
-        return periodCount;
-    }
-
-    public void setPeriodCount(int periodCount) {
-        this.periodCount = periodCount;
-    }
 }
