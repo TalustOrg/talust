@@ -33,6 +33,7 @@ import org.talust.common.crypto.Utils;
 import org.talust.common.exception.AddressFormatException;
 import org.talust.common.exception.VerificationException;
 import org.talust.common.exception.WrongNetworkException;
+import org.talust.common.model.Coin;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.core.Networks;
 

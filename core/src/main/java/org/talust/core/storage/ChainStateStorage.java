@@ -24,16 +24,12 @@
  */
 package org.talust.core.storage;
 
-import org.talust.common.model.DepositAccount;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
-import org.rocksdb.Options;
-import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
-import org.rocksdb.util.SizeUnit;
+import org.talust.common.model.DepositAccount;
 import org.talust.storage.BaseStoreProvider;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -112,7 +108,7 @@ public class ChainStateStorage extends BaseStoreProvider {
      * @param miningAddress
      * @return
      */
-    public List<DepositAccount> getDeposits(String miningAddress) {
+    public List<DepositAccount> getDeposits(byte[] miningAddress) {
         List<DepositAccount> deposits = new ArrayList<>();
         return deposits;
     }

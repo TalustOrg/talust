@@ -561,18 +561,18 @@ public class ScriptBuilder {
 //        return builder.build();
 //	}
 //
-//	/**
-//     * 创建一个空签名
-//     * @param data
-//     * @return Script
-//     */
-//	public static Script createCoinbaseInputScript(byte[] data) {
-//		ScriptBuilder builder = new ScriptBuilder();
-//
-//        builder.data(data);
-//
-//        return builder.build();
-//	}
+	/**
+     * 创建一个空签名
+     * @param data
+     * @return Script
+     */
+	public static Script createCoinbaseInputScript(byte[] data) {
+		ScriptBuilder builder = new ScriptBuilder();
+
+        builder.data(data);
+
+        return builder.build();
+	}
 //
 //	/**
 //	 * 交易输出脚本

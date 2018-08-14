@@ -32,7 +32,7 @@ import org.talust.common.crypto.VarInt;
 import org.talust.common.exception.ProtocolException;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.model.Address;
-import org.talust.core.model.Coin;
+import org.talust.common.model.Coin;
 import org.talust.core.model.Message;
 import org.talust.core.model.RedeemData;
 import org.talust.core.script.Script;

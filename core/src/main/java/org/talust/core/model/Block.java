@@ -31,6 +31,7 @@ import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.ProtocolException;
 import org.talust.common.exception.VerificationException;
+import org.talust.common.model.Coin;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.data.ConsensusCalculationUtil;
@@ -165,10 +166,6 @@ public class Block extends BlockHeader {
 			log.error("区块大小超过限制 {} , {}", getHeight(), getHash());
 			throw new VerificationException("区块大小超过限制");
 		}
-		
-		//验证交易是否合法
-		Coin coinbaseFee = Coin.ZERO; //coinbase 交易包含的金额，主要是手续费
-		
 		//每个区块只能包含一个coinbase交易，并且只能是第一个
 		boolean coinbase = false;
 		
@@ -183,20 +180,11 @@ public class Block extends BlockHeader {
 				if(tx.getType() != Definition.TYPE_COINBASE) {
 					throw new VerificationException("区块的第一个交易必须是coinbase交易");
 				}
-				coinbaseFee = Coin.valueOf(tx.getOutput(0).getValue());
 				coinbase = true;
 				continue;
 			} else if(tx.getType() == Definition.TYPE_COINBASE) {
 				throw new VerificationException("一个块只允许一个coinbase交易");
 			}
-		}
-		//验证金额，coinbase交易的费用必须等于交易手续费
-		//获取该高度的奖励
-		Coin rewardCoin = ConsensusCalculationUtil.calculatReward(getHeight());
-		//不小于奖励，不大于总量
-		if(coinbaseFee.isLessThan(rewardCoin) || coinbaseFee.isGreaterThan(Coin.MAX)) {
-			log.warn("交易费不正确");
-			throw new VerificationException("交易费不正确");
 		}
 		return true;
 	}

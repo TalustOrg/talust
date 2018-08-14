@@ -35,7 +35,7 @@ public class MiningRule {
      *
      * @return
      */
-    public static double getBaseCoin(int height) {
+    public static double getBaseCoin(long height) {
 
         return 16;//先写死,后面再写具体的规则
     }
@@ -45,7 +45,7 @@ public class MiningRule {
      * @param height
      * @return
      */
-    public static double getDepositCoin(int height){
+    public static double getDepositCoin(long height){
 
         return 256;
     }

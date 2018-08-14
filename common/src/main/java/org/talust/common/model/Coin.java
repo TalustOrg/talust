@@ -22,7 +22,7 @@
  * SOFTWARE.
  *
  */
-package org.talust.core.model;
+package org.talust.common.model;
 
 
 import org.talust.common.crypto.Utils;
@@ -44,7 +44,7 @@ public final class Coin implements Comparable<Coin>, Serializable {
     /**
      * 代币总量
      */
-    public static final Coin MAX = Coin.valueOf(100000000).multiply(COIN_VALUE);
+    public static final Coin MAX = Coin.valueOf(5000000000L).multiply(COIN_VALUE);
     
     /**
      * 0个 TALC

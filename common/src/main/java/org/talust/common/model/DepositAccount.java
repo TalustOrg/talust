@@ -32,7 +32,7 @@ public class DepositAccount {
     @Tag(1)//帐户地址
     private byte[] address;
     @Tag(2)//储蓄数量
-    private double amount;
+    private Coin amount;
 
     public byte[] getAddress() {
         return address;
@@ -42,11 +42,11 @@ public class DepositAccount {
         this.address = address;
     }
 
-    public double getAmount() {
+    public Coin getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(Coin amount) {
         this.amount = amount;
     }
 }

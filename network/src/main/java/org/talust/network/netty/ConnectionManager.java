@@ -315,11 +315,9 @@ public class ConnectionManager {
 
         JSONObject gip = getJsonFile(Configure.GENESIS_SERVER_ADDR);
         JSONObject root = gip.getJSONObject("root");
-        CacheManager.get().put("ROOT_PK", root.getString("publickey"));
-        CacheManager.get().put("ROOT_SIGN", root.getString("sign"));
+        CacheManager.get().put("ROOT_DATA", root.getString("data"));
         JSONObject talust = gip.getJSONObject("talust");
-        CacheManager.get().put("TALUST_PK", talust.getString("publickey"));
-        CacheManager.get().put("TALUST_SIGN", talust.getString("sign"));
+        CacheManager.get().put("TALUST_DATA", talust.getString("data"));
         if (myIps.contains(gip.getString("genesisIp"))) {
             genesisIp = true;
         }

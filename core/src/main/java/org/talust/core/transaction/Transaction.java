@@ -32,7 +32,7 @@ import org.talust.common.exception.VerificationException;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.model.Address;
-import org.talust.core.model.Coin;
+import org.talust.common.model.Coin;
 import org.talust.core.model.Message;
 import org.talust.core.script.Script;
 import org.talust.core.script.ScriptOpCodes;

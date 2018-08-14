@@ -95,7 +95,6 @@ public class Account {
         ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(size());
         try {
             bos.write(status);//状态，待激活
-
             bos.write(address.getVersion());//类型
             bos.write(address.getHash160());
             if(address.getVersion() == network.getCertAccountVersion() ) {
