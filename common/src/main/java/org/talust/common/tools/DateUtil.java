@@ -17,7 +17,8 @@ import java.util.function.Supplier;
  * @version $Id$
  */
 public class DateUtil {
-    private static final String yyyyMMddHHmmss = "yyyyMMddHHmmss";
+    public final static String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    public final static SimpleDateFormat DEFAULT_SDF = new SimpleDateFormat(DEFAULT_PATTERN);
     /** 锁对象 */
     private static final Object lockObj = new Object();
 
@@ -70,6 +71,19 @@ public class DateUtil {
     public static Date parse(String dateStr, String pattern) throws ParseException {
         return getSdf(pattern).parse(dateStr);
     }
+
+    /**
+     * @param date
+     * @return Date
+     */
+    public static Date convertStringToDate(String date) {
+        try {
+            return DEFAULT_SDF.parse(date);
+        } catch (ParseException e) {
+        }
+        return new Date();
+    }
+
 
     public static int getTimeSecond(){
         long currentTimeMillis = System.currentTimeMillis();

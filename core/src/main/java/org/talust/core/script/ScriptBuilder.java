@@ -28,6 +28,8 @@ package org.talust.core.script;
 import static org.talust.core.script.ScriptOpCodes.*;
 
 import org.talust.common.crypto.ECKey;
+import org.talust.common.crypto.Sha256Hash;
+import org.talust.core.core.Definition;
 import org.talust.core.transaction.TransactionSignature;
 import org.talust.common.crypto.Utils;
 import org.talust.core.model.Address;
@@ -601,32 +603,32 @@ public class ScriptBuilder {
 //		}
 //    }
 //
-//	/**
-//	 * 认证账户的交易输入签名脚本
-//	 * @param signs
-//	 * @param txid
-//	 * @param hash160
-//	 * @return Script
-//	 */
-//	public static Script createCertAccountInputScript(byte[][] signs, byte[] txid, byte[] hash160) {
-//		if(signs == null) {
-//			return new ScriptBuilder()
-//					.data(new byte[]{})
-//					.op(OP_VERTR)
-//					.data(txid)
-//					.data(hash160)
-//					.build();
-//		} else {
-//			Utils.checkState(signs.length == 1, "签名不正确"); //facjas
-//			return new ScriptBuilder()
-//					.data(signs[0])
-//					//data(signs[1])  //facjas
-//					.op(OP_VERTR)
-//					.data(txid)
-//					.data(hash160)
-//					.build();
-//		}
-//	}
+	/**
+	 * 认证账户的交易输入签名脚本
+	 * @param signs
+	 * @param txid
+	 * @param hash160
+	 * @return Script
+	 */
+	public static Script createCertAccountInputScript(byte[][] signs, byte[] txid, byte[] hash160) {
+		if(signs == null) {
+			return new ScriptBuilder()
+					.data(new byte[]{})
+					.op(OP_VERTR)
+					.data(txid)
+					.data(hash160)
+					.build();
+		} else {
+			Utils.checkState(signs.length == 1, "签名不正确"); //facjas
+			return new ScriptBuilder()
+					.data(signs[0])
+					//data(signs[1])  //facjas
+					.op(OP_VERTR)
+					.data(txid)
+					.data(hash160)
+					.build();
+		}
+	}
 //
 ////	/**
 ////	 * 创建通用的验证脚本
@@ -660,39 +662,39 @@ public class ScriptBuilder {
             .build();
     }
 
-//	/**
-//	 * 创建认证账户签名脚本
-//	 * @param type  1账户管理，2交易
-//	 * @param txid	认证账户信息的交易Id
-//	 * @param hash160	认证账户的hash160
-//	 * @param sign1		签名1
-//	 * @param sign2		签名2
-//	 * @return Script
-//	 */
-//	public static Script createCertAccountScript(int type, Sha256Hash txid, byte[] hash160, byte[] sign1, byte[] sign2) {
-//        if(type == Definition.TX_VERIFY_MG) {
-//            return new ScriptBuilder()
-//                    .op(ScriptOpCodes.OP_VERMG)
-//                    .data(txid.getBytes())
-//                    .op(OP_PUBKEY)
-//                    .data(hash160)
-//                    .op(OP_EQUALVERIFY)
-//                    .data(sign1)
-//                    .data(sign2)
-//                    .op(OP_CHECKSIG)
-//                    .build();
-//        }else{
-//            return new ScriptBuilder()
-//                    .op(ScriptOpCodes.OP_VERTR)
-//                    .data(txid.getBytes())
-//                    .op(OP_PUBKEY)
-//                    .data(hash160)
-//                    .op(OP_EQUALVERIFY)
-//                    .data(sign1)
-//                    .op(OP_CHECKSIG)
-//                    .build();
-//        }
-//	}
+	/**
+	 * 创建认证账户签名脚本
+	 * @param type  1账户管理，2交易
+	 * @param txid	认证账户信息的交易Id
+	 * @param hash160	认证账户的hash160
+	 * @param sign1		签名1
+	 * @param sign2		签名2
+	 * @return Script
+	 */
+	public static Script createCertAccountScript(int type, Sha256Hash txid, byte[] hash160, byte[] sign1, byte[] sign2) {
+        if(type == Definition.TX_VERIFY_MG) {
+            return new ScriptBuilder()
+                    .op(ScriptOpCodes.OP_VERMG)
+                    .data(txid.getBytes())
+                    .op(OP_PUBKEY)
+                    .data(hash160)
+                    .op(OP_EQUALVERIFY)
+                    .data(sign1)
+                    .data(sign2)
+                    .op(OP_CHECKSIG)
+                    .build();
+        }else{
+            return new ScriptBuilder()
+                    .op(ScriptOpCodes.OP_VERTR)
+                    .data(txid.getBytes())
+                    .op(OP_PUBKEY)
+                    .data(hash160)
+                    .op(OP_EQUALVERIFY)
+                    .data(sign1)
+                    .op(OP_CHECKSIG)
+                    .build();
+        }
+	}
 //
 //	/**
 //     * 防伪验证输入脚本

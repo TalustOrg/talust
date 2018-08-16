@@ -26,37 +26,100 @@
 
 package org.talust.core.data;
 
-import io.netty.util.internal.ConcurrentSet;
+import org.talust.common.crypto.Sha256Hash;
+import org.talust.core.transaction.Transaction;
 
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 //交易缓存,主要用于存储交易临时状态的,即处于接收到交易数据,还未正式打包存储区块的情况
 public class TransactionCache {
     private static TransactionCache instance = new TransactionCache();
 
-    private TransactionCache() {
-    }
+    private Lock locker = new ReentrantLock();
 
-    public static TransactionCache get() {
+    public static TransactionCache getInstace() {
         return instance;
     }
 
-    private Set<String> outTmpDisable = new ConcurrentSet<>();
-
-    public void disableOut(long tranNumber, int item) {
-        String its = tranNumber + "-" + item;
-        outTmpDisable.add(its);
+    private TransactionCache() {
     }
 
-    public boolean isDisable(long tranNumber, int item) {
-        String its = tranNumber + "-" + item;
-        return outTmpDisable.contains(its);
+    private static final Map<Sha256Hash, Transaction> indexContainer = new HashMap<Sha256Hash, Transaction>();
+    private static final ConcurrentLinkedQueue<Transaction> container = new ConcurrentLinkedQueue<Transaction>();
+    private static final Map<Sha256Hash, Transaction> packageingContainer = new HashMap<Sha256Hash, Transaction>();
+
+    public boolean  add(Transaction tx){
+        locker.lock();
+        try{
+            if(indexContainer.containsKey(tx.getHash())) {
+                return false;
+            }
+            boolean success = container.add(tx);
+            if(success) {
+                indexContainer.put(tx.getHash(), tx);
+            }return success;
+        } finally {
+            locker.unlock();
+        }
     }
 
-    public void removeDisable(long tranNumber, int item) {
-        String its = tranNumber + "-" + item;
-        outTmpDisable.remove(its);
+    public boolean  remove(Sha256Hash hash){
+        Transaction tx = indexContainer.remove(hash);
+        if(tx != null) {
+            packageingContainer.remove(tx.getHash());
+            return container.remove(tx);
+        } else {
+            return false;
+        }
     }
 
+    public boolean bathRemove(Sha256Hash[] hashs) {
+        for (Sha256Hash hash : hashs) {
+            remove(hash);
+        }
+        return true;
+    }
 
+    public Transaction get() {
+        Transaction tx = container.poll();
+        if(tx != null) {
+            indexContainer.remove(tx.getHash());
+            packageingContainer.put(tx.getHash(), tx);
+        }
+        return tx;
+    }
+
+    public Transaction get(Sha256Hash hash) {
+        Transaction tx = indexContainer.get(hash);
+        if(tx == null) {
+            tx = packageingContainer.get(hash);
+        }
+        return tx;
+    }
+
+    public Transaction[] getNewest(int max) {
+        List<Transaction> list = new ArrayList<Transaction>();
+
+        while(max > 0) {
+            Transaction tx = container.poll();
+            if(tx == null) {
+                break;
+            } else {
+                indexContainer.remove(tx.getHash());
+            }
+            list.add(tx);
+            max--;
+        }
+        return list.toArray(new Transaction[list.size()]);
+    }
+
+    /**
+     * 获取内存里面交易数量
+     */
+    public int getTxCount() {
+        return container.size();
+    }
 }

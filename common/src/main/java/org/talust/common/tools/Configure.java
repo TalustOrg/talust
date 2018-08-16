@@ -25,6 +25,8 @@
 
 package org.talust.common.tools;
 
+import org.talust.common.model.Coin;
+
 import java.io.File;
 
 /**
@@ -77,6 +79,8 @@ public final class Configure {
      */
     public static String CONFIG_PATH  = SERVER_HOME + File.separator +"conf";
 
+    /**单笔交易最大值*/
+    public static final Coin MAX_OUTPUT_COIN = Coin.COIN.multiply(100000000);
     /**
      * 业务节点最大被动连接数
      */

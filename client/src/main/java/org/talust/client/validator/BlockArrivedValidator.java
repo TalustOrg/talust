@@ -27,17 +27,27 @@ package org.talust.client.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.crypto.Sha256Hash;
+import org.talust.common.exception.VerificationException;
+import org.talust.common.model.Coin;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.SerializationUtil;
+import org.talust.core.core.ByteHash;
+import org.talust.core.core.Definition;
 import org.talust.core.core.SynBlock;
+import org.talust.core.data.ConsensusCalculationUtil;
 import org.talust.core.model.Block;
+import org.talust.core.storage.BlockHeaderStore;
+import org.talust.core.storage.BlockStore;
 import org.talust.core.transaction.Transaction;
+import org.talust.core.transaction.TransactionInput;
+import org.talust.core.transaction.TransactionOutput;
 import org.talust.network.MessageValidator;
 import org.talust.core.storage.BlockStorage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,7 +61,8 @@ public class BlockArrivedValidator implements MessageValidator {
     @Override
     public boolean check(MessageChannel messageChannel) {
         boolean result = false;
-        Block block = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), Block.class);
+        BlockStore blockStore = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), BlockStore.class);
+        Block block =  blockStore.getBlock();
         long height = block.getHeight();
         boolean checkRepeat = CacheManager.get().checkRepeat(("block_height:" + height), Configure.BLOCK_GEN_TIME);
         if (checkRepeat) {//说明本节点接收到过同样的消息,则直接将该消息扔掉
@@ -92,4 +103,90 @@ public class BlockArrivedValidator implements MessageValidator {
         }
         return result;
     }
+
+
+    public boolean verifyBlock(Block block) {
+        long now = System.currentTimeMillis();
+
+        try {
+            if(!block.verify()) {
+                return false;
+            }
+        } catch (VerificationException e) {
+            return false;
+        }
+        //验证区块签名
+        try {
+            block.verifyScript();
+        } catch (Exception e) {
+            return false;
+        }
+
+        //验证区块的交易是否正确
+        if(block.getTxCount() != block.getTxs().size()) {
+            return false;
+        }
+        //每个区块只能包含一个coinbase交易，并且只能是第一个
+        boolean coinbase = false;
+
+        List<Transaction> txs = block.getTxs();
+        for (Transaction tx : txs) {
+
+            boolean result = transactionValidator.checkTransaction(tx, txs);
+
+            if(!result) {
+                throw new VerificationException("交易内容验证失败");
+            }
+            //区块的第一个交易必然是coinbase交易，除第一个之外的任何交易都不应是coinbase交易，否则出错
+            if(!coinbase) {
+                if(tx.getType() != Definition.TYPE_COINBASE) {
+                    throw new VerificationException("the block first tx is not coinbase tx");
+                }
+                coinbase = true;
+                continue;
+            } else if(tx.getType() == Definition.TYPE_COINBASE) {
+                throw new VerificationException("the block too much coinbase tx");
+            }
+        }
+
+        //验证本区块的双花
+        List<ByteHash> outputIndexHashArray = new ArrayList<ByteHash>();
+        for (Transaction t : txs) {
+            List<TransactionInput> inputsTemp = t.getInputs();
+            if(inputsTemp == null || inputsTemp.size() == 0) {
+                continue;
+            }
+            for (TransactionInput in : t.getInputs()) {
+                List<TransactionOutput> fromsTemp = in.getFroms();
+                if(fromsTemp == null || fromsTemp.size() == 0) {
+                    continue;
+                }
+                for (TransactionOutput fromTemp : fromsTemp) {
+                    byte[] statusKey = fromTemp.getKey();
+
+                    ByteHash byteHash = new ByteHash(statusKey);
+                    if(outputIndexHashArray.contains(byteHash)) {
+                        log.warn("存在双花交易");
+                        return false;
+                    } else {
+                        outputIndexHashArray.add(byteHash);
+                    }
+                }
+            }
+        }
+
+        //获取区块的最新高度
+        BlockHeaderStore bestBlockHeader = storageService.getBestBlockHeader();
+        //必需衔接
+        if(!block.getPreHash().equals(bestBlockHeader.getBlockHeader().getHash()) ||
+                block.getHeight() != bestBlockHeader.getBlockHeader().getHeight() + 1) {
+            log.warn("block info warn newblock {}, localblock {}", block.getHeight(), bestBlockHeader.getBlockHeader().getHeight());
+            return false;
+        }
+
+        return true;
+    }
+
+
+
 }

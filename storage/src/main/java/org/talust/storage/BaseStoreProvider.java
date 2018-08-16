@@ -49,17 +49,30 @@ public abstract class BaseStoreProvider implements StoreProvider {
         }
     }
 
-    public void put(byte[] key, byte[] value) throws RocksDBException {
-        db.put(key, value);
+    public void put(byte[] key, byte[] value) {
+        try {
+            db.put(key, value);
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
     }
 
-    public byte[] getBytes(byte[] key) throws RocksDBException {
-        return db.get(key);
+    public byte[] getBytes(byte[] key)  {
+        try {
+            return db.get(key);
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
-    public void delete(byte[] key) throws RocksDBException {
-        db.delete(key);
+    public void delete(byte[] key)  {
+        try {
+            db.delete(key);
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

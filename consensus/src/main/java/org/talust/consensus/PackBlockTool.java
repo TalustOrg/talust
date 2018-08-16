@@ -14,10 +14,7 @@ import org.talust.core.model.*;
 import org.talust.common.model.DepositAccount;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.ScriptBuilder;
-import org.talust.core.storage.AccountStorage;
-import org.talust.core.storage.BlockHeaderStore;
-import org.talust.core.storage.BlockStorage;
-import org.talust.core.storage.ChainStateStorage;
+import org.talust.core.storage.*;
 import org.talust.core.transaction.Transaction;
 import org.talust.core.transaction.TransactionInput;
 import org.talust.network.netty.ConnectionManager;
@@ -66,8 +63,8 @@ public class PackBlockTool {
             block.sign(account);
             block.verify();
             block.verifyScript();
-
-            byte[] data = SerializationUtil.serializer(block);
+            BlockStore blockStore = new BlockStore(networkParams, block);
+            byte[] data = SerializationUtil.serializer(blockStore);
             byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
 
             Message message = new Message();

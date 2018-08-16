@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.talust.account.MiningAddress;
 
+import org.talust.block.MakeTestNetGengsisBlock;
 import org.talust.client.handler.*;
 import org.talust.client.validator.BlockArrivedValidator;
 import org.talust.client.validator.NodeExitValidator;
@@ -153,6 +154,8 @@ public class BlockChainServer {
         NtpTimeService.get().start();
         PeersManager.get().initPeers();
 
+
+
         log.info("初始化缓存...");
              byte[] nowBlockHash = blockStorage.get(Constant.NOW_BLOCK_HASH);
 
@@ -174,6 +177,8 @@ public class BlockChainServer {
                 CacheManager.get().setCurrentBlockHeight(block.getHeight());
                 CacheManager.get().setCurrentBlockHash(nowBlockHash);
             }
+        }else{
+            MakeTestNetGengsisBlock.main(null);
         }
         BlockChainServer.get().start();
 

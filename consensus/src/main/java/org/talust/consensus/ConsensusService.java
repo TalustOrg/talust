@@ -23,9 +23,10 @@ public class ConsensusService {
     public static ConsensusService get() {
         return instance;
     }
+
     private CacheManager cu = CacheManager.get();
     private Conference conference = Conference.get();
-    private  ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
+    private ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
     private PackBlockTool packBlockTool = new PackBlockTool();
     private AtomicBoolean genRunning = new AtomicBoolean(false);
     private int checkSecond;//检测区块是否正常的时长
@@ -62,21 +63,10 @@ public class ConsensusService {
         service.scheduleAtFixedRate(() -> {
             if (genRunning.get()) {
                 byte[] currentBlockHash = CacheManager.get().getCurrentBlockHash();
-                if (ConnectionManager.get().genesisIp && currentBlockHash == null) {
-                    log.info("当前节点创建创世块...");
-                    log.info("当前缓存中没有最新块的hash值");
-                    try {
-                        genGenesis();//当前节点是创世块ip
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    log.info("打包ip:{}", ConnectionManager.get().selfIp);
-                    int packageTime = DateUtil.getTimeSecond();
-                    packBlockTool.pack(packageTime);//打包
-                }
+                log.info("打包ip:{}", ConnectionManager.get().selfIp);
+                int packageTime = DateUtil.getTimeSecond();
+                packBlockTool.pack(packageTime);//打包
             }
-
         }, delay, Configure.BLOCK_GEN_TIME, TimeUnit.SECONDS);
         log.info("启动定时任务生成区块,延时:{}...", delay);
 
@@ -97,7 +87,7 @@ public class ConsensusService {
                         }
                     }
                 } catch (Throwable e) {
-                    log.error("error:",e);
+                    log.error("error:", e);
                 }
             }
         }).start();
@@ -117,12 +107,5 @@ public class ConsensusService {
         genRunning.set(false);
     }
 
-    //生成创世块内容,直接将其放入数据窗口中,不需要进行校验
-    private void genGenesis() {
-        Genesis genesis = new Genesis();
-        genesis.genGenesisContent();
-        int packageTime = DateUtil.getTimeSecond();
-        packBlockTool.pack(packageTime);//打包
-    }
 
 }
