@@ -26,7 +26,6 @@
 package org.talust.client;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.talust.account.MiningAddress;
 
 import org.talust.block.MakeTestNetGengsisBlock;
@@ -44,10 +43,8 @@ import org.talust.consensus.handler.MasterReqHandler;
 import org.talust.consensus.handler.MasterRespHandler;
 import org.talust.consensus.handler.NewMasterReqHandler;
 import org.talust.consensus.handler.NewMasterRespHandler;
-import org.talust.core.core.NetworkParams;
 import org.talust.core.core.SynBlock;
 import org.talust.core.model.Block;
-import org.talust.core.network.MainNetworkParams;
 import org.talust.core.server.NtpTimeService;
 import org.talust.network.MessageHandler;
 import org.talust.network.MessageValidator;
@@ -59,8 +56,6 @@ import org.talust.network.netty.PeersManager;
 import org.talust.network.netty.queue.MessageQueueHolder;
 import org.talust.core.storage.AccountStorage;
 import org.talust.core.storage.BlockStorage;
-import org.talust.core.storage.ChainStateStorage;
-import org.talust.core.storage.TransactionStorage;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -177,8 +172,6 @@ public class BlockChainServer {
                 CacheManager.get().setCurrentBlockHeight(block.getHeight());
                 CacheManager.get().setCurrentBlockHash(nowBlockHash);
             }
-        }else{
-            MakeTestNetGengsisBlock.main(null);
         }
         BlockChainServer.get().start();
 

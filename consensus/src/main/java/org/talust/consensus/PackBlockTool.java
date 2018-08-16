@@ -40,7 +40,7 @@ public class PackBlockTool {
             Account account = AccountStorage.get().getAccount();
             //批量获取需要打包的数据
             List<Transaction> transactionList = new ArrayList<>();
-            long height = cu.getCurrentBlockHeight();
+            long height = blockStorage.getBestBlockHeader().getBlockHeader().getHeight();
             height++;
             Transaction coinBase = getCoinBase(packageTime, height);
             if (coinBase != null) {
@@ -92,10 +92,6 @@ public class PackBlockTool {
      * @return
      */
     private Transaction getCoinBase(int packageTime, long height) throws Exception {
-        //创世块不挖矿
-        if (height == 1) {
-            return null;
-        }
         //添加共识奖励交易
         Transaction coinBase = new Transaction(networkParams);
         coinBase.setVersion(Definition.VERSION);
@@ -105,7 +101,7 @@ public class PackBlockTool {
         input.setScriptSig(ScriptBuilder.createCoinbaseInputScript("this a coinBase tx".getBytes()));
         Coin consensusRreward = ConsensusCalculationUtil.calculatConsensusReward(height);
         Coin minerRreward = ConsensusCalculationUtil.calculatMinerReward(height);
-        List<byte[]>  miningAddress = CacheManager.get().get(new String(Constant.MINING_ADDRESS));
+        List<String>  miningAddress = CacheManager.get().get(new String(Constant.MINING_ADDRESS));
         if (miningAddress == null) {
             return null;
         }
@@ -113,7 +109,7 @@ public class PackBlockTool {
         //当前获得收益的区块
         int idx = (int) (height % size);
         //矿机自身获得
-        byte[] sn = miningAddress.get(idx);
+        byte[] sn =Base58.decode(miningAddress.get(idx));
         coinBase.addOutput(minerRreward,new Address(networkParams,sn));
         log.info("挖矿奖励给地址:{},高度:{},金额:{}", sn, height, minerRreward.value);
 
