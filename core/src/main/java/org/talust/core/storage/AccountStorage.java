@@ -270,20 +270,20 @@ public class AccountStorage {
         this.accountList = accountList;
     }
 
-    //
-//    /**
-//     * @return
-//     */
-//
-//    public Account getAccountByAddress(String address) {
-//        for (Account account : accounts) {
-//            if (Utils.showAddress(account.getAddress()).equals(address)) {
-//                return account;
-//            }
-//        }
-//        return null;
-//    }
-//
+
+    /**
+     * @return
+     */
+
+    public Account getAccountByAddress(String address) {
+        for (Account account : accountList) {
+            if (Base58.encode(account.getAddress().getHash160()).equals(address)) {
+                return account;
+            }
+        }
+        return null;
+    }
+
 //    public ECKey getEcKey() {
 //        return ecKey;
 //    }
