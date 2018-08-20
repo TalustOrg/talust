@@ -24,14 +24,15 @@
  */
 package org.talust.core.storage;
 
+import org.talust.common.model.Coin;
+import org.talust.common.model.Deposits;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.RocksDBException;
 import org.talust.common.model.DepositAccount;
+import org.talust.common.tools.SerializationUtil;
+import org.talust.core.model.Address;
 import org.talust.storage.BaseStoreProvider;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 //交易帐户余额存储,用于存储每一个帐户的每一个交易过来的余额,针对UTXO模型实现的
@@ -108,9 +109,37 @@ public class ChainStateStorage extends BaseStoreProvider {
      * @param miningAddress
      * @return
      */
-    public List<DepositAccount> getDeposits(byte[] miningAddress) {
-        List<DepositAccount> deposits = new ArrayList<>();
+    public Deposits getDeposits(byte[] miningAddress) {
+        Deposits deposits = new Deposits();
+        try {
+            byte[] deps = db.get(miningAddress);
+            if(null!=deps){
+                deposits =  SerializationUtil.deserializer(deps,Deposits.class);
+            }
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
         return deposits;
+    }
+
+
+    public void addDepostits(Address address , Coin coin ,byte[] miningAddress){
+        try {
+            byte[] deps = db.get(miningAddress);
+            if(null!=deps){
+                Deposits deposits=  SerializationUtil.deserializer(deps,Deposits.class);
+                deposits.getDepositAccounts().add(new DepositAccount(address.getHash160(),coin));
+                try {
+                    db.put(miningAddress,SerializationUtil.serializer(deposits));
+                } catch (RocksDBException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
+
     }
 
 

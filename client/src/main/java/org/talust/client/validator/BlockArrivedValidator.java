@@ -39,6 +39,8 @@ import org.talust.core.core.Definition;
 import org.talust.core.core.SynBlock;
 import org.talust.core.data.ConsensusCalculationUtil;
 import org.talust.core.model.Block;
+import org.talust.core.model.BlockHeader;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.core.storage.BlockHeaderStore;
 import org.talust.core.storage.BlockStore;
 import org.talust.core.transaction.Transaction;
@@ -61,8 +63,8 @@ public class BlockArrivedValidator implements MessageValidator {
     @Override
     public boolean check(MessageChannel messageChannel) {
         boolean result = false;
-        BlockStore blockStore = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), BlockStore.class);
-        Block block =  blockStore.getBlock();
+        BlockStore blockStore =  SerializationUtil.deserializer(messageChannel.getMessage().getContent(), BlockStore.class);
+        Block block =blockStore.getBlock();
         long height = block.getHeight();
         boolean checkRepeat = CacheManager.get().checkRepeat(("block_height:" + height), Configure.BLOCK_GEN_TIME);
         if (checkRepeat) {//说明本节点接收到过同样的消息,则直接将该消息扔掉
@@ -72,8 +74,8 @@ public class BlockArrivedValidator implements MessageValidator {
             Sha256Hash prevBlock = block.getPreHash();//前一区块hash
             byte[] preBlockBytes = storageService.get(prevBlock.getBytes());
             if (preBlockBytes != null) {
-                Block preBlock = SerializationUtil.deserializer(preBlockBytes, Block.class);
-                long preHeight = preBlock.getHeight();
+                BlockHeader blockHeader =  new BlockHeader(MainNetworkParams.get(),preBlockBytes);
+                long preHeight = blockHeader.getHeight();
                 long nowHeight = block.getHeight();
                 if ((nowHeight - preHeight) == 1) {
                     result = true;
@@ -88,16 +90,19 @@ public class BlockArrivedValidator implements MessageValidator {
         if (result) {//继续校验区块里面的每一条数据
             block.verify();
             block.verifyScript();
-            List<Transaction> data = block.getTxs();
-            for (Transaction datum : data) {
-                MessageChannel nm = new MessageChannel();
-                Message msg = SerializationUtil.deserializer(SerializationUtil.serializer(datum), Message.class);
-                nm.setMessage(msg);
-                boolean check = transactionValidator.check(nm);
-                if (!check) {
-                    log.info("区块中的交易信息校验失败...");
-                    result = false;
-                    break;
+            if(verifyBlock(block)){
+                List<Transaction> data = block.getTxs();
+                for (Transaction datum : data) {
+                    MessageChannel nm = new MessageChannel();
+                    Message msg = new Message();
+                    msg.setContent(SerializationUtil.serializer(datum));
+                    nm.setMessage(msg);
+                    boolean check = transactionValidator.check(nm);
+                    if (!check) {
+                        log.info("区块中的交易信息校验失败...");
+                        result = false;
+                        break;
+                    }
                 }
             }
         }

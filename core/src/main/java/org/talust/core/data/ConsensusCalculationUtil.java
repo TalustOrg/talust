@@ -53,11 +53,10 @@ public final class ConsensusCalculationUtil {
 		}
 		//奖励周期
 		long realHeight = (height - START_HEIGHT);
-		long coefficient = realHeight / REWARD_CYCLE;
 		//奖励系数
 		Coin coefficientReward = START_REWARD;
 		Coin issued = Coin.ZERO;
-		long cycle = realHeight % REWARD_CYCLE;
+		long cycle = realHeight / REWARD_CYCLE;
 		while(cycle-- > 0) {
 			if(coefficientReward.isGreaterThan(MIN_REWARD)){
 				coefficientReward = coefficientReward.divide(2);
@@ -90,7 +89,7 @@ public final class ConsensusCalculationUtil {
 		long realHeight = (height - START_HEIGHT);
 		Coin coefficientReward = START_MINER;
 		Coin issued = Coin.ZERO;
-		long cycle = realHeight % REWARD_CYCLE;
+		long cycle = realHeight / REWARD_CYCLE;
 		while(cycle-- > 0) {
 			if(coefficientReward.isGreaterThan(MIN_MINER)){
 				coefficientReward = coefficientReward.divide(2);

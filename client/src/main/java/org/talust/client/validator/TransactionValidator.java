@@ -63,12 +63,6 @@ public class TransactionValidator implements MessageValidator {
     @Override
     public boolean check(MessageChannel message) {//对每一条交易数据进行验证
         Message msg = message.getMessage();
-        if (msg.getSigner() != null && msg.getSigner().length > 0) {
-            boolean signOk = mqHolder.checkSign(msg);
-            if (!signOk) {//签名不正确
-                return false;
-            }
-        }
         Transaction transaction = SerializationUtil.deserializer(msg.getContent(), Transaction.class);
         if(checkTransaction(transaction,null)){
             return true;

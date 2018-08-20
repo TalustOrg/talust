@@ -14,7 +14,7 @@ public interface Constant {
      */
     String BH_PRIX = "bh_";
 
-    long START_HEIGHT =2;
+    long START_HEIGHT =1;
     /**
      * 根证书的存储key
      */

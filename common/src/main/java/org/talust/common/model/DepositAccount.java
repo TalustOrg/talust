@@ -49,4 +49,9 @@ public class DepositAccount {
     public void setAmount(Coin amount) {
         this.amount = amount;
     }
+
+    public DepositAccount(byte[] address , Coin coin){
+        this.address=address;
+        this.amount=coin;
+    }
 }

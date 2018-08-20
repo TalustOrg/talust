@@ -70,7 +70,7 @@ public class AccountTest {
         try {
            // rootAccount.setSigns(rootAccount.signAccount(rootAccount.getEcKey(),null));
             rootAccount.signAccount(rootKey, null);
-            System.out.println("address rootAccount haxString:"+rootAddr.getHashAsHex());
+            System.out.println("address rootAccount haxString:"+Base58.encode(rootAddr.getHash160()));
             System.out.println("data rootAccount: "+Base58.encode(rootAccount.serialize()));
         } catch (IOException e) {
             e.printStackTrace();
@@ -90,7 +90,7 @@ public class AccountTest {
         try {
            // talustAccount.setSigns(talustAccount.signAccount(talustAccount.getEcKey(), rootAccount.getEcKey()));
             talustAccount.signAccount(talustKey, rootKey);
-            System.out.println("address talustAccount haxString:"+talustAddr.getHashAsHex());
+            System.out.println("address talustAccount haxString:"+Base58.encode(talustAddr.getHash160() ));
             System.out.println("data talustAccount: "+Base58.encode(talustAccount.serialize()));
         } catch (IOException e) {
             e.printStackTrace();

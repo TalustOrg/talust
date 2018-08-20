@@ -1,6 +1,7 @@
 package org.talust.common.tools;
 
 
+import io.protostuff.GraphIOUtil;
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
@@ -41,7 +42,7 @@ public class SerializationUtil {
         LinkedBuffer buffer = LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE);
         try {
             Schema<T> schema = getSchema(clazz);
-            byte result[] = ProtostuffIOUtil.toByteArray(obj, schema, buffer);
+            byte result[] = GraphIOUtil.toByteArray(obj, schema, buffer);
             return result;
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
@@ -61,7 +62,7 @@ public class SerializationUtil {
         try {
             T obj = objenesis.newInstance(clazz);
             Schema<T> schema = getSchema(clazz);
-            ProtostuffIOUtil.mergeFrom(data, obj, schema);
+            GraphIOUtil.mergeFrom(data, obj, schema);
             return obj;
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);

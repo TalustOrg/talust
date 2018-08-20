@@ -1,5 +1,7 @@
 package org.talust.consensus;
 
+import io.protostuff.GraphIOUtil;
+import io.protostuff.ProtostuffIOUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.crypto.Base58;
 import org.talust.common.crypto.Sha256Hash;
@@ -63,7 +65,7 @@ public class PackBlockTool {
             block.sign(account);
             block.verify();
             block.verifyScript();
-            BlockStore blockStore = new BlockStore(networkParams, block);
+            BlockStore blockStore = new BlockStore(networkParams , block);
             byte[] data = SerializationUtil.serializer(blockStore);
             byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
 
@@ -111,13 +113,13 @@ public class PackBlockTool {
         //矿机自身获得
         byte[] sn =Base58.decode(miningAddress.get(idx));
         coinBase.addOutput(minerRreward,new Address(networkParams,sn));
-        log.info("挖矿奖励给地址:{},高度:{},金额:{}", sn, height, minerRreward.value);
+        log.info("挖矿奖励给地址:{},高度:{},金额:{}", Base58.encode(sn), height, minerRreward.value);
 
-        List<DepositAccount> deposits = ChainStateStorage.get().getDeposits(sn);
+        List<DepositAccount> deposits = ChainStateStorage.get().getDeposits(sn).getDepositAccounts();
         //当前没有储蓄帐户,则挖出来的币直接奖励给矿机
-        if (deposits.size() == 0) {
+        if (null==deposits||deposits.size() == 0) {
             coinBase.addOutput(consensusRreward,new Address(networkParams,sn));
-            log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", sn, height,consensusRreward.value);
+            log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", Base58.encode(sn), height,consensusRreward.value);
         } else {//有储蓄者
             Coin totalAmount = calTotalAmount(deposits);
             for (DepositAccount deposit : deposits) {

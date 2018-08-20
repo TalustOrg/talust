@@ -29,8 +29,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.talust.common.model.MessageChannel;
 import org.talust.common.tools.CacheManager;
+import org.talust.common.tools.SerializationUtil;
+import org.talust.core.model.Block;
+import org.talust.core.storage.BlockStore;
 import org.talust.network.MessageHandler;
 import org.talust.core.storage.BlockStorage;
+
+import java.io.IOException;
 
 @Slf4j//其他节点广播出来的区块数据
 public class BlockArrivedHandler implements MessageHandler {
@@ -56,28 +61,13 @@ public class BlockArrivedHandler implements MessageHandler {
      * @return
      */
     public byte[] saveBlock(MessageChannel messageChannel) {
-//        byte[] blockBytes = messageChannel.getMessage().getContent();
-//        Block block = SerializationUtil.deserializer(blockBytes, Block.class);
-//        byte[] hash = Sha256Hash.of(blockBytes).getBytes();
-//        blockStorage.put(hash, blockBytes);
-//        blockStorage.put(Constant.NOW_BLOCK_HASH, hash);
-//        byte[] bh = (Constant.BH_PRIX + block.getHead().getHeight()).getBytes();
-//        blockStorage.put(bh, hash);
-//        cu.setCurrentBlockHeight(block.getHead().getHeight());
-//        cu.setCurrentBlockTime(block.getHead().getTime());
-//        cu.setCurrentBlockHash(hash);
-//        if(Conference.get().getMaster()!=null){
-//            cu.setCurrentBlockGenIp(Conference.get().getMaster().getIp());
-//        }
-//        log.info("成功存储区块数据,当前hash:{},height:{},time:{}", Hex.encode(hash), block.getHead().getHeight(), block.getHead().getTime());
-//        List<byte[]> data = block.getBody().getData();
-//        for (byte[] datum : data) {
-//            MessageChannel nm = new MessageChannel();
-//            Message msg = SerializationUtil.deserializer(datum, Message.class);
-//            nm.setMessage(msg);
-//            transactionHandler.handle(nm);
-//            DataContainer.get().removeRecord(datum);
-//        }
+        byte[] blockBytes = messageChannel.getMessage().getContent();
+        BlockStore blockStore = SerializationUtil.deserializer(blockBytes, BlockStore.class);
+        try {
+            blockStorage.saveBlock(blockStore);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         //@TODO 区块存储时,需要将里面的数据解析出来进行一些索引的存储,比如交易信息这些
         return null;
     }
