@@ -139,7 +139,7 @@ public class MakeTestNetGengsisBlock {
             account.signAccount();
             account.verify();
 
-            File accountFile = new File("./data/account/", addressTemp.getBase58()+".dat");
+            File accountFile = new File("./data/account/", addressTemp.getBase58());
 
             FileOutputStream fos = new FileOutputStream(accountFile);
             try {

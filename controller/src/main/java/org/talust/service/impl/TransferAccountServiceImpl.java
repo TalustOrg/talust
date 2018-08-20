@@ -26,19 +26,21 @@ package org.talust.service.impl;/*
 import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.talust.client.validator.TransactionValidator;
 import org.talust.common.crypto.AESEncrypt;
 import org.talust.common.crypto.Base58;
+import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
-import org.talust.common.exception.VerificationException;
 import org.talust.common.model.Coin;
+import org.talust.common.model.Message;
+import org.talust.common.model.MessageType;
 import org.talust.common.tools.ArithUtils;
 import org.talust.common.tools.CacheManager;
-import org.talust.common.tools.Configure;
+import org.talust.common.tools.DateUtil;
+import org.talust.common.tools.SerializationUtil;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.core.SynBlock;
@@ -74,8 +76,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
 
     private TransactionStorage transactionStorage = TransactionStorage.get();
 
-    @Autowired
-    private TransactionValidator transactionValidator;
+    private TransactionValidator transactionValidator =new  TransactionValidator();
     private NetworkParams network = MainNetworkParams.get();
     @Override
     public boolean decryptAccount(String password, Account account) {
@@ -220,7 +221,18 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             assert transactionValidator.checkTransaction(tx,null);
             //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
             boolean success = TransactionCache.getInstace().add(tx);
+
+            Message message = new Message();
+            byte[] data = SerializationUtil.serializer(tx);
+            byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
+            message.setContent(data);
+            message.setSigner(account.getEcKey().getPubKey());
+            message.setSignContent(sign);
+            message.setType(MessageType.TRANSACTION.getType());
+            message.setTime(DateUtil.getTimeSecond());
             //广播交易
+            ConnectionManager.get().TXMessageSend(message);
+
         }catch (Exception e ){
         }finally {
             locker.unlock();

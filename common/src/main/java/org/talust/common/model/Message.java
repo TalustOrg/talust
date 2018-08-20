@@ -94,20 +94,5 @@ public class Message {
         this.signContent = signContent;
     }
 
-    public static void main(String[] args) {
-        String cont = "hello world";
-        String signer = "zs";
-        String signContent = "signContent";
-        Message nm = new Message();
-        nm.setContent(cont.getBytes());
-        nm.setSigner(signer.getBytes());
-        nm.setSignContent(signContent.getBytes());
-        byte[] serializer = SerializationUtil.serializer(nm);
-        Message deserializer = SerializationUtil.deserializer(serializer, Message.class);
-        System.out.println(new String(deserializer.getContent()));
-        System.out.println(deserializer.getSigner());
-        System.out.println(new String(deserializer.getSignContent()));
-    }
-
 }
 

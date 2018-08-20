@@ -62,6 +62,11 @@ public class ConnectionManager {
      * 存储当前网络的超级节点ip地址
      */
     private Set<String> superIps = new ConcurrentSet<>();
+
+    /**
+     * 出块节点存储
+     */
+    public String masterIp ;
     /**
      * 超级节点信息
      */
@@ -70,10 +75,6 @@ public class ConnectionManager {
      * 当前节点是否是超级节点
      */
     public boolean superNode = false;
-    /**
-     * 当前节点是否是创世ip
-     */
-    public boolean genesisIp = false;
 
     /**
      * 节点自身ip地址
@@ -313,14 +314,6 @@ public class ConnectionManager {
             e.printStackTrace();
         }
 
-        JSONObject gip = getJsonFile(Configure.GENESIS_SERVER_ADDR);
-        JSONObject root = gip.getJSONObject("root");
-        CacheManager.get().put("ROOT_DATA", root.getString("data"));
-        JSONObject talust = gip.getJSONObject("talust");
-        CacheManager.get().put("TALUST_DATA", talust.getString("data"));
-        if (myIps.contains(gip.getString("genesisIp"))) {
-            genesisIp = true;
-        }
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
         List<String> minings = new ArrayList<>();
         for (Object map : ips.entrySet()) {
@@ -447,5 +440,11 @@ public class ConnectionManager {
         return superNodes.get(superIp);
     }
 
+    public String getMasterIp() {
+        return masterIp;
+    }
 
+    public void setMasterIp(String masterIp) {
+        this.masterIp = masterIp;
+    }
 }

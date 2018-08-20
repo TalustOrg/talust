@@ -107,6 +107,7 @@ public class Conference {
                 Integer value = next.getValue();
                 if (value > needOkNumber) {
                     master = ConnectionManager.get().getSuperNodeByIp(next.getKey());
+                    ConnectionManager.get().setMasterIp(master.getIp());
                     return master;
                 }
             }
@@ -114,6 +115,7 @@ public class Conference {
             boolean superNode = ConnectionManager.get().superNode;
             if (superNode) {//如果当前节点是超级节点,则启动共识机制
                 master = ConnectionManager.get().getSuperNodeByIp(ConnectionManager.get().getSelfIp());
+                ConnectionManager.get().setMasterIp(master.getIp());
                 return master;
             }
         }
@@ -147,7 +149,9 @@ public class Conference {
                     }
                 }
                 this.master = nextMaster;
+                ConnectionManager.get().setMasterIp(master.getIp());
                 if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
+
                     ConsensusService.get().startGenBlock();
                 }
             } else {//说明已经改变完成
@@ -199,11 +203,13 @@ public class Conference {
                     }
                 }
                 if (nextMaster.equals(newMasterIp)) {//说明当前节点认同此更新
+                    ConnectionManager.get().setMasterIp(newMasterIp);
                     return true;
                 }
             } else {
                 changeMaster();
                 if (newMasterIp.equals(master)) {
+                    ConnectionManager.get().setMasterIp(newMasterIp);
                     return true;
                 }
             }
