@@ -40,6 +40,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j //帐户存储服务
 public class AccountStorage {
@@ -48,6 +49,8 @@ public class AccountStorage {
     private List<Account> accountList = new ArrayList<Account>();
     private MainNetworkParams network = MainNetworkParams.get();
     private static AccountStorage instance = new AccountStorage();
+
+    private TransactionStorage transactionStorage =  TransactionStorage.get();
 
     private AccountStorage() {
         init(Configure.DATA_ACCOUNT);
@@ -95,7 +98,7 @@ public class AccountStorage {
         byte[] data = account.serialize();
         JSONObject fileJson = new JSONObject();
         fileJson.put("data", data);
-        fileJson.put("address", account.getAddress().getBase58());
+        fileJson.put("address",account.getAddress().getBase58());
         fileJson.put("privateKey", account.getPriSeed());
         fileJson.put("isEncrypted", account.isEncrypted());
         FileOutputStream fos = new FileOutputStream(accFile);
@@ -150,61 +153,6 @@ public class AccountStorage {
         }
 
     }
-//
-//    /**
-//     * 导入文件登录
-//     *
-//     * @throws Exception
-//     */
-//    public Account accountLogin(String filePath, String accPassword) throws ErrorPasswordException, AccountFileEmptyException {
-//        File file = new File(filePath);
-//        if (file.exists()) {
-//            String content = null;
-//            try {
-//                content = FileUtil.fileToTxt(file);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            if (content != null && content.length() > 0) {
-//                JSONObject fileJson = JSONObject.parseObject(content);
-//                if (null == accPassword) {
-//                    accPassword = "";
-//                }
-//                byte[] decrypt = new byte[0];
-//                try {
-//                    decrypt = AESEncrypt.decrypt(Hex.decode(fileJson.getString("privateKey")), accPassword);
-//                } catch (InvalidCipherTextException e) {
-//                    throw new ErrorPasswordException();
-//                }
-//                //解密成功,将密钥对信息放入ecKey对象中
-//                ecKey = ECKey.fromPrivate(new BigInteger(decrypt));
-//                account = new Account();
-//                account.setPublicKey(ecKey.getPubKey());
-//                account.setPrivateKey(decrypt);
-//                account.setAccType(fileJson.getInteger("t"));
-//                String fileAddress = fileJson.getString("address");
-//                byte[] address = new byte[0];
-//                try {
-//                    address = Base58.decodeChecked(Base58.encode(StringUtils.hexStringToBytes(fileAddress)));
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                if (Utils.getAddress(ecKey.getPubKey()).equals(address)) {
-//                    account.setAddress(StringUtils.hexStringToBytes(fileAddress));
-//                }
-//                if (null == accPassword || "".equals(accPassword)) {
-//                    account.setAccPwd(false);
-//                } else {
-//                    account.setAccPwd(true);
-//                }
-//
-//            } else {
-//                throw new AccountFileEmptyException("error");
-//            }
-//        }
-//        return account;
-//    }
-//
 
     /**
      * 根据PK 登录
@@ -229,6 +177,42 @@ public class AccountStorage {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    //获取账户对应的has160
+    public List<byte[]> getAccountHash160s() {
+        CopyOnWriteArrayList<byte[]> hash160s = new CopyOnWriteArrayList<byte[]>();
+        for (Account account : accountList) {
+            Address address = account.getAddress();
+            byte[] hash160 = address.getHash160();
+
+            hash160s.add(hash160);
+        }
+        return hash160s;
+    }
+
+    /*
+     * 从状态链（未花费的地址集合）和未确认的交易加载余额
+     */
+    public void loadBalanceFromChainstateAndUnconfirmedTransaction(List<byte[]> hash160s) {
+
+        try {
+            for (Account account : accountList) {
+                Address address = account.getAddress();
+                loadAddressBalance(address);
+            }
+        }catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    //加载单个地址的余额信息
+    private void loadAddressBalance(Address address) {
+        //查询可用余额和等待中的余额
+        Coin[] balances = transactionStorage.getBalanceAndUnconfirmedBalance(address.getHash160());
+
+        address.setBalance(balances[0]);
+        address.setUnconfirmedBalance(balances[1]);
     }
 
     /**
@@ -277,23 +261,11 @@ public class AccountStorage {
 
     public Account getAccountByAddress(String address) {
         for (Account account : accountList) {
-            if (Base58.encode(account.getAddress().getHash160()).equals(address)) {
+            if (account.getAddress().getBase58().equals(address)) {
                 return account;
             }
         }
         return null;
     }
 
-//    public ECKey getEcKey() {
-//        return ecKey;
-//    }
-//
-//
-//    public List<Account> getAccounts() {
-//        return accounts;
-//    }
-//
-//    public void setAccounts(List<Account> accounts) {
-//        this.accounts = accounts;
-//    }
 }

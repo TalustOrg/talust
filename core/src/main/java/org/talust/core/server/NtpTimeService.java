@@ -79,7 +79,6 @@ public class NtpTimeService {
         try {
             client.open();
             InetAddress hostAddr = InetAddress.getByName(SERVER_IP);
-            System.out.println(" > " + hostAddr.getHostName() + "/" + hostAddr.getHostAddress());
             TimeInfo info = client.getTime(hostAddr);
             processResponse(info);
             initSuccess();
@@ -125,16 +124,6 @@ public class NtpTimeService {
         NtpV3Packet message = info.getMessage();
         int stratum = message.getStratum();
         int version = message.getVersion();
-        int li = message.getLeapIndicator();
-        log.info(" leap=" + li + ", version="
-                + version + ", precision=" + message.getPrecision());
-        log.info(" mode: " + message.getModeName() + " (" + message.getMode() + ")");
-        int poll = message.getPoll();
-        log.info(" poll: " + (poll <= 0 ? 1 : (int) Math.pow(2, poll))
-                + " seconds" + " (2 ** " + poll + ")");
-        double disp = message.getRootDispersionInMillisDouble();
-        log.info(" rootdelay=" + NUM_FORMAT.format(message.getRootDelayInMillisDouble())
-                + ", rootdispersion(ms): " + NUM_FORMAT.format(disp));
         int refId = message.getReferenceId();
         String refAddr = NtpUtils.getHostAddress(refId);
         String refName = null;
@@ -160,18 +149,6 @@ public class NtpTimeService {
         if (refName != null && refName.length() > 1){
             refAddr += " (" + refName + ")";
         }
-        log.info(" 参考标识符:\t" + refAddr);
-        TimeStamp refNtpTime = message.getReferenceTimeStamp();
-        log.info(" 参考时间戳:\t" + refNtpTime + "  " + refNtpTime.toDateString());
-        TimeStamp origNtpTime = message.getOriginateTimeStamp();
-        log.info(" 起始时间戳:\t" + origNtpTime + "  " + origNtpTime.toDateString());
-        long destTime = info.getReturnTime();
-        TimeStamp rcvNtpTime = message.getReceiveTimeStamp();
-        log.info(" 接收时间戳:\t" + rcvNtpTime + "  " + rcvNtpTime.toDateString());
-        TimeStamp xmitNtpTime = message.getTransmitTimeStamp();
-        log.info(" 发送时间戳:\t" + xmitNtpTime + "  " + xmitNtpTime.toDateString());
-        TimeStamp destNtpTime = TimeStamp.getNtpTime(destTime);
-        log.info("目的时间戳:\t" + destNtpTime + "  " + destNtpTime.toDateString());
         info.computeDetails();
         Long offsetValue = info.getOffset();
         Long delayValue = info.getDelay();

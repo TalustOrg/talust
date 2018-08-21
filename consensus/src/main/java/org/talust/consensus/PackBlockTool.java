@@ -4,6 +4,7 @@ import io.protostuff.GraphIOUtil;
 import io.protostuff.ProtostuffIOUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.crypto.Base58;
+import org.talust.common.crypto.Hex;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.model.*;
 import org.talust.common.model.Message;
@@ -111,7 +112,8 @@ public class PackBlockTool {
         //当前获得收益的区块
         int idx = (int) (height % size);
         //矿机自身获得
-        byte[] sn =Base58.decode(miningAddress.get(idx));
+        Address mingAddr = Address.fromBase58(networkParams,miningAddress.get(idx));
+        byte[] sn = mingAddr.getHash160();
         coinBase.addOutput(minerRreward,new Address(networkParams,sn));
         log.info("挖矿奖励给地址:{},高度:{},金额:{}", Base58.encode(sn), height, minerRreward.value);
 

@@ -28,6 +28,7 @@ package org.talust.core.storage;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.VerificationException;
+import org.talust.common.model.Coin;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,8 @@ import org.rocksdb.*;
 import org.talust.common.tools.RandomUtil;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
+import org.talust.core.model.Account;
+import org.talust.core.model.Address;
 import org.talust.core.model.Block;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.Script;
@@ -46,6 +49,7 @@ import org.talust.storage.BaseStoreProvider;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
@@ -61,6 +65,10 @@ public class BlockStorage extends BaseStoreProvider {
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private ChainStateStorage chainStateStorage = ChainStateStorage.get();
+
+    private AccountStorage accountStorage =  AccountStorage.get();
+
+    private TransactionStorage transactionStorage = TransactionStorage.get();
     private BlockStorage() {
         this(Configure.DATA_BLOCK);
     }
@@ -222,6 +230,7 @@ public class BlockStorage extends BaseStoreProvider {
             }
 
         }
+        checkIsMineAndUpdate(txs);
     }
     /**
      * 检查交易是否与我有关，并且更新状态
@@ -261,7 +270,6 @@ public class BlockStorage extends BaseStoreProvider {
                     if(input.getFroms() == null || input.getFroms().size() == 0) {
                         continue;
                     }
-
                     for (TransactionOutput from : input.getFroms()) {
                         //对上一交易的引用以及索引值
                         Sha256Hash fromId = from.getParent().getHash();
@@ -303,10 +311,12 @@ public class BlockStorage extends BaseStoreProvider {
 
     //更新与自己相关的交易
     public void updateMineTx(TransactionStore txs) {
-//        if(transactionListener != null) {
-//            transactionListener.newTransaction(txs);
-//        }
+        accountStorage.loadBalanceFromChainstateAndUnconfirmedTransaction(accountStorage.getAccountHash160s());
+        transactionStorage.processNewTransaction(txs);
     }
+
+
+
     /**
      * 获取一笔交易
      * @param hash

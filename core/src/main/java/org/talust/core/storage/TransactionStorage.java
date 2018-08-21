@@ -27,6 +27,7 @@ package org.talust.core.storage;
 
 import org.talust.common.crypto.Hex;
 import org.talust.common.crypto.Sha256Hash;
+import org.talust.common.model.Coin;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.RocksDBException;
@@ -36,7 +37,9 @@ import org.talust.core.model.Address;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.Script;
 import org.talust.core.server.NtpTimeService;
+import org.talust.core.transaction.BaseCommonlyTransaction;
 import org.talust.core.transaction.Transaction;
+import org.talust.core.transaction.TransactionInput;
 import org.talust.core.transaction.TransactionOutput;
 import org.talust.storage.BaseStoreProvider;
 
@@ -70,7 +73,7 @@ public class TransactionStorage extends BaseStoreProvider {
     //交易记录对应的账号列表
     private List<byte[]> addresses = new CopyOnWriteArrayList<byte[]>();
     //我的交易列表
-    private List<TransactionOutput> myTxList = new CopyOnWriteArrayList<TransactionOutput>();
+    private List<TransactionStore> myTxList = new CopyOnWriteArrayList<TransactionStore>();
     //未花费的交易
     private List<TransactionStore> unspendTxList = new CopyOnWriteArrayList<TransactionStore>();
 
@@ -160,6 +163,79 @@ public class TransactionStorage extends BaseStoreProvider {
         return txs;
     }
 
+
+    /**
+     * 获取地址的最新余额和未确认的余额
+     * @param hash160
+     * @return Coin[]
+     */
+    public Coin[] getBalanceAndUnconfirmedBalance(byte[] hash160) {
+        Coin balance = Coin.ZERO;
+        Coin unconfirmedBalance = Coin.ZERO;
+
+        //查询当前区块最新高度
+        long bestBlockHeight = network.getBestHeight();
+        long localBestBlockHeight = network.getBestBlockHeight();
+
+        if(bestBlockHeight < localBestBlockHeight) {
+            bestBlockHeight = localBestBlockHeight;
+        }
+
+        for (TransactionStore transactionStore : unspendTxList) {
+            //获取转入交易转入的多少钱
+            Transaction tx = transactionStore.getTransaction();
+            if(!tx.isPaymentTransaction()) {
+                continue;
+            }
+
+            //如果交易不可用，则标记
+            boolean txAvailable = true;
+            if(tx.getLockTime() < 0l
+                    || (tx.getLockTime() > Definition.LOCKTIME_THRESHOLD && tx.getLockTime() > NtpTimeService.currentTimeSeconds())
+                    || (tx.getLockTime() < Definition.LOCKTIME_THRESHOLD && tx.getLockTime() > bestBlockHeight)) {
+                txAvailable = false;
+            }
+
+            byte[] key = tx.getHash().getBytes();
+            byte[] status = transactionStore.getStatus();
+
+            List<TransactionOutput> outputs = tx.getOutputs();
+
+            for (int i = 0; i < outputs.size(); i++) {
+                TransactionOutput output = outputs.get(i);
+                Script script = output.getScript();
+                if(script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
+
+                    byte[] statueKey = new byte[key.length + 1];
+                    System.arraycopy(key, 0, statueKey, 0, key.length);
+                    statueKey[statueKey.length - 1] = (byte) i;
+
+                    //交易是否已花费
+//					byte[] content = chainstateStoreProvider.getBytes(statueKey);
+//					if(content == null) {
+//						continue;
+//					}
+                    //交易是否已花费
+                    if(status != null && status.length > 0 && status[i] == TransactionStore.STATUS_USED) {
+                        continue;
+                    }
+                    //本笔输出是否可用
+                    long lockTime = output.getLockTime();
+                    if(!txAvailable || lockTime < 0l
+                            || (lockTime >= Definition.LOCKTIME_THRESHOLD && lockTime > NtpTimeService.currentTimeSeconds())
+                            || (lockTime < Definition.LOCKTIME_THRESHOLD && lockTime > bestBlockHeight)
+                            || (i == 0 && transactionStore.getHeight() == -1l)) {
+                        unconfirmedBalance = unconfirmedBalance.add(Coin.valueOf(output.getValue()));
+                    } else {
+                        balance = balance.add(Coin.valueOf(output.getValue()));
+                    }
+                }
+            }
+        }
+        return new Coin[]{balance, unconfirmedBalance};
+    }
+
+
     /**
      * 获取制定地址集合所有未花费的交易输出
      * @return List<TransactionOutput>
@@ -226,22 +302,97 @@ public class TransactionStorage extends BaseStoreProvider {
         return txs;
     }
 
+    /**
+     * 处理新交易
+     * @param txs
+     */
+    public void processNewTransaction(TransactionStore txs) {
+        boolean hasUpdate = false;
+        //交易是否已经存在
+        for (TransactionStore transactionStore : myTxList) {
+            //如果存在，则更新高度
+            if(transactionStore.getTransaction().getHash().equals(txs.getTransaction().getHash())) {
+                transactionStore.setHeight(txs.getHeight());
+                txs = transactionStore;
+                hasUpdate = true;
+                //保存
+                put(txs.getTransaction().getHash().getBytes(), txs.baseSerialize());
+                break;
+            }
+        }
+        Transaction tx = txs.getTransaction();
 
-//    //初始化所有交易中对应本地已经存在的地址的相关交易
-//    public void init() {
-//       List<Account> accounts =  AccountStorage.get().getAccounts();
-//        RocksIterator iter = db.newIterator();
-//        for(iter.seekToFirst(); iter.isValid(); iter.next()) {
-//            System.out.println("iter key:" + new String(iter.key()) + ", iter value:" + new String(iter.value()));
-//            byte[] key = iter.key();
-//            if(Arrays.equals(ADDRESSES_KEY, key)) {
-//                continue;
-//            }
-//            byte[] value = iter.value();
-//            TransactionOut out =  SerializationUtil.deserializer(value,TransactionOut.class);
-//            mineTxList.add(out);
-//        }
-//    }
+        if(!hasUpdate) {
+            //如果不存在，则新增
+            myTxList.add(txs);
 
+            if(tx.isPaymentTransaction()) {
+                //更新交易状态
+                List<TransactionOutput> outputs = tx.getOutputs();
+
+                List<TransactionInput> inputs = tx.getInputs();
+                if(inputs != null) {
+                    for (TransactionInput input : inputs) {
+                        if(input.getFroms() == null || input.getFroms().size() == 0) {
+                            continue;
+                        }
+                        for (TransactionOutput from : input.getFroms()) {
+                            Sha256Hash fromTxHash = from.getParent().getHash();
+
+                            for (TransactionStore unspendTx : unspendTxList) {
+                                if(unspendTx.getTransaction().getHash().equals(fromTxHash)) {
+                                    //更新内存
+                                    byte[] ftxStatus = unspendTx.getStatus();
+                                    ftxStatus[from.getIndex()] = TransactionStore.STATUS_USED;
+                                    unspendTx.setStatus(ftxStatus);
+
+                                    //更新存储
+                                    put(unspendTx.getTransaction().getHash().getBytes(), unspendTx.baseSerialize());
+
+                                    //查询该笔交易是否还有我没有花费的交易
+                                    List<TransactionOutput> outputsTemp = unspendTx.getTransaction().getOutputs();
+                                    boolean hasUnspend = false;
+                                    for (TransactionOutput transactionOutput : outputsTemp) {
+                                        Script script = transactionOutput.getScript();
+                                        for (byte[] hash160 : addresses) {
+                                            if(script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)
+                                                    && ftxStatus[transactionOutput.getIndex()] == TransactionStore.STATUS_UNUSE) {
+                                                hasUnspend = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if(!hasUnspend) {
+                                        unspendTxList.remove(unspendTx);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                //交易状态
+                byte[] status = new byte[outputs.size()];
+
+                for (int i = 0; i < outputs.size(); i++) {
+                    TransactionOutput output = outputs.get(i);
+                    Script script = output.getScript();
+                    status[i] = TransactionStore.STATUS_UNUSE;
+
+                    for (byte[] hash160 : addresses) {
+                        if(script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)
+                                && !unspendTxList.contains(txs)) {
+                            unspendTxList.add(txs);
+                            break;
+                        }
+                    }
+                }
+                //设置交易存储状态
+                txs.setStatus(status);
+            }
+            //保存
+            put(txs.getTransaction().getHash().getBytes(), txs.baseSerialize());
+        }
+    }
 
 }

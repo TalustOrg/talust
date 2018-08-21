@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.talust.common.crypto.Base58;
+import org.talust.common.crypto.Hex;
 import org.talust.common.tools.ArithUtils;
 import org.talust.core.model.Account;
 import org.talust.service.TransferAccountService;
@@ -47,7 +48,7 @@ public class TransferAccountsController {
     private TransferAccountService transferAccountService;
 
     @ApiOperation(value = "发起转账", notes = "帐户信息已经存在的情况下,转账")
-    @PostMapping(value = "tansfer", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "tansfer")
     JSONObject tansfer(@RequestParam String toAddress, @RequestParam String money, @RequestParam String address, @RequestParam String password) {
         JSONObject resp = new JSONObject();
         if (StringUtil.isNullOrEmpty(toAddress) || StringUtil.isNullOrEmpty(money)) {
@@ -69,7 +70,7 @@ public class TransferAccountsController {
             return resp;
         }
         try {
-            Base58.decodeChecked(toAddress);
+           byte[] hash160 =  Base58.decodeChecked(toAddress);
         } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "目标账户验证失败");
@@ -90,8 +91,7 @@ public class TransferAccountsController {
             }
         }
         JSONObject isOk = transferAccountService.transfer(toAddress,money,address,password);
-
-        return null;
+        return isOk;
     }
 
 //    public TransferAccountService getTransferAccountService() {

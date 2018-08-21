@@ -1,4 +1,4 @@
-package org.talust.service.impl;/*
+/*
  * MIT License
  *
  * Copyright (c) 2017-2018 talust.org talust.io
@@ -22,11 +22,11 @@ package org.talust.service.impl;/*
  * SOFTWARE.
  *
  */
+package org.talust.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.talust.client.validator.TransactionValidator;
@@ -96,6 +96,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
 
     @Override
     public Account getAccountByAddress(String address) {
+        Base58.decodeChecked(address);
         return AccountStorage.get().getAccountByAddress(address);
     }
 
@@ -148,7 +149,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 resp.put("message", "出账账户不存在");
                 return resp;
             }
-            if(account.getAddress().equals(Base58.decode(toAddress))){
+            if(account.getAddress().getBase58().equals(toAddress)){
                 resp.put("retCode", "1");
                 resp.put("message", "不能给自己转账");
                 return resp;
@@ -167,7 +168,6 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     }
                 }
             }
-            //byte[] myAddress = account.getAddress();
             //当前余额可用余额
             long balance = account.getAddress().getBalance().value;
             if(ArithUtils.compareStr(balance+"",money) < 0) {
@@ -232,7 +232,6 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             message.setTime(DateUtil.getTimeSecond());
             //广播交易
             ConnectionManager.get().TXMessageSend(message);
-
         }catch (Exception e ){
         }finally {
             locker.unlock();

@@ -33,6 +33,7 @@ import org.talust.common.exception.ErrorPasswordException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
+import org.talust.core.storage.AccountStorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +48,7 @@ public class AccountController {
     ResponseMessage login() {
        List<String> addrs =new ArrayList<>();
         try {
-           // AccountStorage.get().walletLogin();
+//            AccountStorage.get().walletLogin();
         } catch (Exception e) {
             if (e instanceof ErrorPasswordException) {
                 return ResponseMessage.error("登录的账户和密码不匹配,请确认后输入!");
