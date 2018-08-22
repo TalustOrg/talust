@@ -241,7 +241,6 @@ public class SynBlock {
                 }
             }
         }
-        synBlock();
     }
 
     public MessageHandler getBlockArrivedHandler() {

@@ -25,14 +25,11 @@
 
 package org.talust.core.data;
 
-import org.talust.common.crypto.Sha256Hash;
-import org.talust.common.crypto.Utils;
+
 import org.talust.core.transaction.Transaction;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 //数据容器,节点接收到的数据,先对接收到的数据进行校验,然后
