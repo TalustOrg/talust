@@ -72,14 +72,17 @@ public class BlockArrivedValidator implements MessageValidator {
         }
         Sha256Hash prevBlock = block.getPreHash();//前一区块hash
         byte[] preBlockBytes = storageService.get(prevBlock.getBytes());
-        if (preBlockBytes != null||block.getHeight()==1) {
+        if (preBlockBytes != null) {
             BlockHeader blockHeader = new BlockHeader(MainNetworkParams.get(), preBlockBytes);
             long preHeight = blockHeader.getHeight();
             long nowHeight = block.getHeight();
             if ((nowHeight - preHeight) == 1) {
                 result = true;
             }
-        } else {
+        }else if(block.getHeight()==1){
+            result = true;
+            return result;
+        }else if(!SynBlock.get().getSyning().get()){
             log.info("本区块同步有问题,未存储所接收到的区块的前一区块的数据,应该启用同步区块程序,当前区块高度:{}", height);
             SynBlock.get().startSynBlock();
         }
@@ -108,8 +111,6 @@ public class BlockArrivedValidator implements MessageValidator {
 
 
     public boolean verifyBlock(Block block) {
-        long now = System.currentTimeMillis();
-
         try {
             if (!block.verify()) {
                 return false;

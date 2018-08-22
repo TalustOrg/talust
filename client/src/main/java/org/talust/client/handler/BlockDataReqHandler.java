@@ -32,6 +32,7 @@ import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 import org.talust.common.tools.Constant;
 import org.talust.common.tools.SerializationUtil;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.core.storage.BlockStore;
 import org.talust.network.MessageHandler;
 import org.talust.network.netty.queue.MessageQueue;
@@ -55,18 +56,26 @@ public class BlockDataReqHandler implements MessageHandler {
         byte[] content = message.getMessage().getContent();
         String num = new String(content);//区块高度
         log.info("远端ip:{} 向当前节点请求区块:{} 的块数据内容...", message.getFromIp(), num);
-        byte[] heightBytes = new byte[4];
-        Utils.uint32ToByteArrayBE(Long.parseLong(num), heightBytes, 0);
-        BlockStore blockStore= blockStorage.getBlockByHeight(Long.parseLong(num));
-        if (blockStore != null) {
+        if(num.equals("1")){
+            BlockStore blockStore=MainNetworkParams.get().getGengsisBlock();
             byte[] block = SerializationUtil.serializer(blockStore);
             nodeMessage.setContent(block);//存储区块内容
             nodeMessage.setType(MessageType.BLOCK_RESP.getType());
             log.info("向远端ip:{} 返回本节点拥有的区块:{} 的区块内容...", message.getFromIp(), num);
-        } else {
-            nodeMessage.setContent(content);
-            nodeMessage.setType(MessageType.ERROR_MESSAGE.getType());
-            log.info("向远端ip:{} 返回错误消息,当前节点无此区块:{} 数据",message.getFromIp(), num);
+        }else{
+            byte[] heightBytes = new byte[4];
+            Utils.uint32ToByteArrayBE(Long.parseLong(num), heightBytes, 0);
+            BlockStore blockStore= blockStorage.getBlockByHeight(Long.parseLong(num));
+            if (blockStore != null) {
+                byte[] block = SerializationUtil.serializer(blockStore);
+                nodeMessage.setContent(block);//存储区块内容
+                nodeMessage.setType(MessageType.BLOCK_RESP.getType());
+                log.info("向远端ip:{} 返回本节点拥有的区块:{} 的区块内容...", message.getFromIp(), num);
+            } else {
+                nodeMessage.setContent(content);
+                nodeMessage.setType(MessageType.ERROR_MESSAGE.getType());
+                log.info("向远端ip:{} 返回错误消息,当前节点无此区块:{} 数据",message.getFromIp(), num);
+            }
         }
         mq.addMessage(mc);
         return true;

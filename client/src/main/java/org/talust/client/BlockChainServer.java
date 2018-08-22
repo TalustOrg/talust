@@ -152,30 +152,8 @@ public class BlockChainServer {
         AccountStorage.get();
         TransactionStorage.get().init();
 
+        MakeTestNetGengsisBlock.main(null   );
 
-
-        log.info("初始化缓存...");
-             byte[] nowBlockHash = blockStorage.get(Constant.NOW_BLOCK_HASH);
-
-        if (nowBlockHash != null) {
-            byte[] nowBlock = blockStorage.get(nowBlockHash);
-            byte[] addrBytes = blockStorage.get(Constant.MINING_ADDRESS);
-            List<String>  miningAddress = new ArrayList<>();
-            if(addrBytes!=null){
-                MiningAddress miningAddres = SerializationUtil.deserializer(addrBytes, MiningAddress.class);
-                if (miningAddres != null) {
-                    miningAddress = miningAddres.getAddress();
-                }
-                CacheManager.get().put(new String(Constant.MINING_ADDRESS), miningAddress);
-            }
-            if (nowBlock != null) {
-                Block block = SerializationUtil.deserializer(nowBlock, Block.class);
-                //将区块的最新打包时间写入缓存
-                CacheManager.get().setCurrentBlockTime(block.getTime());
-                CacheManager.get().setCurrentBlockHeight(block.getHeight());
-                CacheManager.get().setCurrentBlockHash(nowBlockHash);
-            }
-        }
         BlockChainServer.get().start();
 
     }

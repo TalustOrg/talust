@@ -118,12 +118,8 @@ public class MakeTestNetGengsisBlock {
 
         gengsisBlock.sign(account);
         gengsisBlock.verifyScript();
-
         System.out.println("the block hash is: "+ Hex.encode(gengsisBlock.getHash().getBytes()));
-
         System.out.println(Hex.encode(gengsisBlock.baseSerialize()));
-
-
         Block block = new Block(network, gengsisBlock.baseSerialize());
         block.buildMerkleHash();
         BlockStore blockStore = new BlockStore(network,block);
