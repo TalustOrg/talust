@@ -64,7 +64,7 @@ public class MakeTestNetGengsisBlock {
         coinBaseTx.addInput(input);
         input.setScriptSig(ScriptBuilder.createCoinbaseInputScript("this a gengsis tx".getBytes()));
 
-        //货币存放账户
+        //root账户
         ECKey key = ECKey.fromPrivate(new BigInteger("114346884908037705206586672597018220174539506952607328716648835904805261540068"));
         Address address = AccountTool.newAddress(network, key);
 
@@ -79,30 +79,24 @@ public class MakeTestNetGengsisBlock {
 
         txs.add(coinBaseTx);
 
-        //货币存放账户
+        //talust账户
         ECKey key1 = ECKey.fromPrivate(new BigInteger("2997229700204357452671714648402150025921621779744031016766434714937335169460"));
         Address address1 = AccountTool.newAddress(network, key1);
 
         //把永久锁定的转入一个账号内
-        Transaction tx = new Transaction(network);
-        tx.setVersion(Definition.VERSION);
-        tx.setType(Definition.TYPE_PAY);
-        tx.setLockTime(0l);
-        input = new TransactionInput((TransactionOutput)coinBaseTx.getOutput(0));
-        tx.addInput(input);
+        Transaction coinbase = new Transaction(network);
+        coinbase.setVersion(Definition.VERSION);
+        coinbase.setType(Definition.TYPE_COINBASE);
 
-        //冻结数量
-        Coin freeze = Coin.MAX.div(10);
-        tx.addOutput(freeze, DateUtil.convertStringToDate("2019-08-01 00:00:00").getTime(), address1);
-        tx.addOutput(Coin.valueOf(coinBaseTx.getOutput(0).getValue()).subtract(freeze), 0, address);
+        TransactionInput inputT = new TransactionInput();
+        coinbase.addInput(inputT);
+        inputT.setScriptSig(ScriptBuilder.createCoinbaseInputScript("this a gengsis tx".getBytes()));
 
-        //创建一个输入的空签名
-        input.setScriptSig(ScriptBuilder.createInputScript(null, key));
-        //签名交易
-        final LocalTransactionSigner signer = new LocalTransactionSigner();
-        signer.signInputs(tx, key);
-        tx.verify();
-        txs.add(tx);
+        coinbase.addOutput(Coin.MAX.subtract(ConsensusCalculationUtil.TOTAL_REWARD), 0, address);
+        coinbase.verify();
+
+        txs.add(coinbase);
+
         gengsisBlock.setTxs(txs);
         gengsisBlock.setTxCount(txs.size());
 

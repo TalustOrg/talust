@@ -33,6 +33,8 @@ import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.common.tools.ThreadPool;
 import org.talust.core.model.Block;
+import org.talust.core.network.MainNetworkParams;
+import org.talust.core.storage.BlockStore;
 import org.talust.network.MessageHandler;
 import org.talust.network.MessageValidator;
 import org.talust.network.model.MyChannel;
@@ -154,7 +156,7 @@ public class SynBlock {
                 end = maxBlockHeight + 1;
             }
             long needBlockCount = end - start;//需要下载的区块数
-            List<Block> blocks = new ArrayList<>();
+            List<BlockStore> blocks = new ArrayList<>();
             Map<Long, MessageChannel> mapHeightData = new HashMap<>();
             while (true) {//始终要保证每一轮下载完成该下的任务
                 if (blocks.size() >= needBlockCount) {
@@ -162,8 +164,8 @@ public class SynBlock {
                 }
                 for (long idx = start; idx < end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
                     boolean needGain = true;//当前块需要下载
-                    for (Block block : blocks) {
-                        long height = block.getBlockHeader().getHeight();
+                    for (BlockStore block : blocks) {
+                        long height = block.getBlock().getHeight();
                         if (height == idx) {
                             needGain = false;//说明不需要下载该块,因为已经下载下来了
                             break;
@@ -201,33 +203,33 @@ public class SynBlock {
                         MessageChannel message = result.get();
                         if (message != null) {
                             byte[] content = message.getMessage().getContent();
-                            Block block = SerializationUtil.deserializer(content, Block.class);//远端返回来的区块
-                            blocks.add(block);
-                            mapHeightData.put(block.getBlockHeader().getHeight(), message);
+                            BlockStore blockStore = new BlockStore(MainNetworkParams.get(),content);//远端返回来的区块
+                            blocks.add(blockStore);
+                            mapHeightData.put(blockStore.getBlock().getBlockHeader().getHeight(), message);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             }
-            Collections.sort(blocks, (Block o1, Block o2) -> {//对本次返回的区块进行排序
-                long i = o1.getBlockHeader().getHeight() - o2.getBlockHeader().getHeight();
+            Collections.sort(blocks, (BlockStore o1, BlockStore o2) -> {//对本次返回的区块进行排序
+                long i = o1.getBlock().getBlockHeader().getHeight() - o2.getBlock().getBlockHeader().getHeight();
                 if (i == 0) {
                     return 0;
                 }
                 return 1;
             });
             log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
-            for (Block block : blocks) {
+            for (BlockStore block : blocks) {
                 try {
-                    log.info("经过排序后的区块高度为:{}", block.getBlockHeader().getHeight());
-                    MessageChannel messageChannel = mapHeightData.get(block.getBlockHeader().getHeight());
+                    log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
+                    MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
                     if (messageChannel != null) {
                         if (blockArrivedValidator.check(messageChannel)) {
                             blockArrivedHandler.handle(messageChannel);
                         }
                     } else {
-                        log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlockHeader().getHeight());
+                        log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());
                     }
                 } catch (Throwable e) {//本次下载的一批区块,其中有区块有问题
                     //@TODO 需要将区块有问题的下载节点加入黑名单,本处暂时忽略

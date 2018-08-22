@@ -63,7 +63,7 @@ public class BlockArrivedValidator implements MessageValidator {
     @Override
     public boolean check(MessageChannel messageChannel) {
         boolean result = false;
-        BlockStore blockStore =  SerializationUtil.deserializer(messageChannel.getMessage().getContent(), BlockStore.class);
+        BlockStore blockStore = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), BlockStore.class);
         Block block =blockStore.getBlock();
         long height = block.getHeight();
         boolean checkRepeat = CacheManager.get().checkRepeat(("block_height:" + height), Configure.BLOCK_GEN_TIME);

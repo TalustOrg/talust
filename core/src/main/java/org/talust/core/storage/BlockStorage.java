@@ -57,6 +57,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import org.talust.core.filter.BloomFilter;
 
 //区块存储
@@ -69,15 +70,18 @@ public class BlockStorage extends BaseStoreProvider {
 
     private ChainStateStorage chainStateStorage = ChainStateStorage.get();
 
-    private AccountStorage accountStorage =  AccountStorage.get();
+    private AccountStorage accountStorage = AccountStorage.get();
 
     private BlockStorage() {
         this(Configure.DATA_BLOCK);
     }
+
     //最新区块hash缓存
     private byte[] bestHashCacher = null;
     //账户过滤器，用于判断交易是否与我有关
-    private BloomFilter accountFilter = new BloomFilter(100000, 0.0001, RandomUtil.randomLong());;
+    private BloomFilter accountFilter = new BloomFilter(100000, 0.0001, RandomUtil.randomLong());
+    ;
+
     public static BlockStorage get() {
         return instance;
     }
@@ -103,6 +107,7 @@ public class BlockStorage extends BaseStoreProvider {
 
     /**
      * 保存区块完整的区块信息
+     *
      * @param blockStore
      * @throws IOException
      */
@@ -119,16 +124,16 @@ public class BlockStorage extends BaseStoreProvider {
             Sha256Hash preHash = block.getPreHash();
             if (preHash == null) {
                 throw new VerificationException("要保存的区块缺少上一区块的引用");
-            } else if(bestBlockHeader == null && Arrays.equals(bestBlockKey, preHash.getBytes()) && block.getHeight() == 0l) {
+            } else if (bestBlockHeader == null && Arrays.equals(bestBlockKey, preHash.getBytes()) && block.getHeight() == 0l) {
                 //创世块则通过
-            } else if(bestBlockHeader != null && bestBlockHeader.getBlockHeader().getHash().equals(preHash) &&
+            } else if (bestBlockHeader != null && bestBlockHeader.getBlockHeader().getHash().equals(preHash) &&
                     bestBlockHeader.getBlockHeader().getHeight() + 1 == block.getHeight()) {
                 //要保存的块和最新块能连接上，通过
             } else {
                 throw new VerificationException("错误的区块，保存失败");
             }
 
-            if(blockStore.getNextHash() == null) {
+            if (blockStore.getNextHash() == null) {
                 blockStore.setNextHash(Sha256Hash.ZERO_HASH);
             }
 
@@ -137,7 +142,7 @@ public class BlockStorage extends BaseStoreProvider {
             //保存交易
             for (int i = 0; i < block.getTxCount(); i++) {
                 Transaction tx = block.getTxs().get(i);
-                TransactionStore txs = new TransactionStore(network,  tx, block.getHeight(), null);
+                TransactionStore txs = new TransactionStore(network, tx, block.getHeight(), null);
                 db.put(tx.getHash().getBytes(), txs.baseSerialize());
                 saveChainstate(block, txs);
             }
@@ -157,7 +162,7 @@ public class BlockStorage extends BaseStoreProvider {
             bestHashCacher = hash.getBytes();
 
             //更新上一区块的指针
-            if(!Sha256Hash.ZERO_HASH.equals(block.getPreHash())) {
+            if (!Sha256Hash.ZERO_HASH.equals(block.getPreHash())) {
                 BlockHeaderStore preBlockHeader = getHeader(block.getPreHash().getBytes());
                 preBlockHeader.setNextHash(block.getHash());
                 db.put(preBlockHeader.getBlockHeader().getHash().getBytes(), preBlockHeader.baseSerialize());
@@ -171,12 +176,11 @@ public class BlockStorage extends BaseStoreProvider {
     }
 
 
-
     public BlockHeaderStore getBestBlockHeader() {
         blockLock.lock();
         byte[] bestBlockHash = null;
         try {
-            if(bestHashCacher == null) {
+            if (bestHashCacher == null) {
                 bestBlockHash = db.get(bestBlockKey);
                 bestHashCacher = bestBlockHash;
             } else {
@@ -187,7 +191,7 @@ public class BlockStorage extends BaseStoreProvider {
         } finally {
             blockLock.unlock();
         }
-        if(bestBlockHash == null) {
+        if (bestBlockHash == null) {
             return null;
         } else {
             return getHeader(bestBlockHash);
@@ -237,8 +241,10 @@ public class BlockStorage extends BaseStoreProvider {
         }
         checkIsMineAndUpdate(txs);
     }
+
     /**
      * 检查交易是否与我有关，并且更新状态
+     *
      * @param txs
      */
     public void checkIsMineAndUpdate(final TransactionStore txs) {
@@ -248,7 +254,7 @@ public class BlockStorage extends BaseStoreProvider {
                 Transaction transaction = txs.getTransaction();
 
                 boolean isMine = checkTxIsMine(transaction);
-                if(isMine) {
+                if (isMine) {
                     updateMineTx(txs);
                 }
             }
@@ -261,18 +267,19 @@ public class BlockStorage extends BaseStoreProvider {
 
     /**
      * 检查交易是否跟我有关
+     *
      * @param transaction
      * @return boolean
      */
     public boolean checkTxIsMine(Transaction transaction, byte[] hash160) {
         //是否是跟自己有关的交易
-        if(transaction.isPaymentTransaction()) {
+        if (transaction.isPaymentTransaction()) {
             //普通交易
             //输入
             List<TransactionInput> inputs = transaction.getInputs();
-            if(inputs != null && inputs.size() > 0) {
+            if (inputs != null && inputs.size() > 0) {
                 for (TransactionInput input : inputs) {
-                    if(input.getFroms() == null || input.getFroms().size() == 0) {
+                    if (input.getFroms() == null || input.getFroms().size() == 0) {
                         continue;
                     }
                     for (TransactionOutput from : input.getFroms()) {
@@ -281,13 +288,13 @@ public class BlockStorage extends BaseStoreProvider {
                         int index = from.getIndex();
 
                         TransactionStore txStore = getTransaction(fromId.getBytes());
-                        if(txStore == null) {
+                        if (txStore == null) {
                             return false;
                         }
                         from = (TransactionOutput) txStore.getTransaction().getOutput(index);
 
                         Script script = from.getScript();
-                        if(hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
+                        if (hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
                                 hash160 != null && script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
                             return true;
                         }
@@ -298,10 +305,10 @@ public class BlockStorage extends BaseStoreProvider {
             List<TransactionOutput> outputs = transaction.getOutputs();
             for (TransactionOutput output : outputs) {
                 Script script = output.getScript();
-                if(hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
+                if (hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
                         hash160 != null && script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
-                    if(transaction.getType() == Definition.TYPE_COINBASE) {
-                            return true;
+                    if (transaction.getType() == Definition.TYPE_COINBASE) {
+                        return true;
                     } else {
                         return true;
                     }
@@ -321,6 +328,7 @@ public class BlockStorage extends BaseStoreProvider {
     /**
      * 重新加载相关的所有交易，意味着会遍历整个区块
      * 该操作一遍只会在账号导入之后进行操作
+     *
      * @param hash160s
      * @return List<TransactionStore>  返回交易列表
      */
@@ -337,7 +345,7 @@ public class BlockStorage extends BaseStoreProvider {
             Sha256Hash nextHash = blockStore.getBlock().getHash();
 
             List<TransactionStore> mineTxs = new ArrayList<TransactionStore>();
-            while(!nextHash.equals(Sha256Hash.ZERO_HASH)) {
+            while (!nextHash.equals(Sha256Hash.ZERO_HASH)) {
                 BlockStore nextBlockStore = getBlock(nextHash.getBytes());
 
                 Block block = nextBlockStore.getBlock();
@@ -347,15 +355,15 @@ public class BlockStorage extends BaseStoreProvider {
                 for (Transaction tx : txs) {
 
                     //普通交易
-                    if(tx.isPaymentTransaction()) {
+                    if (tx.isPaymentTransaction()) {
                         //获取转入交易转入的多少钱
                         List<TransactionOutput> outputs = tx.getOutputs();
 
-                        if(outputs == null) {
+                        if (outputs == null) {
                             continue;
                         }
                         //过滤掉coinbase里的0交易
-                        if(tx.getType() == Definition.TYPE_COINBASE && outputs.get(0).getValue() == 0l) {
+                        if (tx.getType() == Definition.TYPE_COINBASE && outputs.get(0).getValue() == 0l) {
                             continue;
                         }
 
@@ -368,16 +376,16 @@ public class BlockStorage extends BaseStoreProvider {
                             Output output = outputs.get(i);
                             Script script = output.getScript();
 
-                            if(script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data)) {
+                            if (script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data)) {
                                 status[i] = TransactionStore.STATUS_UNUSE;
                                 isMineTx = true;
                                 break;
                             }
                         }
                         List<TransactionInput> inputs = tx.getInputs();
-                        if(inputs != null && inputs.size() > 0) {
+                        if (inputs != null && inputs.size() > 0) {
                             for (TransactionInput input : inputs) {
-                                if(input.getFroms() == null || input.getFroms().size() == 0) {
+                                if (input.getFroms() == null || input.getFroms().size() == 0) {
                                     continue;
                                 }
                                 for (TransactionOutput from : input.getFroms()) {
@@ -385,11 +393,11 @@ public class BlockStorage extends BaseStoreProvider {
 
                                     for (TransactionStore transactionStore : mineTxs) {
                                         Transaction mineTx = transactionStore.getTransaction();
-                                        if(mineTx.getHash().equals(fromTxHash)) {
+                                        if (mineTx.getHash().equals(fromTxHash)) {
                                             //对上一交易的引用以及索引值
                                             TransactionOutput output = (TransactionOutput) mineTx.getOutput(from.getIndex());
                                             Script script = output.getScript();
-                                            if(script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data)) {
+                                            if (script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data)) {
                                                 transactionStore.getStatus()[from.getIndex()] = TransactionStore.STATUS_USED;
                                                 isMineTx = true;
                                                 break;
@@ -401,17 +409,17 @@ public class BlockStorage extends BaseStoreProvider {
                         }
 
                         //除单纯的转账交易外，还有可能有业务逻辑附带代币交易的
-                        if(!isMineTx && tx.getType() != Definition.TYPE_PAY &&
+                        if (!isMineTx && tx.getType() != Definition.TYPE_PAY &&
                                 tx.getType() != Definition.TYPE_COINBASE) {
                             isMineTx = checkTxIsMine(tx);
                         }
 
-                        if(isMineTx) {
+                        if (isMineTx) {
                             mineTxs.add(new TransactionStore(network, tx, block.getHeight(), status));
                         }
                     } else {
                         boolean isMine = checkTxIsMine(tx);
-                        if(isMine) {
+                        if (isMine) {
                             mineTxs.add(new TransactionStore(network, tx, block.getHeight(), new byte[]{}));
                         }
                     }
@@ -424,15 +432,50 @@ public class BlockStorage extends BaseStoreProvider {
             blockLock.unlock();
         }
     }
+
+    /**
+     * 获取区块
+     *
+     * @param height
+     * @return BlockStore
+     */
+    public BlockStore getBlockByHeight(long height) {
+        return getBlockByHeader(getHeaderByHeight(height));
+    }
+
+
+    /**
+     * 获取区块头信息
+     *
+     * @param height
+     * @return BlockHeaderStore
+     */
+    public BlockHeaderStore getHeaderByHeight(long height) {
+        byte[] heightBytes = new byte[4];
+        Utils.uint32ToByteArrayBE(height, heightBytes, 0);
+
+        byte[] hash = null;
+        try {
+            hash = db.get(heightBytes);
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
+        if (hash == null) {
+            return null;
+        }
+        return getHeader(hash);
+    }
+
     /**
      * 获取完整的区块信息
+     *
      * @param hash
      * @return BlockStore
      */
 
     public BlockStore getBlock(byte[] hash) {
         BlockHeaderStore header = getHeader(hash);
-        if(header == null) {
+        if (header == null) {
             return null;
         }
         return getBlockByHeader(header);
@@ -440,6 +483,7 @@ public class BlockStorage extends BaseStoreProvider {
 
     /**
      * 通过区块头获取区块的完整信息，主要是把交易详情查询出来
+     *
      * @param header
      * @return BlockStore
      */
@@ -448,10 +492,10 @@ public class BlockStorage extends BaseStoreProvider {
         List<Transaction> txs = new ArrayList<Transaction>();
 
         BlockHeader blockHeader = header.getBlockHeader();
-        if(blockHeader.getTxHashs() != null) {
+        if (blockHeader.getTxHashs() != null) {
             for (Sha256Hash txHash : header.getBlockHeader().getTxHashs()) {
                 TransactionStore tx = getTransaction(txHash.getBytes());
-                if(tx == null) {
+                if (tx == null) {
                     log.error("Block height {} , tx {} not found", header.getBlockHeader().getHeight(), txHash);
                     continue;
                 }
@@ -479,9 +523,9 @@ public class BlockStorage extends BaseStoreProvider {
     }
 
 
-
     /**
      * 获取一笔交易
+     *
      * @param hash
      * @return TransactionStore
      */
@@ -492,7 +536,7 @@ public class BlockStorage extends BaseStoreProvider {
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
-        if(content == null) {
+        if (content == null) {
             return null;
         }
         TransactionStore store = new TransactionStore(network, content);
@@ -503,6 +547,7 @@ public class BlockStorage extends BaseStoreProvider {
 
     /**
      * 获取区块头信息
+     *
      * @param hash
      * @return BlockHeaderStore
      */
@@ -510,7 +555,7 @@ public class BlockStorage extends BaseStoreProvider {
 
         byte[] content = null;
         content = CacheManager.get().get(hash.toString());
-        if(content == null) {
+        if (content == null) {
             try {
                 content = db.get(hash);
             } catch (RocksDBException e) {
@@ -518,7 +563,7 @@ public class BlockStorage extends BaseStoreProvider {
             }
         }
 
-        if(content == null) {
+        if (content == null) {
             return null;
         }
         BlockHeaderStore blockHeaderStore = new BlockHeaderStore(network, content);

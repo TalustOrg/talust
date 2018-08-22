@@ -31,6 +31,7 @@ import org.talust.common.model.MessageChannel;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.core.model.Block;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.core.storage.BlockStore;
 import org.talust.network.MessageHandler;
 import org.talust.core.storage.BlockStorage;
@@ -60,7 +61,7 @@ public class BlockArrivedHandler implements MessageHandler {
      */
     public byte[] saveBlock(MessageChannel messageChannel) {
         byte[] blockBytes = messageChannel.getMessage().getContent();
-        BlockStore blockStore = SerializationUtil.deserializer(blockBytes, BlockStore.class);
+        BlockStore blockStore =SerializationUtil.deserializer(blockBytes,BlockStore.class);
         try {
             //最值该节点的最新高度
             blockStorage.saveBlock(blockStore);

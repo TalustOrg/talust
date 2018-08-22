@@ -45,10 +45,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 @Slf4j
 public class TransactionHandler implements MessageHandler {
-    private BlockStorage blockStorage = BlockStorage.get();
-    private ChainStateStorage chainStateStorage = ChainStateStorage.get();
-    private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-
     @Override
     public boolean handle(MessageChannel message) {
         boolean result = true;

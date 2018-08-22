@@ -31,6 +31,8 @@ import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 import org.talust.common.tools.Constant;
+import org.talust.common.tools.SerializationUtil;
+import org.talust.core.storage.BlockStore;
 import org.talust.network.MessageHandler;
 import org.talust.network.netty.queue.MessageQueue;
 import org.talust.core.storage.BlockStorage;
@@ -55,9 +57,9 @@ public class BlockDataReqHandler implements MessageHandler {
         log.info("远端ip:{} 向当前节点请求区块:{} 的块数据内容...", message.getFromIp(), num);
         byte[] heightBytes = new byte[4];
         Utils.uint32ToByteArrayBE(Long.parseLong(num), heightBytes, 0);
-        byte[] hash = blockStorage.get(heightBytes);
-        if (hash != null) {
-            byte[] block = blockStorage.get(hash);
+        BlockStore blockStore= blockStorage.getBlockByHeight(Long.parseLong(num));
+        if (blockStore != null) {
+            byte[] block = SerializationUtil.serializer(blockStore);
             nodeMessage.setContent(block);//存储区块内容
             nodeMessage.setType(MessageType.BLOCK_RESP.getType());
             log.info("向远端ip:{} 返回本节点拥有的区块:{} 的区块内容...", message.getFromIp(), num);
