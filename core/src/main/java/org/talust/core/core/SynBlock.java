@@ -81,7 +81,12 @@ public class SynBlock {
 
     private void synBlock() {
         log.info("进行数据块的同步...");
-        long selfBlockHeight = CacheManager.get().getCurrentBlockHeight();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        long selfBlockHeight = MainNetworkParams.get().getBestBlockHeight();
         List<Future<MessageChannel>> results = new ArrayList<>();
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
         log.info("当前区块高度为:{},本节点连接的远端节点数为:{}", selfBlockHeight, allChannel.size());
