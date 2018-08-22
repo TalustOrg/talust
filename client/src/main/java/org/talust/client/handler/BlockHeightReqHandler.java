@@ -30,6 +30,7 @@ import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 import org.talust.common.tools.CacheManager;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.network.MessageHandler;
 import org.talust.network.netty.queue.MessageQueue;
 
@@ -41,12 +42,12 @@ public class BlockHeightReqHandler implements MessageHandler {
         MessageChannel mc = new MessageChannel();
         Message msg = new Message();
         msg.setType(MessageType.HEIGHT_RESP.getType());
-        msg.setContent(Long.toString(CacheManager.get().getCurrentBlockHeight()).getBytes());
+        msg.setContent(Long.toString(MainNetworkParams.get().getBestHeight()).getBytes());
         msg.setMsgCount(message.getMessage().getMsgCount());
         mc.setToIp(message.getFromIp());
         mc.setMessage(msg);
         mq.addMessage(mc);
-        log.info("向远端ip:{} 返回本节点当前最新区块高度:{}", message.getFromIp(), CacheManager.get().getCurrentBlockHeight());
+        log.info("向远端ip:{} 返回本节点当前最新区块高度:{}", message.getFromIp(),MainNetworkParams.get().getBestHeight());
         return true;
     }
 }

@@ -133,7 +133,7 @@ public class MakeTestNetGengsisBlock {
         Block block = new Block(network, gengsisBlock.baseSerialize());
         block.buildMerkleHash();
         BlockStore blockStore = new BlockStore(network,block);
-        log.info("genesis : "+ Hex.encode(blockStore.serializeHeaderToBytes()));
+        log.info("genesis : "+ Hex.encode(block.baseSerialize()));
         blockStorage.saveBlock(blockStore);
     }
 }
