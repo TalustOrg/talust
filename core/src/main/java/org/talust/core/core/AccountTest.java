@@ -70,14 +70,41 @@ public class AccountTest {
         try {
            // rootAccount.setSigns(rootAccount.signAccount(rootAccount.getEcKey(),null));
             rootAccount.signAccount(rootKey, null);
-            System.out.println("address rootAccount Base58:"+rootAddr.getBase58());
-            System.out.println("address rootAccount decode check en Base58:"+Base58.decodeChecked(rootAddr.getBase58()));
-            System.out.println("address rootAccount hash160:"+rootAddr.getHash160());
-            System.out.println("address rootAccount hash:"+rootAddr.getHash());
+            System.out.println("address rootAccount haxString:"+Base58.encode(rootAddr.getHash160()));
+            System.out.println("address rootAccount privateKey:"+rootKey.getPrivKey());
             System.out.println("data rootAccount: "+Base58.encode(rootAccount.serialize()));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+
+        //root account create Test
+        ECKey talustKey = new ECKey();
+        Address talustAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(talustKey.getPubKey(false)));
+        talustAddr.setBalance(Coin.ZERO);
+        talustAddr.setUnconfirmedBalance(Coin.ZERO);
+        Account talustAccount = new Account(networkParams);
+        talustAccount.setPriSeed(talustKey.getPrivKeyBytes());
+        talustAccount.setAccountType(talustAddr.getVersion());
+        talustAccount.setAddress(talustAddr);
+        talustAccount.setMgPubkeys(new byte[][]{talustKey.getPubKey(true)});
+        try {
+           // talustAccount.setSigns(talustAccount.signAccount(talustAccount.getEcKey(), rootAccount.getEcKey()));
+            talustAccount.signAccount(talustKey, rootKey);
+            System.out.println("address talustAccount haxString:"+Base58.encode(talustAddr.getHash160() ));
+            System.out.println("address rootAccount privateKey:"+talustKey.getPrivKey());
+            System.out.println("data talustAccount: "+Base58.encode(talustAccount.serialize()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Account accountTest = Account.parse(rootAccount.serialize(),networkParams);
+            Account accountTest2 = Account.parse(talustAccount.serialize(),networkParams);
+            accountTest.verify();
+            accountTest2.verify();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
