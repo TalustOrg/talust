@@ -26,6 +26,7 @@
 package org.talust.client.handler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talust.common.crypto.Utils;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
@@ -52,8 +53,9 @@ public class BlockDataReqHandler implements MessageHandler {
         byte[] content = message.getMessage().getContent();
         String num = new String(content);//区块高度
         log.info("远端ip:{} 向当前节点请求区块:{} 的块数据内容...", message.getFromIp(), num);
-        byte[] bh = (Constant.BH_PRIX + num).getBytes();
-        byte[] hash = blockStorage.get(bh);
+        byte[] heightBytes = new byte[4];
+        Utils.uint32ToByteArrayBE(Long.parseLong(num), heightBytes, 0);
+        byte[] hash = blockStorage.get(heightBytes);
         if (hash != null) {
             byte[] block = blockStorage.get(hash);
             nodeMessage.setContent(block);//存储区块内容
