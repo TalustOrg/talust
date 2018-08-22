@@ -79,7 +79,7 @@ public class BlockArrivedValidator implements MessageValidator {
             if ((nowHeight - preHeight) == 1) {
                 result = true;
             }
-        }else if(block.getHeight()==1){
+        }else if(block.getHeight()==0){
             result = true;
             return result;
         }else if(!SynBlock.get().getSyning().get()){

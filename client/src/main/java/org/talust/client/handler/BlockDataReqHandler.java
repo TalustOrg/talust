@@ -56,7 +56,7 @@ public class BlockDataReqHandler implements MessageHandler {
         byte[] content = message.getMessage().getContent();
         String num = new String(content);//区块高度
         log.info("远端ip:{} 向当前节点请求区块:{} 的块数据内容...", message.getFromIp(), num);
-        if(num.equals("1")){
+        if(num.equals("0")){
             BlockStore blockStore=MainNetworkParams.get().getGengsisBlock();
             byte[] block = SerializationUtil.serializer(blockStore);
             nodeMessage.setContent(block);//存储区块内容

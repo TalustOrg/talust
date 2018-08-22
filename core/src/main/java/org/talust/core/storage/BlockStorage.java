@@ -124,7 +124,7 @@ public class BlockStorage extends BaseStoreProvider {
             Sha256Hash preHash = block.getPreHash();
             if (preHash == null) {
                 throw new VerificationException("要保存的区块缺少上一区块的引用");
-            } else if (bestBlockHeader == null && Arrays.equals(bestBlockKey, preHash.getBytes()) && block.getHeight() == 0l) {
+            } else if (bestBlockHeader == null && Arrays.equals(bestBlockKey, preHash.getBytes()) && block.getHeight() == 0L) {
                 //创世块则通过
             } else if (bestBlockHeader != null && bestBlockHeader.getBlockHeader().getHash().equals(preHash) &&
                     bestBlockHeader.getBlockHeader().getHeight() + 1 == block.getHeight()) {
