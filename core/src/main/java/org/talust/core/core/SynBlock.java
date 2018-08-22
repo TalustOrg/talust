@@ -203,7 +203,7 @@ public class SynBlock {
                         MessageChannel message = result.get();
                         if (message != null) {
                             byte[] content = message.getMessage().getContent();
-                            BlockStore blockStore = new BlockStore(MainNetworkParams.get(),content);//远端返回来的区块
+                            BlockStore blockStore = SerializationUtil.deserializer(content,BlockStore.class);//远端返回来的区块
                             blocks.add(blockStore);
                             mapHeightData.put(blockStore.getBlock().getBlockHeader().getHeight(), message);
                         }
