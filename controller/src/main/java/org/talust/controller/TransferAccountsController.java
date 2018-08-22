@@ -70,7 +70,7 @@ public class TransferAccountsController {
             return resp;
         }
         try {
-           byte[] hash160 =  Base58.decodeChecked(toAddress);
+           Base58.decodeChecked(toAddress);
         } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "目标账户验证失败");
@@ -94,11 +94,5 @@ public class TransferAccountsController {
         return isOk;
     }
 
-//    public TransferAccountService getTransferAccountService() {
-//        return transferAccountService;
-//    }
-//
-//    public void setTransferAccountService(TransferAccountService transferAccountService) {
-//        this.transferAccountService = transferAccountService;
-//    }
+
 }
