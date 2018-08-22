@@ -75,7 +75,6 @@ public class TransactionValidator implements MessageValidator {
      *
      * @param tx  待验证的交易
      * @param txs 当输入引用找不到时，就在这个列表里面查找（当同一个区块包含多个交易链时需要用到）
-     * @return ValidatorResult<TransactionValidatorResult>
      */
     public boolean checkTransaction(Transaction tx, List<Transaction> txs) {
 
@@ -89,6 +88,7 @@ public class TransactionValidator implements MessageValidator {
         //交易的txid不能和区块里面的交易重复
         TransactionStore verifyTX = blockStorage.getTransaction(tx.getHash().getBytes());
         if (verifyTX != null) {
+            log.info("交易id和区块里面的交易重复");
             return false;
         }
         //如果是转帐交易
@@ -136,6 +136,7 @@ public class TransactionValidator implements MessageValidator {
                             //内存池和传入的列表都没有，那么去存储里面找
                             TransactionStore preTransactionStore = blockStorage.getTransaction(fromId.getBytes());
                             if (preTransactionStore == null) {
+                                log.info("查询不到此次交易");
                                 return false;
                             }
                             preTransaction = preTransactionStore.getTransaction();
@@ -175,6 +176,7 @@ public class TransactionValidator implements MessageValidator {
 
                     } else if (Arrays.equals(state, new byte[]{2})) {
                         //已经花费了
+                        log.info("该交易已被花费");
                         return false;
                     }
                 }
@@ -188,20 +190,19 @@ public class TransactionValidator implements MessageValidator {
                     }
                     //输入必须只有一个
                     if (inputs.size() != 1 || inputs.get(0).getFroms().size() != 1) {
+                        log.info("输入项必须只有一个");
                         return false;
                     }
                     //输出必须只有一个，切必须按照指定的类型输出到相应的账户
                     if (tx.getOutputs().size() != 1) {
+                        log.info("输出项必须只有一个");
                         return false;
                     }
                     TransactionOutput ouput = tx.getOutputs().get(0);
-                    //验证保证金的数量
-                    if (ouput.getValue() != inputs.get(0).getFroms().get(0).getValue()) {
-                        return false;
-                    }
                     Script outputScript = ouput.getScript();
                     //必须输出到地址
                     if (!outputScript.isSentToAddress()) {
+                        log.info("必须输出到地址");
                         return false;
                     }
                     //必须输出到指定的账户
@@ -220,9 +221,11 @@ public class TransactionValidator implements MessageValidator {
                 Coin outputCoin = Coin.valueOf(output.getValue());
                 //输出金额不能为负数
                 if (outputCoin.isLessThan(Coin.ZERO)) {
+                    log.info("交易金额不能为负");
                     return false;
                 }
                 if (outputCoin.isGreaterThan(Configure.MAX_OUTPUT_COIN)) {
+                    log.info("交易金额大于最高交易金额限制");
                     return false;
                 }
                 txOutputFee = txOutputFee.add(outputCoin);
@@ -242,10 +245,12 @@ public class TransactionValidator implements MessageValidator {
 
                     //发送的金额必须大于100
                     if (value.compareTo(Coin.COIN.multiply(100)) < 0) {
+                        log.info("交易金额必须大于100");
                         return false;
                     }
                     //锁仓的时间必须大于24小时
                     if (lockTime - tx.getTime() < 24 * 60 * 60) {
+                        log.info("锁仓时间必须大于24小时");
                         return false;
                     }
                     isLock = true;
@@ -254,6 +259,7 @@ public class TransactionValidator implements MessageValidator {
 
             //输出金额不能大于输入金额
             if (txOutputFee.isGreaterThan(txInputFee)) {
+                log.info("交易输入小于交易输出");
                 return false;
             }
 

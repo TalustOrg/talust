@@ -33,7 +33,12 @@ import org.talust.common.exception.ErrorPasswordException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
+import org.talust.common.tools.ArithUtils;
+import org.talust.core.core.NetworkParams;
+import org.talust.core.model.Address;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.core.storage.AccountStorage;
+import org.talust.core.storage.TransactionStorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,19 +91,15 @@ public class AccountController {
         return ResponseMessage.ok(address);
     }
 
-//    @ApiOperation(value = "查看地址", notes = "查看当前登录用户的地址信息")
-//    @GetMapping(value = "showAddr", consumes = MediaType.APPLICATION_JSON_VALUE)
-//    ResponseMessage showAddr() {
-//        List<Account> usrAccs = AccountStorage.get().getAccounts();
-//        if (usrAccs != null) {
-//            String addrs = "";
-//            for(Account account: usrAccs){
-//                addrs = addrs+Utils.showAddress(account.getAddress())+",";
-//            }
-//            return ResponseMessage.ok(addrs);
-//        }
-//        return ResponseMessage.error("当前无登录用户");
-//    }
+    @ApiOperation(value = "查询拥有的代币", notes = "查询拥有的代币")
+    @PostMapping(value = "getCoins")
+    JSONObject getCoins(@RequestParam String  address) {
+        Address   addr = Address.fromBase58(MainNetworkParams.get(),address);
+       long  value =  TransactionStorage.get().getBalanceAndUnconfirmedBalance(addr.getHash160())[0].value;
+       JSONObject   jsonObject = new JSONObject();
+       jsonObject.put("value",ArithUtils.div(value+"" , "100000000",8));
+        return jsonObject  ;
+    }
 
 
 }

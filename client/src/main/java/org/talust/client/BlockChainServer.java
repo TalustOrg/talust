@@ -46,6 +46,7 @@ import org.talust.consensus.handler.NewMasterRespHandler;
 import org.talust.core.core.SynBlock;
 import org.talust.core.model.Block;
 import org.talust.core.server.NtpTimeService;
+import org.talust.core.storage.TransactionStorage;
 import org.talust.network.MessageHandler;
 import org.talust.network.MessageValidator;
 import org.talust.network.NodeConsole;
@@ -148,6 +149,8 @@ public class BlockChainServer {
         log.info("初始化存储...");
         NtpTimeService.get().start();
         PeersManager.get().initPeers();
+        AccountStorage.get();
+        TransactionStorage.get().init();
 
 
 

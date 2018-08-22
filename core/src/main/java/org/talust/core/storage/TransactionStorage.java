@@ -25,6 +25,7 @@
 
 package org.talust.core.storage;
 
+import org.rocksdb.RocksIterator;
 import org.talust.common.crypto.Hex;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.model.Coin;
@@ -33,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.RocksDBException;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
+import org.talust.core.model.Account;
 import org.talust.core.model.Address;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.Script;
@@ -43,10 +45,7 @@ import org.talust.core.transaction.TransactionInput;
 import org.talust.core.transaction.TransactionOutput;
 import org.talust.storage.BaseStoreProvider;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 //交易存储，存储于自身账户有关的交易
@@ -62,16 +61,21 @@ public class TransactionStorage extends BaseStoreProvider {
         return instance;
     }
 
+
+
     private NetworkParams network  = MainNetworkParams.get();
 
+    private BlockStorage blockStorage = BlockStorage.get();
+
     public TransactionStorage(String dir) {
-        super(dir);
+       super(dir);
     }
+
 
     //存放交易记录账号的key
     private final static byte[] ADDRESSES_KEY = Sha256Hash.ZERO_HASH.getBytes();
     //交易记录对应的账号列表
-    private List<byte[]> addresses = new CopyOnWriteArrayList<byte[]>();
+    private  List<byte[]> addresses = new CopyOnWriteArrayList<byte[]>();
     //我的交易列表
     private List<TransactionStore> myTxList = new CopyOnWriteArrayList<TransactionStore>();
     //未花费的交易
@@ -94,6 +98,7 @@ public class TransactionStorage extends BaseStoreProvider {
         }
         return null;
     }
+
     public List<TransactionOutput> getNotSpentTransactionOutputs(byte[] hash160) {
 
         List<TransactionOutput> txs = new ArrayList<TransactionOutput>();
@@ -162,7 +167,6 @@ public class TransactionStorage extends BaseStoreProvider {
         }
         return txs;
     }
-
 
     /**
      * 获取地址的最新余额和未确认的余额
@@ -234,7 +238,6 @@ public class TransactionStorage extends BaseStoreProvider {
         }
         return new Coin[]{balance, unconfirmedBalance};
     }
-
 
     /**
      * 获取制定地址集合所有未花费的交易输出
@@ -395,4 +398,142 @@ public class TransactionStorage extends BaseStoreProvider {
         }
     }
 
+    /**
+     * 初始化
+     */
+    public void init() {
+        //本地交易记录对应的账号列表
+        byte[] list = getBytes(ADDRESSES_KEY);
+        if(list != null) {
+            for (int i = 0; i < list.length; i+= Address.LENGTH) {
+                byte[] hash160 = new byte[Address.LENGTH];
+                System.arraycopy(list, i, hash160, 0, Address.LENGTH);
+                addresses.add(hash160);
+            }
+        }
+
+        //交易记录
+        RocksIterator iter = db.newIterator();
+        for(iter.seekToFirst(); iter.isValid(); iter.next()) {
+            byte[] key = iter.key();
+            if(Arrays.equals(ADDRESSES_KEY, key)) {
+                continue;
+            }
+            byte[] value = iter.value();
+            TransactionStore txs = new TransactionStore(network, value);
+            myTxList.add(txs);
+            //是否未花费的交易
+            Transaction tx = txs.getTransaction();
+            if(tx.isPaymentTransaction()) {
+                byte[] status = txs.getStatus();
+                List<TransactionOutput> outputs = tx.getOutputs();
+                for (int i = 0; i < outputs.size(); i++) {
+                    TransactionOutput output = outputs.get(i);
+                    Script script = output.getScript();
+                    if(status == null || status.length < i || status[i] != TransactionStore.STATUS_UNUSE || unspendTxList.contains(txs)) {
+                        continue;
+                    }
+                    for (byte[] hash160 : addresses) {
+                        if(script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
+                            unspendTxList.add(txs);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean reloadTransaction(List<byte[]> hash160s) {
+
+        clean();
+
+        //写入新列表
+        byte[] addressesBytes = new byte[hash160s.size() * Address.LENGTH];
+        for (int i = 0; i < hash160s.size(); i++) {
+            System.arraycopy(hash160s.get(i), 0, addressesBytes, i * Address.LENGTH, Address.LENGTH);
+        }
+        put(ADDRESSES_KEY, addressesBytes);
+
+        this.addresses = hash160s;
+
+        //遍历区块写入相关交易
+        myTxList = blockStorage.loadRelatedTransactions(hash160s);
+        unspendTxList = new CopyOnWriteArrayList<>();
+
+        for (TransactionStore txs : myTxList) {
+            put(txs.getTransaction().getHash().getBytes(), txs.baseSerialize());
+
+            //是否未花费的交易
+            Transaction tx = txs.getTransaction();
+            if(tx.isPaymentTransaction()) {
+                byte[] status = txs.getStatus();
+                List<TransactionOutput> outputs = tx.getOutputs();
+                for (int i = 0; i < outputs.size(); i++) {
+                    TransactionOutput output = outputs.get(i);
+                    Script script = output.getScript();
+                    if(status == null || status.length < i || status[i] != TransactionStore.STATUS_UNUSE || unspendTxList.contains(txs)) {
+                        continue;
+                    }
+                    for (byte[] hash160 : this.addresses) {
+                        if(script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
+                            unspendTxList.add(txs);
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 清理数据
+     */
+    public void clean() {
+        //清除老数据
+        RocksIterator   iter = db.newIterator();
+        for(iter.seekToFirst(); iter.isValid(); iter.next()) {
+            byte[] key = iter.key();
+            delete(key);
+        }
+        //写入新列表
+        byte[] addressesBytes = new byte[addresses.size() * Address.LENGTH];
+        for (int i = 0; i < addresses.size(); i++) {
+            System.arraycopy(addresses.get(i), 0, addressesBytes, i * Address.LENGTH, Address.LENGTH);
+        }
+        put(ADDRESSES_KEY, addressesBytes);
+    }
+
+    public boolean addAddress(byte[] hash160) {
+        addresses.add(hash160);
+        //写入新列表
+        byte[] addressesByte = new byte[addresses.size() * Address.LENGTH];
+        for (int i = 0; i < addresses.size(); i++) {
+            System.arraycopy(addresses.get(i), 0, addressesByte, i * Address.LENGTH, Address.LENGTH);
+        }
+        put(ADDRESSES_KEY, addressesByte);
+        return true;
+    }
+
+    public boolean addAddress(List<Account> newAccoountList){
+        for(int i=0 ; i<newAccoountList.size(); i++){
+            addresses.add(newAccoountList.get(i).getAddress().getHash160());
+        }
+        //写入新列表
+        byte[] addressesByte = new byte[addresses.size() * Address.LENGTH];
+        for (int i = 0; i < addresses.size(); i++) {
+            System.arraycopy(addresses.get(i), 0, addressesByte, i * Address.LENGTH, Address.LENGTH);
+        }
+        put(ADDRESSES_KEY, addressesByte);
+        return true;
+    }
+
+
+    public List<byte[]> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List<byte[]> addresses) {
+        this.addresses = addresses;
+    }
 }

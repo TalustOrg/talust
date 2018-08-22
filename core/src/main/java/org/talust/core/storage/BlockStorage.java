@@ -39,14 +39,17 @@ import org.talust.core.core.NetworkParams;
 import org.talust.core.model.Account;
 import org.talust.core.model.Address;
 import org.talust.core.model.Block;
+import org.talust.core.model.BlockHeader;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.Script;
+import org.talust.core.transaction.Output;
 import org.talust.core.transaction.Transaction;
 import org.talust.core.transaction.TransactionInput;
 import org.talust.core.transaction.TransactionOutput;
 import org.talust.storage.BaseStoreProvider;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -68,7 +71,6 @@ public class BlockStorage extends BaseStoreProvider {
 
     private AccountStorage accountStorage =  AccountStorage.get();
 
-    private TransactionStorage transactionStorage = TransactionStorage.get();
     private BlockStorage() {
         this(Configure.DATA_BLOCK);
     }
@@ -295,11 +297,8 @@ public class BlockStorage extends BaseStoreProvider {
                 Script script = output.getScript();
                 if(hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
                         hash160 != null && script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
-                    //如果是coinbase交易，那么交易费大于0的才显示出来
                     if(transaction.getType() == Definition.TYPE_COINBASE) {
-                        if(output.getValue() > 0) {
                             return true;
-                        }
                     } else {
                         return true;
                     }
@@ -312,7 +311,168 @@ public class BlockStorage extends BaseStoreProvider {
     //更新与自己相关的交易
     public void updateMineTx(TransactionStore txs) {
         accountStorage.loadBalanceFromChainstateAndUnconfirmedTransaction(accountStorage.getAccountHash160s());
-        transactionStorage.processNewTransaction(txs);
+        TransactionStorage.get().processNewTransaction(txs);
+    }
+
+
+    /**
+     * 重新加载相关的所有交易，意味着会遍历整个区块
+     * 该操作一遍只会在账号导入之后进行操作
+     * @param hash160s
+     * @return List<TransactionStore>  返回交易列表
+     */
+    public List<TransactionStore> loadRelatedTransactions(List<byte[]> hash160s) {
+        blockLock.lock();
+        try {
+            accountFilter.init();
+            for (byte[] hash160 : hash160s) {
+                accountFilter.insert(hash160);
+            }
+
+            //从创始快开始遍历所有区块
+            BlockStore blockStore = network.getGengsisBlock();
+            Sha256Hash nextHash = blockStore.getBlock().getHash();
+
+            List<TransactionStore> mineTxs = new ArrayList<TransactionStore>();
+            while(!nextHash.equals(Sha256Hash.ZERO_HASH)) {
+                BlockStore nextBlockStore = getBlock(nextHash.getBytes());
+
+                Block block = nextBlockStore.getBlock();
+
+                List<Transaction> txs = block.getTxs();
+
+                for (Transaction tx : txs) {
+
+                    //普通交易
+                    if(tx.isPaymentTransaction()) {
+                        //获取转入交易转入的多少钱
+                        List<TransactionOutput> outputs = tx.getOutputs();
+
+                        if(outputs == null) {
+                            continue;
+                        }
+                        //过滤掉coinbase里的0交易
+                        if(tx.getType() == Definition.TYPE_COINBASE && outputs.get(0).getValue() == 0l) {
+                            continue;
+                        }
+
+                        //交易状态
+                        byte[] status = new byte[outputs.size()];
+                        //交易是否跟我有关
+                        boolean isMineTx = false;
+
+                        for (int i = 0; i < outputs.size(); i++) {
+                            Output output = outputs.get(i);
+                            Script script = output.getScript();
+
+                            if(script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data)) {
+                                status[i] = TransactionStore.STATUS_UNUSE;
+                                isMineTx = true;
+                                break;
+                            }
+                        }
+                        List<TransactionInput> inputs = tx.getInputs();
+                        if(inputs != null && inputs.size() > 0) {
+                            for (TransactionInput input : inputs) {
+                                if(input.getFroms() == null || input.getFroms().size() == 0) {
+                                    continue;
+                                }
+                                for (TransactionOutput from : input.getFroms()) {
+                                    Sha256Hash fromTxHash = from.getParent().getHash();
+
+                                    for (TransactionStore transactionStore : mineTxs) {
+                                        Transaction mineTx = transactionStore.getTransaction();
+                                        if(mineTx.getHash().equals(fromTxHash)) {
+                                            //对上一交易的引用以及索引值
+                                            TransactionOutput output = (TransactionOutput) mineTx.getOutput(from.getIndex());
+                                            Script script = output.getScript();
+                                            if(script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data)) {
+                                                transactionStore.getStatus()[from.getIndex()] = TransactionStore.STATUS_USED;
+                                                isMineTx = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        //除单纯的转账交易外，还有可能有业务逻辑附带代币交易的
+                        if(!isMineTx && tx.getType() != Definition.TYPE_PAY &&
+                                tx.getType() != Definition.TYPE_COINBASE) {
+                            isMineTx = checkTxIsMine(tx);
+                        }
+
+                        if(isMineTx) {
+                            mineTxs.add(new TransactionStore(network, tx, block.getHeight(), status));
+                        }
+                    } else {
+                        boolean isMine = checkTxIsMine(tx);
+                        if(isMine) {
+                            mineTxs.add(new TransactionStore(network, tx, block.getHeight(), new byte[]{}));
+                        }
+                    }
+                }
+                nextHash = nextBlockStore.getNextHash();
+            }
+
+            return mineTxs;
+        } finally {
+            blockLock.unlock();
+        }
+    }
+    /**
+     * 获取完整的区块信息
+     * @param hash
+     * @return BlockStore
+     */
+
+    public BlockStore getBlock(byte[] hash) {
+        BlockHeaderStore header = getHeader(hash);
+        if(header == null) {
+            return null;
+        }
+        return getBlockByHeader(header);
+    }
+
+    /**
+     * 通过区块头获取区块的完整信息，主要是把交易详情查询出来
+     * @param header
+     * @return BlockStore
+     */
+    public BlockStore getBlockByHeader(BlockHeaderStore header) {
+        //交易列表
+        List<Transaction> txs = new ArrayList<Transaction>();
+
+        BlockHeader blockHeader = header.getBlockHeader();
+        if(blockHeader.getTxHashs() != null) {
+            for (Sha256Hash txHash : header.getBlockHeader().getTxHashs()) {
+                TransactionStore tx = getTransaction(txHash.getBytes());
+                if(tx == null) {
+                    log.error("Block height {} , tx {} not found", header.getBlockHeader().getHeight(), txHash);
+                    continue;
+                }
+                txs.add(tx.getTransaction());
+            }
+        }
+
+        BlockStore blockStore = new BlockStore(network);
+
+        Block block = new Block(network);
+        block.setTxs(txs);
+        block.setVersion(header.getBlockHeader().getVersion());
+        block.setHash(header.getBlockHeader().getHash());
+        block.setHeight(header.getBlockHeader().getHeight());
+        block.setMerkleHash(header.getBlockHeader().getMerkleHash());
+        block.setPreHash(header.getBlockHeader().getPreHash());
+        block.setTime(header.getBlockHeader().getTime());
+        block.setTxCount(header.getBlockHeader().getTxCount());
+        block.setScriptBytes(header.getBlockHeader().getScriptBytes());
+
+        blockStore.setBlock(block);
+        blockStore.setNextHash(header.getNextHash());
+
+        return blockStore;
     }
 
 

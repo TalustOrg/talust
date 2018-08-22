@@ -63,10 +63,6 @@ public abstract class NetworkParams {
 	//消息序列化工具
 	protected transient MessageSerializer defaultSerializer = null;
 	
-	//区块存储提供器
-	@Autowired
-	protected BlockStorage blockStorage;
-
 	//网络最新高度
 	protected long bestHeight;
 
@@ -131,7 +127,7 @@ public abstract class NetworkParams {
 	 * @return long
 	 */
 	public long getBestBlockHeight() {
-		BlockHeaderStore blockHeader = blockStorage.getBestBlockHeader();
+		BlockHeaderStore blockHeader = BlockStorage.get().getBestBlockHeader();
 		if(blockHeader == null) {
 			return 0l;
 		} else {
@@ -144,7 +140,7 @@ public abstract class NetworkParams {
 	 * @return long
 	 */
 	public BlockHeader getBestBlockHeader() {
-		BlockHeaderStore bestBlockHeaderStore = blockStorage.getBestBlockHeader();
+		BlockHeaderStore bestBlockHeaderStore = BlockStorage.get().getBestBlockHeader();
 		if(bestBlockHeaderStore == null) {
 			return getGengsisBlock().getBlock();
 		}
@@ -192,31 +188,15 @@ public abstract class NetworkParams {
 		return 0;
 	}
 
-	public int getPort() {
-		return port;
-	}
-
-	public SeedManager getSeedManager() {
-		return seedManager;
-	}
-
 	public long getPacketMagic() {
 		return packetMagic;
 	}
-
 	public String getId() {
 		return id;
 	}
-
-	public void setBlockStoreProvider(BlockStorage blockStorage) {
-		this.blockStorage = blockStorage;
-	}
-
 	public long getBestHeight() {
 		return bestHeight;
 	}
 
-	public void setBestHeight(long bestHeight) {
-		this.bestHeight = bestHeight;
-	}
+
 }

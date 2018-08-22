@@ -27,6 +27,7 @@ package org.talust.core.storage;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.talust.common.crypto.*;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
@@ -38,8 +39,7 @@ import org.talust.core.network.MainNetworkParams;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j //帐户存储服务
@@ -49,8 +49,6 @@ public class AccountStorage {
     private List<Account> accountList = new ArrayList<Account>();
     private MainNetworkParams network = MainNetworkParams.get();
     private static AccountStorage instance = new AccountStorage();
-
-    private TransactionStorage transactionStorage =  TransactionStorage.get();
 
     private AccountStorage() {
         init(Configure.DATA_ACCOUNT);
@@ -141,12 +139,17 @@ public class AccountStorage {
                             try {
                                 account.verify();
                                 accountList.add(account);
+                                TransactionStorage.get().addAddress(account.getAddress().getHash160());
                             } catch (Exception e) {
                                 log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
                             }
                         }
                     }
                 }
+                //加载账户信息
+                List<byte[]> hash160s = getAccountHash160s();
+                //或许重新加载账户相关的交易记录
+                maybeReLoadTransaction(hash160s);
             }catch (Exception e){
                 log.warn("账户文件路径读取错误");
             }
@@ -170,13 +173,48 @@ public class AccountStorage {
                 try {
                     account.verify();
                     accountList.add(account);
+                    TransactionStorage.get().addAddress(account.getAddress().getHash160());
                 } catch (Exception e) {
                     log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
                 }
             }
+            //加载账户信息
+            List<byte[]> hash160s = getAccountHash160s();
+            //或许重新加载账户相关的交易记录
+            maybeReLoadTransaction(hash160s);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    //是否重新加载账户交易
+    private void maybeReLoadTransaction(List<byte[]> hash160s) {
+        //判断上次加载的和本次的账户是否完全一致
+        List<byte[]> hash160sStore = TransactionStorage.get().getAddresses();
+
+        //如果个数一样，则判断是否完全相同
+        if(hash160s.size() == hash160sStore.size()) {
+            Comparator<byte[]> comparator = new Comparator<byte[]>() {
+                @Override
+                public int compare(byte[] o1, byte[] o2) {
+                    return Hex.encode(o1).compareTo(Hex.encode(o2));
+                }
+            };
+            Collections.sort(hash160s, comparator);
+            Collections.sort(hash160sStore, comparator);
+            boolean fullSame = true;
+            for (int i = 0; i < hash160s.size(); i++) {
+                if(!Arrays.equals(hash160sStore.get(i), hash160s.get(i))) {
+                    fullSame = false;
+                    break;
+                }
+            }
+            if(fullSame) {
+                return;
+            }
+        }
+        TransactionStorage.get().reloadTransaction(hash160s);
     }
 
     //获取账户对应的has160
@@ -209,8 +247,7 @@ public class AccountStorage {
     //加载单个地址的余额信息
     private void loadAddressBalance(Address address) {
         //查询可用余额和等待中的余额
-        Coin[] balances = transactionStorage.getBalanceAndUnconfirmedBalance(address.getHash160());
-
+        Coin[] balances = TransactionStorage.get().getBalanceAndUnconfirmedBalance(address.getHash160());
         address.setBalance(balances[0]);
         address.setUnconfirmedBalance(balances[1]);
     }
