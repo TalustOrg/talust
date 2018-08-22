@@ -188,7 +188,6 @@ public class BlockArrivedValidator implements MessageValidator {
             log.warn("block info warn newblock {}, localblock {}", block.getHeight(), bestBlockHeader.getBlockHeader().getHeight());
             return false;
         }
-
         return true;
     }
 

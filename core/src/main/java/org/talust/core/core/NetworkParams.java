@@ -197,6 +197,8 @@ public abstract class NetworkParams {
 	public long getBestHeight() {
 		return bestHeight;
 	}
-
+	public void setBestHeight(long bestHeight) {
+		this.bestHeight = bestHeight;
+	}
 
 }

@@ -40,8 +40,6 @@ import java.io.IOException;
 @Slf4j//其他节点广播出来的区块数据
 public class BlockArrivedHandler implements MessageHandler {
     private BlockStorage blockStorage = BlockStorage.get();
-    private CacheManager cu = CacheManager.get();
-    private TransactionHandler transactionHandler = new TransactionHandler();
 
     @Override
     public boolean handle(MessageChannel messageChannel) {
@@ -64,6 +62,7 @@ public class BlockArrivedHandler implements MessageHandler {
         byte[] blockBytes = messageChannel.getMessage().getContent();
         BlockStore blockStore = SerializationUtil.deserializer(blockBytes, BlockStore.class);
         try {
+            //最值该节点的最新高度
             blockStorage.saveBlock(blockStore);
         } catch (IOException e) {
             e.printStackTrace();

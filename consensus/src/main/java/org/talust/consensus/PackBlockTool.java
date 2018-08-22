@@ -46,6 +46,7 @@ public class PackBlockTool {
             long height = blockStorage.getBestBlockHeader().getBlockHeader().getHeight();
             height++;
             Transaction coinBase = getCoinBase(packageTime, height);
+            networkParams.setBestHeight(height);
             if (coinBase != null) {
                 //加入挖矿奖励,挖矿交易生成
                 transactionList.add(coinBase);

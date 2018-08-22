@@ -131,6 +131,8 @@ public class BlockStorage extends BaseStoreProvider {
             if(blockStore.getNextHash() == null) {
                 blockStore.setNextHash(Sha256Hash.ZERO_HASH);
             }
+
+            network.setBestHeight(blockStore.getBlock().getHeight());
             //先保存交易，再保存区块，保证区块体不出错
             //保存交易
             for (int i = 0; i < block.getTxCount(); i++) {
@@ -160,6 +162,7 @@ public class BlockStorage extends BaseStoreProvider {
                 preBlockHeader.setNextHash(block.getHash());
                 db.put(preBlockHeader.getBlockHeader().getHash().getBytes(), preBlockHeader.baseSerialize());
             }
+
         } catch (Exception e) {
             log.info("保存区块出错：", e);
         } finally {
