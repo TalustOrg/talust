@@ -72,7 +72,7 @@ public class BlockArrivedValidator implements MessageValidator {
         }
         Sha256Hash prevBlock = block.getPreHash();//前一区块hash
         byte[] preBlockBytes = storageService.get(prevBlock.getBytes());
-        if (preBlockBytes != null) {
+        if (preBlockBytes != null||block.getHeight()==1) {
             BlockHeader blockHeader = new BlockHeader(MainNetworkParams.get(), preBlockBytes);
             long preHeight = blockHeader.getHeight();
             long nowHeight = block.getHeight();
