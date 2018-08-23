@@ -57,7 +57,7 @@ public class TransferAccountsController {
             return resp;
         }
         try {
-            money  = ArithUtils.mul(money, "1", 8);
+            money  = ArithUtils.mul(money, "100000000", 0);
         } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "金额不正确");

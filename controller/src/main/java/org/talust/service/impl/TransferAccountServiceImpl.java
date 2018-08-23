@@ -234,6 +234,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             message.setTime(NtpTimeService.currentTimeSeconds());
             //广播交易
             ConnectionManager.get().TXMessageSend(message);
+            resp.put("retCode", "0");
+            resp.put("message", "交易已上送");
         }catch (Exception e ){
         }finally {
             locker.unlock();
