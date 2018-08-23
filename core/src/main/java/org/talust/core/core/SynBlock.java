@@ -81,11 +81,6 @@ public class SynBlock {
 
     private void synBlock() {
         log.info("进行数据块的同步...");
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         long selfBlockHeight = MainNetworkParams.get().getBestBlockHeight();
         List<Future<MessageChannel>> results = new ArrayList<>();
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();

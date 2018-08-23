@@ -51,6 +51,7 @@ import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.ScriptBuilder;
 import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.AccountStorage;
+import org.talust.core.storage.BlockStorage;
 import org.talust.core.storage.TransactionStorage;
 import org.talust.core.transaction.LocalTransactionSigner;
 import org.talust.core.transaction.Transaction;
@@ -110,8 +111,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             resp.put("message","当前网络不可用，请稍后再尝试");
             return resp;
         }
-        long height = CacheManager.get().getCurrentBlockHeight();
-        long localbestheighttime = CacheManager.get().getCurrentBlockTime();
+        long height = MainNetworkParams.get().getBestBlockHeight();
+        long localbestheighttime =BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
         if(height==0){
             if(SynBlock.get().getSyning().get()){
                 resp.put("retCode","1");
@@ -124,7 +125,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 return resp;
             }
         }
-        if(NtpTimeService.currentTimeMillis()-localbestheighttime>60){
+        long now  = NtpTimeService.currentTimeSeconds();
+        if(now-localbestheighttime>6){
             if(SynBlock.get().getSyning().get()) {
                 resp.put("retCode","1");
                 resp.put("message","正在同步区块中，请稍后再尝试");
@@ -229,7 +231,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             message.setSigner(account.getEcKey().getPubKey());
             message.setSignContent(sign);
             message.setType(MessageType.TRANSACTION.getType());
-            message.setTime(DateUtil.getTimeSecond());
+            message.setTime(NtpTimeService.currentTimeSeconds());
             //广播交易
             ConnectionManager.get().TXMessageSend(message);
         }catch (Exception e ){

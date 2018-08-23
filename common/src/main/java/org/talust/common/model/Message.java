@@ -41,7 +41,7 @@ public class Message {
     @Tag(4)//内容的签名者所签的内容,一般指是对内容的hash值进行的签名
     private byte[] signContent;
     @Tag(5)//消息发送时间戳
-    private Integer time;
+    private Long time;
     @Tag(6)//消息计数器,由一个AtomicLong不断累加,主要针对请求响应模型的,通过此来定位请求点
     private Long msgCount;
 
@@ -70,11 +70,11 @@ public class Message {
         this.msgCount = msgCount;
     }
 
-    public Integer getTime() {
+    public Long getTime() {
         return time;
     }
 
-    public void setTime(Integer time) {
+    public void setTime(Long time) {
         this.time = time;
     }
 

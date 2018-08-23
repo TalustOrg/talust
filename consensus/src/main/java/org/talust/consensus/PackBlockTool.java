@@ -38,7 +38,7 @@ public class PackBlockTool {
 
 
     //打包
-    public void  pack(int packageTime) {
+    public void  pack(long packageTime) {
         try {
             Account account = AccountStorage.get().getAccount();
             //批量获取需要打包的数据
@@ -95,7 +95,7 @@ public class PackBlockTool {
      * @param height
      * @return
      */
-    private Transaction getCoinBase(int packageTime, long height) throws Exception {
+    private Transaction getCoinBase(long packageTime, long height) throws Exception {
         //添加共识奖励交易
         Transaction coinBase = new Transaction(networkParams);
         coinBase.setVersion(Definition.VERSION);

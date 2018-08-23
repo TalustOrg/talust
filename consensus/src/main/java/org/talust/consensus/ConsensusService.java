@@ -5,6 +5,8 @@ import org.talust.common.model.SuperNode;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.DateUtil;
+import org.talust.core.network.MainNetworkParams;
+import org.talust.core.server.NtpTimeService;
 import org.talust.network.netty.ConnectionManager;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -50,9 +52,9 @@ public class ConsensusService {
     private void genBlock() {
         long delay = 0;
         //当前最新区块生成时间
-        long currentBlockTime = CacheManager.get().getCurrentBlockTime();
+        long currentBlockTime = MainNetworkParams.get().getBestBlockHeader().getTime();
         if (currentBlockTime > 0) {
-            int timeSecond = DateUtil.getTimeSecond();
+            long timeSecond = NtpTimeService.currentTimeSeconds();
             delay = Configure.BLOCK_GEN_TIME - timeSecond + currentBlockTime;
             if (delay < 0) {
                 delay = 0;
@@ -61,9 +63,8 @@ public class ConsensusService {
 
         service.scheduleAtFixedRate(() -> {
             if (genRunning.get()) {
-                byte[] currentBlockHash = CacheManager.get().getCurrentBlockHash();
                 log.info("打包ip:{}", ConnectionManager.get().selfIp);
-                int packageTime = DateUtil.getTimeSecond();
+                long packageTime =  NtpTimeService.currentTimeSeconds();
                 packBlockTool.pack(packageTime);//打包
             }
         }, delay, Configure.BLOCK_GEN_TIME, TimeUnit.SECONDS);

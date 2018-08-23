@@ -47,7 +47,7 @@ public class MessageQueue {
 
     public void addMessage(MessageChannel message) {
         if (message.getMessage() != null) {
-            message.getMessage().setTime(DateUtil.getTimeSecond());
+            message.getMessage().setTime(System.currentTimeMillis()/1000);
         }
         this.queue.add(message);
     }
