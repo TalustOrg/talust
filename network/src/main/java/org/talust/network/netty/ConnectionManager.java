@@ -414,12 +414,7 @@ public class ConnectionManager {
      * 判断当前ip是否是超级节点
      */
     public boolean isSuperNode() {
-        for (String myIp : myIps) {
-            if (superIps.contains(myIp)) {
-                return true;
-            }
-        }
-        return false;
+        return superNode;
     }
 
     /**

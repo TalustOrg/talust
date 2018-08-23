@@ -149,8 +149,8 @@ public class SynBlock {
             times++;
         }
 
-
-
+        List<BlockStore> blocks = new ArrayList<>();
+        Map<Long, MessageChannel> mapHeightData = new HashMap<>();
         for (int time = 0; time < times; time++) {//循环每一轮
             List<Future<MessageChannel>> results = new ArrayList<>();
             long start = selfBlockHeight + time * THREAD_POOL_SIZE + 1;//开始下载的区块数
@@ -159,8 +159,8 @@ public class SynBlock {
                 end = maxBlockHeight + 1;
             }
             long needBlockCount = end - start;//需要下载的区块数
-            List<BlockStore> blocks = new ArrayList<>();
-            Map<Long, MessageChannel> mapHeightData = new HashMap<>();
+
+
             while (true) {//始终要保证每一轮下载完成该下的任务
                 if (blocks.size() >= needBlockCount) {
                     break;
@@ -226,28 +226,28 @@ public class SynBlock {
                     }
                 }
             }
-            Collections.sort(blocks, (BlockStore o1, BlockStore o2) -> {//对本次返回的区块进行排序
-                long i = o1.getBlock().getBlockHeader().getHeight() - o2.getBlock().getBlockHeader().getHeight();
-                if (i == 0) {
-                    return 0;
-                }
-                return 1;
-            });
-            log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
-            for (BlockStore block : blocks) {
-                try {
-                    log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
-                    MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
-                    if (messageChannel != null) {
-                        if (blockArrivedValidator.check(messageChannel)) {
-                            blockArrivedHandler.handle(messageChannel);
-                        }
-                    } else {
-                        log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());
+        }
+        Collections.sort(blocks, (BlockStore o1, BlockStore o2) -> {//对本次返回的区块进行排序
+            long i = o1.getBlock().getBlockHeader().getHeight() - o2.getBlock().getBlockHeader().getHeight();
+            if (i == 0) {
+                return 0;
+            }
+            return 1;
+        });
+        log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
+        for (BlockStore block : blocks) {
+            try {
+                log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
+                MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
+                if (messageChannel != null) {
+                    if (blockArrivedValidator.check(messageChannel)) {
+                        blockArrivedHandler.handle(messageChannel);
                     }
-                } catch (Throwable e) {//本次下载的一批区块,其中有区块有问题
-                    //@TODO 需要将区块有问题的下载节点加入黑名单,本处暂时忽略
+                } else {
+                    log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());
                 }
+            } catch (Throwable e) {//本次下载的一批区块,其中有区块有问题
+                //@TODO 需要将区块有问题的下载节点加入黑名单,本处暂时忽略
             }
         }
     }

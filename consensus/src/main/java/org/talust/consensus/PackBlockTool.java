@@ -34,7 +34,6 @@ public class PackBlockTool {
     private DataContainer dataContainer = DataContainer.get();
     private BlockStorage blockStorage = BlockStorage.get();
     private NetworkParams networkParams = MainNetworkParams.get();
-    private CacheManager cu = CacheManager.get();
 
 
     //打包
@@ -116,19 +115,19 @@ public class PackBlockTool {
         Address mingAddr = Address.fromBase58(networkParams,miningAddress.get(idx));
         byte[] sn = mingAddr.getHash160();
         coinBase.addOutput(minerRreward,new Address(networkParams,sn));
-        log.info("挖矿奖励给地址:{},高度:{},金额:{}", Base58.encode(sn), height, minerRreward.value);
+        log.info("挖矿奖励给地址:{},高度:{},金额:{}", Base58.encode(sn), height, ArithUtils.div( minerRreward.value+"","100000000",8));
 
         List<DepositAccount> deposits = ChainStateStorage.get().getDeposits(sn).getDepositAccounts();
         //当前没有储蓄帐户,则挖出来的币直接奖励给矿机
         if (null==deposits||deposits.size() == 0) {
             coinBase.addOutput(consensusRreward,new Address(networkParams,sn));
-            log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", Base58.encode(sn), height,consensusRreward.value);
+            log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", Base58.encode(sn), height,ArithUtils.div( consensusRreward.value+"","100000000",8));
         } else {//有储蓄者
             Coin totalAmount = calTotalAmount(deposits);
             for (DepositAccount deposit : deposits) {
                 Coin per =consensusRreward.multiply(deposit.getAmount().divide(totalAmount));
                 coinBase.addOutput(per,new Address(networkParams,deposit.getAddress()));
-                log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", Base58.encode(deposit.getAddress()),height, per.value);
+                log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", Base58.encode(deposit.getAddress()),height, ArithUtils.div(per.value+"","100000000",8));
             }
         }
         coinBase.verify();

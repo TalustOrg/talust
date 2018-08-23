@@ -205,12 +205,7 @@ public class TransactionValidator implements MessageValidator {
                         log.info("必须输出到地址");
                         return false;
                     }
-                    //必须输出到指定的账户
-                    //自己的账户
-                    byte[] selfAccount = verifyScript.getChunks().get(0).data;
-                    //输出账户
-                    byte[] ouputAccount = outputScript.getChunks().get(2).data;
-                } else {
+                } else if(verifyScript.isSystemAccount()){
                     input.getScriptSig().run(tx, i, verifyScript);
                 }
                 i++;

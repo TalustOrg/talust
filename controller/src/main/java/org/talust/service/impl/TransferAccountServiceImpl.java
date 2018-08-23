@@ -44,6 +44,7 @@ import org.talust.common.tools.SerializationUtil;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.core.SynBlock;
+import org.talust.core.data.DataContainer;
 import org.talust.core.data.TransactionCache;
 import org.talust.core.model.Account;
 import org.talust.core.model.Address;
@@ -182,7 +183,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             tx.setType(Definition.TYPE_PAY);
             Coin totalInputCoin = Coin.ZERO;
             //根据交易金额获取当前交易地址下所有的未花费交易
-            Coin pay = Coin.parseCoin(money);
+            Coin pay = Coin.COIN.multiply((long)Double.parseDouble(money));
             List<TransactionOutput> fromOutputs = selectNotSpentTransaction(pay, account.getAddress());
             TransactionInput input = new TransactionInput();
             for (TransactionOutput output : fromOutputs) {
@@ -212,9 +213,6 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 if(account.getAccountType() == network.getSystemAccountVersion()) {
                     //普通账户的签名
                     signer.signInputs(tx, account.getEcKey());
-                } else {
-                    //认证账户的签名
-                    signer.signCertAccountInputs(tx, account.getTrEckeys(), account.getAccountTransaction().getHash().getBytes(), account.getAddress().getHash160());
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
@@ -223,6 +221,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             assert transactionValidator.checkTransaction(tx,null);
             //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
             boolean success = TransactionCache.getInstace().add(tx);
+            DataContainer.get().addRecord(tx);
 
             Message message = new Message();
             byte[] data = SerializationUtil.serializer(tx);
