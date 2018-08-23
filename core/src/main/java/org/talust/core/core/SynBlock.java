@@ -153,22 +153,27 @@ public class SynBlock {
         if (mod != 0) {
             times++;
         }
-
+        List<Future<MessageChannel>> results = new ArrayList<>();
+        if(selfBlockHeight==0){
+            Future<MessageChannel> genesis = threadPool.submit(() -> {
+                Message nodeMessage = new Message();
+                nodeMessage.setType(MessageType.BLOCK_REQ.getType());
+                nodeMessage.setContent(Long.toString(0).getBytes());//所请求的块的高度
+                log.info("向网络节点:{} 请求区块高度为:{}的区块...", ac.get(0), 0);
+                MessageChannel message = SynRequest.get().synReq(nodeMessage, ac.get(0));
+                return message;
+            });
+            results.add(genesis);
+        }
 
         for (int time = 0; time < times; time++) {//循环每一轮
-            List<Future<MessageChannel>> results = new ArrayList<>();
+
             long start = selfBlockHeight + time * THREAD_POOL_SIZE + 1;//开始下载的区块数
             long end = start + THREAD_POOL_SIZE;
             if (end > maxBlockHeight + 1) {
                 end = maxBlockHeight + 1;
             }
-            long needBlockCount = end - start;//需要下载的区块数
-
-
             while (true) {//始终要保证每一轮下载完成该下的任务
-                if (blocks.size() >= needBlockCount) {
-                    break;
-                }
                 for (long idx = start; idx < end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
                     boolean needGain = true;//当前块需要下载
                     for (BlockStore block : blocks) {
@@ -194,17 +199,7 @@ public class SynBlock {
                         }
                         final String selectIp = scId;
                         final long selectBlockHeight = idx;
-                        if(selfBlockHeight==0){
-                            Future<MessageChannel> genesis = threadPool.submit(() -> {
-                                Message nodeMessage = new Message();
-                                nodeMessage.setType(MessageType.BLOCK_REQ.getType());
-                                nodeMessage.setContent(Long.toString(0).getBytes());//所请求的块的高度
-                                log.info("向网络节点:{} 请求区块高度为:{}的区块...", selectIp, 0);
-                                MessageChannel message = SynRequest.get().synReq(nodeMessage, selectIp);
-                                return message;
-                            });
-                            results.add(genesis);
-                        }
+
                         Future<MessageChannel> submit = threadPool.submit(() -> {
                             Message nodeMessage = new Message();
                             nodeMessage.setType(MessageType.BLOCK_REQ.getType());
