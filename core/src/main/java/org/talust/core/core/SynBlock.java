@@ -61,6 +61,9 @@ public class SynBlock {
         return instance;
     }
 
+
+    private List<BlockStore> blocks = new ArrayList<>();
+    private Map<Long, MessageChannel> mapHeightData = new HashMap<>();
     private MessageHandler blockArrivedHandler;//区块到来处理器
     private MessageValidator blockArrivedValidator;//区块到来校验器
     private AtomicBoolean syning = new AtomicBoolean(false);//是否正在同步
@@ -81,50 +84,52 @@ public class SynBlock {
 
     private void synBlock() {
         log.info("进行数据块的同步...");
-        long selfBlockHeight = MainNetworkParams.get().getBestBlockHeight();
-        List<Future<MessageChannel>> results = new ArrayList<>();
-        Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
-        log.info("当前区块高度为:{},本节点连接的远端节点数为:{}", selfBlockHeight, allChannel.size());
-        for (final MyChannel channel : allChannel) {
-            Future<MessageChannel> submit = threadPool.submit(() -> {
-                Message nodeMessage = new Message();
-                nodeMessage.setType(MessageType.HEIGHT_REQ.getType());
-                log.info("向远端ip:{}请求当前网络的区块高度...", channel.getRemoteIp());
-                MessageChannel message = SynRequest.get().synReq(nodeMessage, channel.getRemoteIp());
-                if (message != null) {
-                    log.info("远端ip:{}返回当前区块高度:{}", channel.getRemoteIp(), new String(message.getMessage().getContent()));
-                } else {
-                    log.info("-------------------------------------------");
-                }
-                return message;
-            });
-            results.add(submit);
-        }
-        //最高区块高度
-        int maxBlockHeight = -1;
-        //用于存储每个通道的区块高度
-        Map<String, Integer> channelBlockHeight = new HashMap<>();
-        for (Future<MessageChannel> result : results) {
-            MessageChannel nodeMessage;
-            try {
-                nodeMessage = result.get();
-                if (nodeMessage != null) {
-                    String toChannel = nodeMessage.getFromIp();
-                    int bh = Integer.parseInt(new String(nodeMessage.getMessage().getContent()));
-                    channelBlockHeight.put(toChannel, bh);
-                    if (bh > maxBlockHeight) {
-                        maxBlockHeight = bh;
+        if(blocks.size()==0){
+            long selfBlockHeight = MainNetworkParams.get().getBestBlockHeight();
+            List<Future<MessageChannel>> results = new ArrayList<>();
+            Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
+            log.info("当前区块高度为:{},本节点连接的远端节点数为:{}", selfBlockHeight, allChannel.size());
+            for (final MyChannel channel : allChannel) {
+                Future<MessageChannel> submit = threadPool.submit(() -> {
+                    Message nodeMessage = new Message();
+                    nodeMessage.setType(MessageType.HEIGHT_REQ.getType());
+                    log.info("向远端ip:{}请求当前网络的区块高度...", channel.getRemoteIp());
+                    MessageChannel message = SynRequest.get().synReq(nodeMessage, channel.getRemoteIp());
+                    if (message != null) {
+                        log.info("远端ip:{}返回当前区块高度:{}", channel.getRemoteIp(), new String(message.getMessage().getContent()));
+                    } else {
+                        log.info("-------------------------------------------");
                     }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+                    return message;
+                });
+                results.add(submit);
             }
+            //最高区块高度
+            int maxBlockHeight = -1;
+            //用于存储每个通道的区块高度
+            Map<String, Integer> channelBlockHeight = new HashMap<>();
+            for (Future<MessageChannel> result : results) {
+                MessageChannel nodeMessage;
+                try {
+                    nodeMessage = result.get();
+                    if (nodeMessage != null) {
+                        String toChannel = nodeMessage.getFromIp();
+                        int bh = Integer.parseInt(new String(nodeMessage.getMessage().getContent()));
+                        channelBlockHeight.put(toChannel, bh);
+                        if (bh > maxBlockHeight) {
+                            maxBlockHeight = bh;
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            log.info("当前节点高度:{},网络最新区块高度:{}", selfBlockHeight, maxBlockHeight);
+            if (selfBlockHeight >= maxBlockHeight) {
+                return;
+            }
+            downBlock(selfBlockHeight, maxBlockHeight, channelBlockHeight);
         }
-        log.info("当前节点高度:{},网络最新区块高度:{}", selfBlockHeight, maxBlockHeight);
-        if (selfBlockHeight >= maxBlockHeight) {
-            return;
-        }
-        downBlock(selfBlockHeight, maxBlockHeight, channelBlockHeight);
     }
 
     /**
@@ -149,8 +154,7 @@ public class SynBlock {
             times++;
         }
 
-        List<BlockStore> blocks = new ArrayList<>();
-        Map<Long, MessageChannel> mapHeightData = new HashMap<>();
+
         for (int time = 0; time < times; time++) {//循环每一轮
             List<Future<MessageChannel>> results = new ArrayList<>();
             long start = selfBlockHeight + time * THREAD_POOL_SIZE + 1;//开始下载的区块数
@@ -234,20 +238,25 @@ public class SynBlock {
             }
             return 1;
         });
-        log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
-        for (BlockStore block : blocks) {
-            try {
-                log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
-                MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
-                if (messageChannel != null) {
-                    if (blockArrivedValidator.check(messageChannel)) {
-                        blockArrivedHandler.handle(messageChannel);
+        while (blocks.size()>0){
+            List<BlockStore> tmpBlocks =  blocks;
+            log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
+            for (BlockStore block : tmpBlocks) {
+                try {
+                    log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
+                    MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
+                    if (messageChannel != null) {
+                        if (blockArrivedValidator.check(messageChannel)) {
+                            blockArrivedHandler.handle(messageChannel);
+                            mapHeightData.remove(block.getBlock().getBlockHeader().getHeight());
+                            blocks.remove(block);
+                        }
+                    } else {
+                        log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());
                     }
-                } else {
-                    log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());
+                } catch (Throwable e) {//本次下载的一批区块,其中有区块有问题
+                    //@TODO 需要将区块有问题的下载节点加入黑名单,本处暂时忽略
                 }
-            } catch (Throwable e) {//本次下载的一批区块,其中有区块有问题
-                //@TODO 需要将区块有问题的下载节点加入黑名单,本处暂时忽略
             }
         }
     }
