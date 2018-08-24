@@ -23,6 +23,7 @@ package org.talust.controller;/*
  *
  */
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import io.swagger.annotations.Api;
@@ -32,9 +33,15 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.talust.common.crypto.Base58;
 import org.talust.common.crypto.Hex;
+import org.talust.common.model.DepositAccount;
+import org.talust.common.model.Deposits;
 import org.talust.common.tools.ArithUtils;
 import org.talust.core.model.Account;
+import org.talust.core.model.Address;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.service.TransferAccountService;
+
+import java.util.List;
 
 /**
  * @author Axe-Liu
@@ -94,5 +101,43 @@ public class TransferAccountsController {
         return isOk;
     }
 
+    @ApiOperation(value = "查询储蓄状态", notes = "查询某一个节点的储蓄状态")
+    @PostMapping(value = "searchOneSuperNodeDeposite")
+    JSONObject searchOneSuperNodeDeposite(@RequestParam String address) {
+        JSONObject resp = new JSONObject();
+        Address superNode =  Address.fromBase58(MainNetworkParams.get(),address);
+        Deposits deposits =  transferAccountService.getDeposits(superNode.getHash160());
+        List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
+        if(null==depositAccountList ||depositAccountList.size()==0){
+            resp.put("retCode", "0");
+            resp.put("message", "暂无普通节点参与该节点的共识");
+        }else{
+            resp.put("retCode", "0");
+            resp.put("message", "现有"+depositAccountList.size()+"普通节点参与该节点的共识");
+            JSONArray dataList = new JSONArray();
+            for(int i = 0 ; i <  depositAccountList.size() ; i++){
+                JSONObject  data =  new JSONObject();
+                data.put("id",i);
+                data.put("amout",depositAccountList.get(i).getAmount().value);
+                dataList.add(data);
+            }
+        }
+        return resp ;
+    }
+
+    @ApiOperation(value = "查询储蓄状态", notes = "查询某一个节点的储蓄状态")
+    @PostMapping(value = "searchAllSuperNodeDeposite")
+    JSONObject searchAllSuperNodeDeposite() {
+        JSONObject resp =  new JSONObject();
+        try{
+            resp.put("retCode", "0");
+            JSONArray data =transferAccountService.getAllDeposits();
+            resp.put("data",data);
+        }catch (Exception e ){
+            resp.put("retCode", "1");
+            resp.put("message", "数据异常");
+        }
+        return resp;
+    }
 
 }

@@ -153,7 +153,8 @@ public class SynBlock {
         if (mod != 0) {
             times++;
         }
-        for (int time = 0; time < times; time++) {//循环每一轮
+        for (int time = 0; time < times; time++) {
+            //循环每一轮
             List<Future<MessageChannel>> results = new ArrayList<>();
             long start = selfBlockHeight + time * THREAD_POOL_SIZE + 1;//开始下载的区块数
             long end = start + THREAD_POOL_SIZE;
@@ -202,6 +203,7 @@ public class SynBlock {
                                 return message;
                             });
                             results.add(genesis);
+                            haveGenesis = true;
                         }
                         Future<MessageChannel> submit = threadPool.submit(() -> {
                             Message nodeMessage = new Message();
@@ -237,19 +239,21 @@ public class SynBlock {
             });
             log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
             for (BlockStore block : blocks) {
-                try {
                     log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
                     MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
                     if (messageChannel != null) {
-                        if (blockArrivedValidator.check(messageChannel)) {
-                            blockArrivedHandler.handle(messageChannel);
+                        try{
+                            if (blockArrivedValidator.check(messageChannel)) {
+                                blockArrivedHandler.handle(messageChannel);
+                            }
+                        }catch (Exception e ){
+                            log.info("区块高度{}的区块数据异常 :{}", block.getBlock().getBlockHeader().getHeight(),e.getMessage());
+                            synBlock();
                         }
                     } else {
                         log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());
                     }
-                } catch (Throwable e) {//本次下载的一批区块,其中有区块有问题
-                    //@TODO 需要将区块有问题的下载节点加入黑名单,本处暂时忽略
-                }
+
             }
         }
     }

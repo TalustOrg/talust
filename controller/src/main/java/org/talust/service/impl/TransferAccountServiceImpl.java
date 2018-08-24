@@ -24,6 +24,7 @@
  */
 package org.talust.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -34,9 +35,7 @@ import org.talust.common.crypto.AESEncrypt;
 import org.talust.common.crypto.Base58;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
-import org.talust.common.model.Coin;
-import org.talust.common.model.Message;
-import org.talust.common.model.MessageType;
+import org.talust.common.model.*;
 import org.talust.common.tools.ArithUtils;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.DateUtil;
@@ -53,6 +52,7 @@ import org.talust.core.script.ScriptBuilder;
 import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.AccountStorage;
 import org.talust.core.storage.BlockStorage;
+import org.talust.core.storage.ChainStateStorage;
 import org.talust.core.storage.TransactionStorage;
 import org.talust.core.transaction.LocalTransactionSigner;
 import org.talust.core.transaction.Transaction;
@@ -77,6 +77,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     private final static Lock locker = new ReentrantLock();
 
     private TransactionStorage transactionStorage = TransactionStorage.get();
+    private ChainStateStorage chainStateStorage = ChainStateStorage.get();
 
     private TransactionValidator transactionValidator =new  TransactionValidator();
     private NetworkParams network = MainNetworkParams.get();
@@ -107,11 +108,11 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         JSONObject resp =  new JSONObject();
         Utils.checkNotNull(toAddress);
         Collection<MyChannel> connects =ChannelContain.get().getMyChannels();
-        if(connects.size()<=0){
-            resp.put("retCode","1");
-            resp.put("message","当前网络不可用，请稍后再尝试");
-            return resp;
-        }
+//        if(connects.size()<=0){
+//            resp.put("retCode","1");
+//            resp.put("message","当前网络不可用，请稍后再尝试");
+//            return resp;
+//        }
         long height = MainNetworkParams.get().getBestBlockHeight();
         long localbestheighttime =BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
         if(height==0){
@@ -525,4 +526,28 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         }
     }
 
+
+    public Deposits getDeposits(byte[] hash160){
+        return chainStateStorage.getDeposits(hash160);
+    }
+
+    @Override
+    public JSONArray getAllDeposits() {
+        Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
+        JSONArray dataList =  new JSONArray();
+        for(SuperNode superNode : superNodes){
+            JSONObject data  = new JSONObject();
+            data.put("ip",superNode.getIp());
+            Address address =  Address.fromBase58(network ,superNode.getAddress());
+            Deposits deposits =getDeposits(address.getHash160());
+            List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
+            if(null!=depositAccountList&&depositAccountList.size()>0){
+                data.put("size" , deposits.getDepositAccounts().size());
+            }else{
+                data.put("size" ,0);
+            }
+            dataList.add(data);
+        }
+        return dataList;
+    }
 }

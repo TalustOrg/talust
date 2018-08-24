@@ -142,6 +142,7 @@ public class BlockStorage extends BaseStoreProvider {
             //保存交易
             for (int i = 0; i < block.getTxCount(); i++) {
                 Transaction tx = block.getTxs().get(i);
+                log.info("区块包含的交易类型为："+tx.getType());
                 TransactionStore txs = new TransactionStore(network, tx, block.getHeight(), null);
                 db.put(tx.getHash().getBytes(), txs.baseSerialize());
                 saveChainstate(block, txs);
