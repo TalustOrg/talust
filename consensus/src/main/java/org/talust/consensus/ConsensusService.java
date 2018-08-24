@@ -6,6 +6,7 @@ import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.DateUtil;
 import org.talust.core.network.MainNetworkParams;
+import org.talust.core.server.DepositsService;
 import org.talust.core.server.NtpTimeService;
 import org.talust.network.netty.ConnectionManager;
 
@@ -33,6 +34,8 @@ public class ConsensusService {
     private int checkSecond;//检测区块是否正常的时长
 
     public void start() {
+        //存在网络的前提下同步获取所有的储蓄状态
+        DepositsService.get().updateDeposits();
         boolean superNode = ConnectionManager.get().superNode;
         //如果当前节点是超级节点,则启动共识机制
         if (superNode) {
@@ -106,6 +109,8 @@ public class ConsensusService {
     public void stopGenBlock() {
         genRunning.set(false);
     }
+
+
 
 
 }

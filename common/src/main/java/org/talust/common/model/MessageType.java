@@ -62,6 +62,10 @@ public enum MessageType {
     NEW_MASTER_RESP(20),
     //节点加入结果
     NODE_JOIN_RESP(21),
+    //所有节点的储蓄状态请求
+    DEPOSITS_STATUS_REQ(22),
+    //所有节点的储蓄状态相应
+    DEPOSITS_STATUS_RESP(23),
     //结束,主要是为了开发时新增消息类型方便/
     END(10000)
     ;

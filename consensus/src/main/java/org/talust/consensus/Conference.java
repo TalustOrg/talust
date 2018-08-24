@@ -217,6 +217,9 @@ public class Conference {
         return false;
     }
 
+
+
+
     public SuperNode getMaster() {
         return master;
     }

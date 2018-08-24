@@ -24,6 +24,10 @@
  */
 package org.talust.core.storage;
 
+import org.talust.common.crypto.ByteArrayTool;
+import org.talust.common.crypto.Util;
+import org.talust.common.crypto.Utils;
+import org.talust.common.crypto.VarInt;
 import org.talust.common.model.Coin;
 import org.talust.common.model.Deposits;
 import org.talust.common.tools.Configure;
@@ -31,7 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.RocksDBException;
 import org.talust.common.model.DepositAccount;
 import org.talust.common.tools.SerializationUtil;
+import org.talust.common.tools.StringUtils;
 import org.talust.core.model.Address;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.storage.BaseStoreProvider;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -57,6 +63,8 @@ public class ChainStateStorage extends BaseStoreProvider {
     private byte[] ADDRESS_AMOUNT = "addressAmount".getBytes();
     private AtomicLong tranNumber;
 
+    private final  static String dpos = "deposit";
+
 
     public void put(byte[] key, byte[] value)  {
         try {
@@ -76,33 +84,6 @@ public class ChainStateStorage extends BaseStoreProvider {
         return null;
     }
 
-
-    private void initTranNumber() {
-        try {
-            byte[] bytes = db.get(TRAN_NUMBER);
-            if (bytes != null) {
-                tranNumber = new AtomicLong(Long.parseLong(new String(bytes)));
-            } else {//交易号默认从100开始
-                tranNumber = new AtomicLong(100);
-            }
-        } catch (RocksDBException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public synchronized long newTranNumber() {
-        return tranNumber.addAndGet(1);
-    }
-
-    public void saveTranNumber() {
-        try {
-            db.put(TRAN_NUMBER, Long.toString(tranNumber.get()).getBytes());
-        } catch (RocksDBException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     /**
      * 获取超级节点下的储蓄帐户,需要根据这些帐户的储蓄计算挖矿收益
      *
@@ -110,9 +91,10 @@ public class ChainStateStorage extends BaseStoreProvider {
      * @return
      */
     public Deposits getDeposits(byte[] miningAddress) {
+        byte[] key =getDepositSearchKey(miningAddress);
         Deposits deposits = new Deposits();
         try {
-            byte[] deps = db.get(miningAddress);
+            byte[] deps = db.get(key);
             if(null!=deps){
                 deposits =  SerializationUtil.deserializer(deps,Deposits.class);
             }
@@ -123,14 +105,15 @@ public class ChainStateStorage extends BaseStoreProvider {
     }
 
 
-    public void addDepostits(Address address , Coin coin ,byte[] miningAddress){
+    public void addDeposits(Address address , Coin coin ,byte[] miningAddress){
         try {
-            byte[] deps = db.get(miningAddress);
+            byte[] key =getDepositSearchKey(miningAddress);
+            byte[] deps = db.get(key);
             if(null!=deps){
                 Deposits deposits=  SerializationUtil.deserializer(deps,Deposits.class);
                 deposits.getDepositAccounts().add(new DepositAccount(address.getHash160(),coin));
                 try {
-                    db.put(miningAddress,SerializationUtil.serializer(deposits));
+                    db.put(key,SerializationUtil.serializer(deposits));
                 } catch (RocksDBException e) {
                     e.printStackTrace();
                 }
@@ -139,8 +122,24 @@ public class ChainStateStorage extends BaseStoreProvider {
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
-
     }
 
+    public void  forceUpdateDeposits(String base58Address , Deposits deposits){
+        Address address = Address.fromBase58(MainNetworkParams.get(),base58Address);
+        byte[] key  = getDepositSearchKey(address.getHash160());
+        try {
+            db.put(key,SerializationUtil.serializer(deposits));
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public byte[] getDepositSearchKey(byte[] miningAddress){
+        byte[] key = new byte[miningAddress.length + dpos.getBytes().length];
+        System.arraycopy(miningAddress, 0, key, 0, miningAddress.length);
+        System.arraycopy(dpos.getBytes(), 0, key, miningAddress.length, dpos.getBytes().length);
+        return key;
+    }
 
 }

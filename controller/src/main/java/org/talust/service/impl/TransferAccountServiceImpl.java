@@ -537,7 +537,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         JSONArray dataList =  new JSONArray();
         for(SuperNode superNode : superNodes){
             JSONObject data  = new JSONObject();
-            data.put("ip",superNode.getIp());
+            data.put("address",superNode.getAddress());
             Address address =  Address.fromBase58(network ,superNode.getAddress());
             Deposits deposits =getDeposits(address.getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
@@ -549,5 +549,98 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             dataList.add(data);
         }
         return dataList;
+    }
+
+    @Override
+    public JSONObject consensusJoin(String nodeAddress, String money, String address, String password) {
+        JSONObject resp =  new JSONObject();
+        Utils.checkNotNull(nodeAddress);
+        Collection<MyChannel> connects =ChannelContain.get().getMyChannels();
+        if(connects.size()<=0){
+            resp.put("retCode","1");
+            resp.put("message","当前网络不可用，请稍后再尝试");
+            return resp;
+        }
+        long height = MainNetworkParams.get().getBestBlockHeight();
+        long localbestheighttime =BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
+        if(height==0){
+            if(SynBlock.get().getSyning().get()){
+                resp.put("retCode","1");
+                resp.put("message","正在同步区块中，请稍后再尝试");
+                return resp;
+            }else{
+                ConnectionManager.get().init();
+                resp.put("retCode","1");
+                resp.put("message","当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                return resp;
+            }
+        }
+        long now  = NtpTimeService.currentTimeSeconds();
+        if(now-localbestheighttime>6){
+            if(SynBlock.get().getSyning().get()) {
+                resp.put("retCode","1");
+                resp.put("message","正在同步区块中，请稍后再尝试");
+                return resp;
+            }else {
+                ConnectionManager.get().init();
+                resp.put("retCode","1");
+                resp.put("message","当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                return resp;
+            }
+        }
+        locker.lock();
+        try {
+            if (money.compareTo("0") <= 0) {
+                resp.put("retCode", "1");
+                resp.put("message", "发送的金额需大于0");
+                return resp;
+            }
+            Account account = this.getAccountByAddress(address);
+            if (null == account) {
+                resp.put("retCode", "1");
+                resp.put("message", "出账账户不存在");
+                return resp;
+            }
+            if (account.isEncrypted()) {
+                if (StringUtil.isNullOrEmpty(password)) {
+                    resp.put("retCode", "1");
+                    resp.put("message", "输入钱包密码进行转账");
+                    return resp;
+                } else {
+                    boolean pswCorrect = this.decryptAccount(password, account);
+                    if (!pswCorrect) {
+                        resp.put("retCode", "1");
+                        resp.put("message", "账户密码不正确");
+                        return resp;
+                    }
+                }
+            }
+            //当前余额可用余额
+            long balance = account.getAddress().getBalance().value;
+            if (ArithUtils.compareStr(balance + "", money) < 0) {
+                resp.put("retCode", "1");
+                resp.put("message", "余额不足");
+                return resp;
+            }
+
+            Address nodeAddr =  Address.fromBase58(network,nodeAddress);
+            Deposits deposits = getDeposits(nodeAddr.getHash160());
+            List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
+            if(null==depositAccountList||depositAccountList.size()<100){
+
+            }else{
+
+            }
+        }catch (Exception e ){
+        }finally {
+            locker.unlock();
+        }
+        //验证本账户金额与交易金额是否正常
+        return resp;
+
+
+
+
+
     }
 }

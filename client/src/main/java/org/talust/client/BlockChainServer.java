@@ -131,6 +131,8 @@ public class BlockChainServer {
         addHandler(MessageType.MASTER_RESP, new MasterRespHandler());
         addHandler(MessageType.NEW_MASTER_REQ, new NewMasterReqHandler());
         addHandler(MessageType.NEW_MASTER_RESP, new NewMasterRespHandler());
+        addHandler(MessageType.DEPOSITS_STATUS_REQ, new DepositsStatusReqHandler());
+        addHandler(MessageType.DEPOSITS_STATUS_RESP, new DepositsStatusRespHandler());
     }
 
     public void addValidator(MessageType messageType, MessageValidator validator) {

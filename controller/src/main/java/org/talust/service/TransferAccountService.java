@@ -15,4 +15,5 @@ public interface TransferAccountService {
     JSONObject transfer(String toAddress, String money, String address, String password);
     Deposits getDeposits(byte[] hash160);
     JSONArray getAllDeposits();
+    JSONObject consensusJoin(String nodeAddress, String money, String address, String password);
 }

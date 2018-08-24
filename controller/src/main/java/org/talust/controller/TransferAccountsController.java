@@ -125,7 +125,7 @@ public class TransferAccountsController {
         return resp ;
     }
 
-    @ApiOperation(value = "查询储蓄状态", notes = "查询某一个节点的储蓄状态")
+    @ApiOperation(value = "查询储蓄状态", notes = "查询全部节点的储蓄状态")
     @PostMapping(value = "searchAllSuperNodeDeposite")
     JSONObject searchAllSuperNodeDeposite() {
         JSONObject resp =  new JSONObject();
@@ -139,5 +139,54 @@ public class TransferAccountsController {
         }
         return resp;
     }
+
+    @ApiOperation(value = "查询储蓄状态", notes = "查询全部节点的储蓄状态")
+    @PostMapping(value = "joinSuperNodeDeposite")
+    JSONObject joinSuperNodeDeposite(@RequestParam String NodeAddress,@RequestParam String money ,@RequestParam String password,@RequestParam String address) {
+        JSONObject resp = new JSONObject();
+        if (StringUtil.isNullOrEmpty(NodeAddress) || StringUtil.isNullOrEmpty(money)) {
+            resp.put("retCode", "1");
+            resp.put("message", "核心参数缺失");
+            return resp;
+        }
+        try {
+            money  = ArithUtils.mul(money, "1", 8);
+        } catch (Exception e) {
+            resp.put("retCode", "1");
+            resp.put("message", "金额不正确");
+            return resp;
+        }
+        Account account = transferAccountService.getAccountByAddress(address);
+        if (null == account) {
+            resp.put("retCode", "1");
+            resp.put("message", "出账账户不存在");
+            return resp;
+        }
+        try {
+            Base58.decodeChecked(NodeAddress);
+        } catch (Exception e) {
+            resp.put("retCode", "1");
+            resp.put("message", "目标账户验证失败");
+            return resp;
+        }
+        if (account.isEncrypted()) {
+            if (StringUtil.isNullOrEmpty(password)) {
+                resp.put("retCode", "1");
+                resp.put("message", "输入钱包密码进行转账");
+                return resp;
+            } else {
+                boolean pswCorrect = transferAccountService.decryptAccount(password, account);
+                if (!pswCorrect) {
+                    resp.put("retCode", "1");
+                    resp.put("message", "账户密码不正确");
+                    return resp;
+                }
+            }
+        }
+
+        JSONObject isOk = transferAccountService.consensusJoin(NodeAddress,money,address,password);
+        return isOk;
+    }
+
 
 }
