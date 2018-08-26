@@ -150,6 +150,7 @@ public class AccountStorage {
                 List<byte[]> hash160s = getAccountHash160s();
                 //或许重新加载账户相关的交易记录
                 maybeReLoadTransaction(hash160s);
+                loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
             }catch (Exception e){
                 log.warn("账户文件路径读取错误");
             }
@@ -182,6 +183,7 @@ public class AccountStorage {
             List<byte[]> hash160s = getAccountHash160s();
             //或许重新加载账户相关的交易记录
             maybeReLoadTransaction(hash160s);
+            loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
         } catch (Exception e) {
             e.printStackTrace();
         }

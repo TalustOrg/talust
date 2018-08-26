@@ -396,7 +396,7 @@ public class TransactionStorage extends BaseStoreProvider {
             }
         }
 
-        //交易记录
+        //交易记录-
         RocksIterator iter = db.newIterator();
         for(iter.seekToFirst(); iter.isValid(); iter.next()) {
             byte[] key = iter.key();

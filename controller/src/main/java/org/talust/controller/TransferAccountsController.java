@@ -140,7 +140,7 @@ public class TransferAccountsController {
         return resp;
     }
 
-    @ApiOperation(value = "查询储蓄状态", notes = "查询全部节点的储蓄状态")
+    @ApiOperation(value = "加入共识", notes = "加入共识")
     @PostMapping(value = "joinSuperNodeDeposite")
     JSONObject joinSuperNodeDeposite(@RequestParam String NodeAddress,@RequestParam String money ,@RequestParam String password,@RequestParam String address) {
         JSONObject resp = new JSONObject();
@@ -187,6 +187,46 @@ public class TransferAccountsController {
         JSONObject isOk = transferAccountService.consensusJoin(NodeAddress,money,address,password);
         return isOk;
     }
+    @ApiOperation(value = "退出共识", notes = "退出共识")
+    @PostMapping(value = "leaveSuperNodeDeposite")
+    JSONObject leaveSuperNodeDeposite(@RequestParam String NodeAddress ,@RequestParam String password,@RequestParam String address) {
+        JSONObject resp = new JSONObject();
+        if (StringUtil.isNullOrEmpty(NodeAddress)) {
+            resp.put("retCode", "1");
+            resp.put("message", "核心参数缺失");
+            return resp;
+        }
 
+        Account account = transferAccountService.getAccountByAddress(address);
+        if (null == account) {
+            resp.put("retCode", "1");
+            resp.put("message", "出账账户不存在");
+            return resp;
+        }
+        try {
+            Base58.decodeChecked(NodeAddress);
+        } catch (Exception e) {
+            resp.put("retCode", "1");
+            resp.put("message", "目标账户验证失败");
+            return resp;
+        }
+        if (account.isEncrypted()) {
+            if (StringUtil.isNullOrEmpty(password)) {
+                resp.put("retCode", "1");
+                resp.put("message", "输入钱包密码进行转账");
+                return resp;
+            } else {
+                boolean pswCorrect = transferAccountService.decryptAccount(password, account);
+                if (!pswCorrect) {
+                    resp.put("retCode", "1");
+                    resp.put("message", "账户密码不正确");
+                    return resp;
+                }
+            }
+        }
+
+        JSONObject isOk = transferAccountService.consensusLeave(NodeAddress,address,password);
+        return isOk;
+    }
 
 }

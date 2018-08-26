@@ -39,6 +39,7 @@ import org.talust.core.transaction.Transaction;
 import org.talust.core.transaction.TransactionOutput;
 import org.talust.storage.BaseStoreProvider;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -62,10 +63,10 @@ public class ChainStateStorage extends BaseStoreProvider {
 
     private Lock consensusLocker = new ReentrantLock();
 
-    private final  static String dpos = "deposit";
+    private final static String dpos = "deposit";
 
 
-    public void put(byte[] key, byte[] value)  {
+    public void put(byte[] key, byte[] value) {
         try {
             db.put(key, value);
         } catch (RocksDBException e) {
@@ -74,7 +75,7 @@ public class ChainStateStorage extends BaseStoreProvider {
 
     }
 
-    public byte[] get(byte[] key)  {
+    public byte[] get(byte[] key) {
         try {
             return db.get(key);
         } catch (RocksDBException e) {
@@ -90,12 +91,12 @@ public class ChainStateStorage extends BaseStoreProvider {
      * @return
      */
     public Deposits getDeposits(byte[] miningAddress) {
-        byte[] key =getDepositSearchKey(miningAddress);
+        byte[] key = getDepositSearchKey(miningAddress);
         Deposits deposits = new Deposits();
         try {
             byte[] deps = db.get(key);
-            if(null!=deps){
-                deposits =  SerializationUtil.deserializer(deps,Deposits.class);
+            if (null != deps) {
+                deposits = SerializationUtil.deserializer(deps, Deposits.class);
             }
         } catch (RocksDBException e) {
             e.printStackTrace();
@@ -104,49 +105,85 @@ public class ChainStateStorage extends BaseStoreProvider {
     }
 
 
-    public void addDeposits(byte[] hash160 , Coin coin ,byte[] miningAddress,Sha256Hash txHash){
+    public void addDeposits(byte[] hash160, Coin coin, byte[] miningAddress, Sha256Hash txHash) {
         try {
-            byte[] key =getDepositSearchKey(miningAddress);
+            byte[] key = getDepositSearchKey(miningAddress);
             byte[] deps = db.get(key);
-            if(null!=deps){
-                Deposits deposits=  SerializationUtil.deserializer(deps,Deposits.class);
-                deposits.getDepositAccounts().add(new DepositAccount(hash160,coin,txHash));
-                try {
-                    db.put(key,SerializationUtil.serializer(deposits));
-                } catch (RocksDBException e) {
-                    e.printStackTrace();
+            if (null != deps) {
+                Deposits deposits = SerializationUtil.deserializer(deps, Deposits.class);
+                List<DepositAccount> depositAccountList =   deposits.getDepositAccounts();
+                boolean isDeposed = false;
+                Coin hadDeposCoin = Coin.ZERO ;
+                for(DepositAccount depositAccount :depositAccountList){
+                    if(depositAccount.getAddress().equals(hash160)){
+                        hadDeposCoin = depositAccount.getAmount();
+                        depositAccountList.remove(depositAccount);
+                        isDeposed=true;
+                        break;
+                    }
                 }
+                if(!isDeposed){
+                    depositAccountList.add(new DepositAccount(hash160,coin,txHash));
+                }else{
+                    depositAccountList.add(new DepositAccount(hash160,hadDeposCoin.add(coin),txHash));
+                    deposits.setDepositAccounts(depositAccountList);
+                }
+                db.put(key, SerializationUtil.serializer(deposits));
+            } else {
+                Deposits deposits = new Deposits();
+                List<DepositAccount> depositAccountList = new ArrayList<>();
+                DepositAccount depositAccount = new DepositAccount(hash160, coin, txHash);
+                depositAccountList.add(depositAccount);
+                deposits.setDepositAccounts(depositAccountList);
+                db.put(key, SerializationUtil.serializer(deposits));
             }
-
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
     }
 
-    public void  forceUpdateDeposits(String base58Address , Deposits deposits){
-        Address address = Address.fromBase58(MainNetworkParams.get(),base58Address);
-        byte[] key  = getDepositSearchKey(address.getHash160());
+    public void forceUpdateDeposits(String base58Address, Deposits deposits) {
+        Address address = Address.fromBase58(MainNetworkParams.get(), base58Address);
+        byte[] key = getDepositSearchKey(address.getHash160());
         try {
-            db.put(key,SerializationUtil.serializer(deposits));
+            db.put(key, SerializationUtil.serializer(deposits));
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
     }
 
 
-    public byte[] getDepositSearchKey(byte[] miningAddress){
+    public byte[] getDepositSearchKey(byte[] miningAddress) {
         byte[] key = new byte[miningAddress.length + dpos.getBytes().length];
         System.arraycopy(miningAddress, 0, key, 0, miningAddress.length);
         System.arraycopy(dpos.getBytes(), 0, key, miningAddress.length, dpos.getBytes().length);
         return key;
     }
 
-    public void removeDeposit(byte[] miningAddress , Sha256Hash txHash , byte[] hash160 , Coin coin){
-
+    public void removeDeposit(byte[] miningAddress, Sha256Hash txHash, byte[] hash160, Coin coin) {
+        try{
+            byte[] key = getDepositSearchKey(miningAddress);
+            byte[] deps = db.get(key);
+            if (null != deps) {
+                Deposits deposits = SerializationUtil.deserializer(deps, Deposits.class);
+                List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
+                for(DepositAccount depositAccount :depositAccountList){
+                    if(depositAccount.getAddress().equals(hash160)){
+                        depositAccountList.remove(depositAccount);
+                        break;
+                    }
+                }
+                deposits.setDepositAccounts(depositAccountList);
+                db.put(key, SerializationUtil.serializer(deposits));
+            }
+        }catch (Exception e ){
+            e.printStackTrace();
+        }
     }
 
     /**
      * 共识节点加入
+     *
      * @param tx
      */
     public void addConsensus(Transaction tx) {
@@ -154,11 +191,11 @@ public class ChainStateStorage extends BaseStoreProvider {
         try {
             Sha256Hash txHash = tx.getHash();
             List<TransactionOutput> outputs = tx.getOutputs();
-            for(TransactionOutput output : outputs){
-                if(output.getLockTime()==0L){
-                   byte[] hash160 =  output.getScript().getChunks().get(2).data;
-                   long value = output.getValue();
-                   addDeposits(hash160,Coin.valueOf(value),tx.getData(),txHash);
+            for (TransactionOutput output : outputs) {
+                if (output.getLockTime() == -1L) {
+                    byte[] hash160 = output.getScript().getChunks().get(2).data;
+                    long value = output.getValue();
+                    addDeposits(hash160, Coin.valueOf(value), tx.getData(), txHash);
                 }
             }
         } catch (Exception e) {
@@ -174,34 +211,35 @@ public class ChainStateStorage extends BaseStoreProvider {
 
     /**
      * 退出共识
+     *
      * @param tx
      */
     public void removeConsensus(Transaction tx) {
-        JSONObject data = SerializationUtil.deserializer(tx.getData(),JSONObject.class);
+        JSONObject data = SerializationUtil.deserializer(tx.getData(), JSONObject.class);
         String isActive = data.getString("isActive");
         byte[] nodeAddress = data.getBytes("nodeAddress");
-        TransactionOutput transactionOutput =  tx.getInput(0).getFroms().get(0);
-        byte[]  hash160 =  transactionOutput.getScript().getChunks().get(2).data;
-        Sha256Hash oldtxHash =  transactionOutput.getParent().getHash();
-        if(isActive.equals(Configure.VOLUNTARILY_EXIT)) {
+        TransactionOutput transactionOutput = tx.getInput(0).getFroms().get(0);
+        byte[] hash160 = transactionOutput.getScript().getChunks().get(2).data;
+        Sha256Hash oldtxHash = transactionOutput.getParent().getHash();
+        if (isActive.equals(Configure.VOLUNTARILY_EXIT)) {
             //主动退出共识
             //从集合中删除共识节点
-            this.removeDeposit(nodeAddress,oldtxHash,hash160,Coin.valueOf( transactionOutput.getValue()));
+            this.removeDeposit(nodeAddress, oldtxHash, hash160, Coin.valueOf(transactionOutput.getValue()));
         } else {
             //被动提出共识
             //验证原共识金额 与现已加入的共识金额
             Deposits deposits = getDeposits(nodeAddress);
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-            if(depositAccountList.size()==100){
-                for(DepositAccount depositAccount :depositAccountList){
-                    if(depositAccount.getAmount().value<transactionOutput.getValue()){
-                            //交易异常
-                    }else{
+            if (depositAccountList.size() == 100) {
+                for (DepositAccount depositAccount : depositAccountList) {
+                    if (depositAccount.getAmount().value < transactionOutput.getValue()) {
+                        //交易异常
+                    } else {
                         //从集合中删除共识节点
-                        this.removeDeposit(nodeAddress,oldtxHash,hash160,Coin.valueOf( transactionOutput.getValue()));
+                        this.removeDeposit(nodeAddress, oldtxHash, hash160, Coin.valueOf(transactionOutput.getValue()));
                     }
                 }
-            }else{
+            } else {
                 //交易异常
             }
         }

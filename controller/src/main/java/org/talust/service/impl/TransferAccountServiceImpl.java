@@ -37,10 +37,7 @@ import org.talust.common.crypto.Base58;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.model.*;
-import org.talust.common.tools.ArithUtils;
-import org.talust.common.tools.CacheManager;
-import org.talust.common.tools.DateUtil;
-import org.talust.common.tools.SerializationUtil;
+import org.talust.common.tools.*;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.core.SynBlock;
@@ -558,9 +555,9 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         }
         locker.lock();
         try {
-            if (money.compareTo("10000") < 0) {
+            if (money.compareTo("10") < 0) {
                 resp.put("retCode", "1");
-                resp.put("message", "发送的金额需大于10000");
+                resp.put("message", "发送的金额需大于10");
                 return resp;
             }
             Account account = this.getAccountByAddress(address);
@@ -593,19 +590,21 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             Address nodeAddr = Address.fromBase58(network, nodeAddress);
             Deposits deposits = getDeposits(nodeAddr.getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-
-
             if (null == depositAccountList || depositAccountList.size() < 100) {
-                Transaction tx = createRegConsensus(money,account,address);
+                Transaction tx = createRegConsensus(money,account,address,nodeAddr.getHash160());
                 verifyAndSendMsg(account,tx);
             }else {
                 DepositAccount depositAccount =   checkAmtLowest(money, depositAccountList);
                 if(null != depositAccount){
                     //TODO 验证当前输入金额是否大于集合内的最小金额
                     //大于最低的账户的金额则
-                    Transaction regTx = createRegConsensus(money,account,address);
+                    Transaction regTx = createRegConsensus(money,account,address,nodeAddr.getHash160());
                     verifyAndSendMsg(account,regTx);
                     Transaction remTx =createRemConsensus(depositAccount);
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("isActive",Configure.PASSIVE_EXIT);
+                    jsonObject.put("nodeAddress",nodeAddr.getHash160());
+                    remTx.setData(SerializationUtil.serializer(jsonObject));
                     verifyAndSendMsg(account,remTx);
                 }else {
                     resp.put("retCode", "1");
@@ -617,6 +616,90 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             resp.put("retCode", "0");
             resp.put("message", "交易已上送");
 
+        } catch (Exception e) {
+        } finally {
+            locker.unlock();
+        }
+        //验证本账户金额与交易金额是否正常
+        return resp;
+    }
+
+    @Override
+    public JSONObject consensusLeave(String nodeAddress, String address, String password) {
+        JSONObject resp = new JSONObject();
+        Utils.checkNotNull(nodeAddress);
+        Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
+//        if (connects.size() <= 0) {
+//            resp.put("retCode", "1");
+//            resp.put("message", "当前网络不可用，请稍后再尝试");
+//            return resp;
+//        }
+        long height = MainNetworkParams.get().getBestBlockHeight();
+        long localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
+        if (height == 0) {
+            if (SynBlock.get().getSyning().get()) {
+                resp.put("retCode", "1");
+                resp.put("message", "正在同步区块中，请稍后再尝试");
+                return resp;
+            } else {
+                ConnectionManager.get().init();
+                resp.put("retCode", "1");
+                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                return resp;
+            }
+        }
+        long now = NtpTimeService.currentTimeSeconds();
+        if (now - localbestheighttime > 6) {
+            if (SynBlock.get().getSyning().get()) {
+                resp.put("retCode", "1");
+                resp.put("message", "正在同步区块中，请稍后再尝试");
+                return resp;
+            } else {
+                ConnectionManager.get().init();
+                resp.put("retCode", "1");
+                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                return resp;
+            }
+        }
+        locker.lock();
+        try {
+            Account account = this.getAccountByAddress(address);
+            if (null == account) {
+                resp.put("retCode", "1");
+                resp.put("message", "出账账户不存在");
+                return resp;
+            }
+            if (account.isEncrypted()) {
+                if (StringUtil.isNullOrEmpty(password)) {
+                    resp.put("retCode", "1");
+                    resp.put("message", "输入钱包密码进行转账");
+                    return resp;
+                } else {
+                    boolean pswCorrect = this.decryptAccount(password, account);
+                    if (!pswCorrect) {
+                        resp.put("retCode", "1");
+                        resp.put("message", "账户密码不正确");
+                        return resp;
+                    }
+                }
+            }
+            Address nodeAddr = Address.fromBase58(network, nodeAddress);
+            Deposits deposits = getDeposits(nodeAddr.getHash160());
+            List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
+            for(DepositAccount depositAccount :depositAccountList){
+              String base58 =   account.getAddress().getBase58();
+              String dposBase58 =Base58.encode(depositAccount.getAddress());
+                if(base58.equals(dposBase58)){
+                    Transaction remTx =createRemConsensus(depositAccount);
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("isActive",Configure.VOLUNTARILY_EXIT);
+                    jsonObject.put("nodeAddress",nodeAddr.getHash160());
+                    remTx.setData(SerializationUtil.serializer(jsonObject));
+                    verifyAndSendMsg(account,remTx);
+                    resp.put("retCode", "0");
+                    resp.put("message", "交易已上送");
+                }
+            }
         } catch (Exception e) {
         } finally {
             locker.unlock();
@@ -659,7 +742,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         ConnectionManager.get().TXMessageSend(message);
     }
 
-    public Transaction createRegConsensus(String money,Account account , String address){
+    public Transaction createRegConsensus(String money,Account account , String address,byte[] nodeHash160){
         //根据交易金额获取当前交易地址下所有的未花费交易
         Transaction tx = new Transaction(MainNetworkParams.get());
         tx.setVersion(Definition.VERSION);
@@ -683,7 +766,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         tx.addInput(input);
 
         //交易输出
-        tx.addOutput(pay,0L, Address.fromBase58(network, address));
+        tx.addOutput(pay,-1L, Address.fromBase58(network, address));
         //是否找零
         if (totalInputCoin.compareTo(pay) > 0) {
             tx.addOutput(totalInputCoin.subtract(pay), account.getAddress());
@@ -698,6 +781,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+        tx.setData(nodeHash160);
         return tx;
     }
 
@@ -718,6 +802,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         remTx.addOutput(Coin.valueOf(tx.getOutput(0).getValue()), new Address(network, accountType, regTx.getHash160()));
         remTx.verify();
         remTx.verifyScript();
+
         return remTx;
     }
 }
