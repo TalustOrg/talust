@@ -234,19 +234,12 @@ public class SynBlock {
             TreeMap<Long, BlockStore> map = new TreeMap<Long, BlockStore>(new Comparator<Long>() {
                 @Override
                 public int compare(Long o1, Long o2) {
-                    return o2.compareTo(o1);
+                    return o1.compareTo(o2);
                 }
             });
             for(BlockStore blockStore : blocks){
                 map.put(blockStore.getBlock().getHeight(),blockStore);
             }
-//            Collections.sort(blocks, (BlockStore o1, BlockStore o2) -> {//对本次返回的区块进行排序
-//                long i = o1.getBlock().getBlockHeader().getHeight() - o2.getBlock().getBlockHeader().getHeight();
-//                if (i == 0) {
-//                    return 0;
-//                }
-//                return 1;
-//            });
             log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
             for (BlockStore block : map.values()) {
                     log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
