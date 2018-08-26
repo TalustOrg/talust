@@ -29,6 +29,7 @@ import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.talust.client.validator.TransactionValidator;
 import org.talust.common.crypto.AESEncrypt;
@@ -54,10 +55,7 @@ import org.talust.core.storage.AccountStorage;
 import org.talust.core.storage.BlockStorage;
 import org.talust.core.storage.ChainStateStorage;
 import org.talust.core.storage.TransactionStorage;
-import org.talust.core.transaction.LocalTransactionSigner;
-import org.talust.core.transaction.Transaction;
-import org.talust.core.transaction.TransactionInput;
-import org.talust.core.transaction.TransactionOutput;
+import org.talust.core.transaction.*;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.ConnectionManager;
@@ -79,18 +77,19 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     private TransactionStorage transactionStorage = TransactionStorage.get();
     private ChainStateStorage chainStateStorage = ChainStateStorage.get();
 
-    private TransactionValidator transactionValidator =new  TransactionValidator();
+    private TransactionValidator transactionValidator = new TransactionValidator();
     private NetworkParams network = MainNetworkParams.get();
+
     @Override
     public boolean decryptAccount(String password, Account account) {
-        if(!validPassword(password)) {
+        if (!validPassword(password)) {
             return false;
         }
-        if(account == null){
+        if (account == null) {
             return false;
         }
         try {
-           AESEncrypt.decrypt( account.getPriSeed(), password);
+            AESEncrypt.decrypt(account.getPriSeed(), password);
         } catch (org.spongycastle.crypto.InvalidCipherTextException e) {
             e.printStackTrace();
         }
@@ -105,44 +104,44 @@ public class TransferAccountServiceImpl implements TransferAccountService {
 
     @Override
     public JSONObject transfer(String toAddress, String money, String address, String password) {
-        JSONObject resp =  new JSONObject();
+        JSONObject resp = new JSONObject();
         Utils.checkNotNull(toAddress);
-        Collection<MyChannel> connects =ChannelContain.get().getMyChannels();
+        Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
 //        if(connects.size()<=0){
 //            resp.put("retCode","1");
 //            resp.put("message","当前网络不可用，请稍后再尝试");
 //            return resp;
 //        }
         long height = MainNetworkParams.get().getBestBlockHeight();
-        long localbestheighttime =BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
-        if(height==0){
-            if(SynBlock.get().getSyning().get()){
-                resp.put("retCode","1");
-                resp.put("message","正在同步区块中，请稍后再尝试");
+        long localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
+        if (height == 0) {
+            if (SynBlock.get().getSyning().get()) {
+                resp.put("retCode", "1");
+                resp.put("message", "正在同步区块中，请稍后再尝试");
                 return resp;
-            }else{
+            } else {
                 ConnectionManager.get().init();
-                resp.put("retCode","1");
-                resp.put("message","当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("retCode", "1");
+                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
-        long now  = NtpTimeService.currentTimeSeconds();
-        if(now-localbestheighttime>6){
-            if(SynBlock.get().getSyning().get()) {
-                resp.put("retCode","1");
-                resp.put("message","正在同步区块中，请稍后再尝试");
+        long now = NtpTimeService.currentTimeSeconds();
+        if (now - localbestheighttime > 6) {
+            if (SynBlock.get().getSyning().get()) {
+                resp.put("retCode", "1");
+                resp.put("message", "正在同步区块中，请稍后再尝试");
                 return resp;
-            }else {
+            } else {
                 ConnectionManager.get().init();
-                resp.put("retCode","1");
-                resp.put("message","当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("retCode", "1");
+                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
         locker.lock();
-        try{
-            if(money.compareTo("0") <= 0) {
+        try {
+            if (money.compareTo("0") <= 0) {
                 resp.put("retCode", "1");
                 resp.put("message", "发送的金额需大于0");
                 return resp;
@@ -153,7 +152,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 resp.put("message", "出账账户不存在");
                 return resp;
             }
-            if(account.getAddress().getBase58().equals(toAddress)){
+            if (account.getAddress().getBase58().equals(toAddress)) {
                 resp.put("retCode", "1");
                 resp.put("message", "不能给自己转账");
                 return resp;
@@ -174,7 +173,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             }
             //当前余额可用余额
             long balance = account.getAddress().getBalance().value;
-            if(ArithUtils.compareStr(balance+"",money) < 0) {
+            if (ArithUtils.compareStr(balance + "", money) < 0) {
                 resp.put("retCode", "1");
                 resp.put("message", "余额不足");
                 return resp;
@@ -184,7 +183,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             tx.setType(Definition.TYPE_PAY);
             Coin totalInputCoin = Coin.ZERO;
             //根据交易金额获取当前交易地址下所有的未花费交易
-            Coin pay = Coin.COIN.multiply((long)Double.parseDouble(money));
+            Coin pay = Coin.COIN.multiply((long) Double.parseDouble(money));
             List<TransactionOutput> fromOutputs = selectNotSpentTransaction(pay, account.getAddress());
             TransactionInput input = new TransactionInput();
             for (TransactionOutput output : fromOutputs) {
@@ -192,7 +191,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 totalInputCoin = totalInputCoin.add(Coin.valueOf(output.getValue()));
             }
             //创建一个输入的空签名
-            if(account.getAccountType() == network.getSystemAccountVersion()) {
+            if (account.getAccountType() == network.getSystemAccountVersion()) {
                 //普通账户的签名
                 input.setScriptSig(ScriptBuilder.createInputScript(null, account.getEcKey()));
             } else {
@@ -202,16 +201,16 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             tx.addInput(input);
 
             //交易输出
-            tx.addOutput(pay, Address.fromBase58(network,toAddress));
+            tx.addOutput(pay, Address.fromBase58(network, toAddress));
             //是否找零
-            if(totalInputCoin.compareTo(pay) > 0) {
+            if (totalInputCoin.compareTo(pay) > 0) {
                 tx.addOutput(totalInputCoin.subtract(pay), account.getAddress());
             }
 
             //签名交易
             final LocalTransactionSigner signer = new LocalTransactionSigner();
             try {
-                if(account.getAccountType() == network.getSystemAccountVersion()) {
+                if (account.getAccountType() == network.getSystemAccountVersion()) {
                     //普通账户的签名
                     signer.signInputs(tx, account.getEcKey());
                 }
@@ -219,7 +218,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 log.error(e.getMessage(), e);
             }
             //验证交易是否合法
-            assert transactionValidator.checkTransaction(tx,null);
+            assert transactionValidator.checkTransaction(tx, null);
             //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
             boolean success = TransactionCache.getInstace().add(tx);
             DataContainer.get().addRecord(tx);
@@ -236,8 +235,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             ConnectionManager.get().TXMessageSend(message);
             resp.put("retCode", "0");
             resp.put("message", "交易已上送");
-        }catch (Exception e ){
-        }finally {
+        } catch (Exception e) {
+        } finally {
             locker.unlock();
         }
         //验证本账户金额与交易金额是否正常
@@ -246,17 +245,18 @@ public class TransferAccountServiceImpl implements TransferAccountService {
 
     /**
      * 校验密码难度
+     *
      * @param password
      * @return boolean
      */
     public static boolean validPassword(String password) {
-        if(StringUtils.isEmpty(password)){
+        if (StringUtils.isEmpty(password)) {
             return false;
         }
-        if(password.length() < 6){
+        if (password.length() < 6) {
             return false;
         }
-        if(password.matches("(.*)[a-zA-z](.*)") && password.matches("(.*)\\d+(.*)")){
+        if (password.matches("(.*)[a-zA-z](.*)") && password.matches("(.*)\\d+(.*)")) {
             return true;
         } else {
             return false;
@@ -271,7 +271,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         //选择结果存放列表
         List<TransactionOutput> thisOutputs = new ArrayList<TransactionOutput>();
 
-        if(outputs == null || outputs.size() == 0) {
+        if (outputs == null || outputs.size() == 0) {
             return thisOutputs;
         }
 
@@ -283,11 +283,11 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         List<TransactionOutput> moreThanList = new ArrayList<TransactionOutput>();
 
         for (TransactionOutput transactionOutput : outputs) {
-            if(transactionOutput.getValue() == amount.value) {
+            if (transactionOutput.getValue() == amount.value) {
                 //如果刚好相等，则立即返回
                 thisOutputs.add(transactionOutput);
                 return thisOutputs;
-            } else if(transactionOutput.getValue() > amount.value) {
+            } else if (transactionOutput.getValue() > amount.value) {
                 //加入大于集合
                 moreThanList.add(transactionOutput);
             } else {
@@ -295,24 +295,17 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 lessThanList.add(transactionOutput);
             }
         }
-
-//        if(Configure.TRANSFER_PREFERRED == 2) {
-//            //优先使用零钱
-//            transferPreferredWithSmallChange(amount, lessThanList, moreThanList, thisOutputs);
-//        } else {
-            //以交易数据小优先，该种机制尽量选择一笔输入，默认方式
-            transferPreferredWithLessNumber(amount, lessThanList, moreThanList, thisOutputs);
-//        }
+        transferPreferredWithLessNumber(amount, lessThanList, moreThanList, thisOutputs);
         //依然按照交易时间排序
-        if(thisOutputs.size() > 0) {
+        if (thisOutputs.size() > 0) {
             Collections.sort(thisOutputs, new Comparator<TransactionOutput>() {
                 @Override
                 public int compare(TransactionOutput o1, TransactionOutput o2) {
                     long v1 = o1.getParent().getTime();
                     long v2 = o2.getParent().getTime();
-                    if(v1 == v2) {
+                    if (v1 == v2) {
                         return 0;
-                    } else if(v1 > v2) {
+                    } else if (v1 > v2) {
                         return 1;
                     } else {
                         return -1;
@@ -323,41 +316,16 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         return thisOutputs;
     }
 
-//    /*
-//     * 交易选择 -- 优先使用零钱
-//     */
-//    private void transferPreferredWithSmallChange(Coin amount, List<TransactionOutput> lessThanList,
-//                                                  List<TransactionOutput> moreThanList, List<TransactionOutput> thisOutputs) {
-//        if(lessThanList.size() > 0) {
-//            //计算所有零钱，是否足够
-//            Coin lessTotal = Coin.ZERO;
-//            for (TransactionOutput transactionOutput : lessThanList) {
-//                lessTotal = lessTotal.add(Coin.valueOf(transactionOutput.getValue()));
-//            }
-//
-//            if(lessTotal.isLessThan(amount)) {
-//                //不够，那么必定有大的
-//                selectOneOutput(moreThanList, thisOutputs);
-//            } else {
-//                //选择零钱
-//                selectSmallChange(amount, lessThanList, thisOutputs);
-//            }
-//        } else {
-//            //没有比本次交易最大的未输出交易
-//            selectOneOutput(moreThanList, thisOutputs);
-//        }
-//    }
-
     /*
      * 交易选择 -- 优先使用零钱
      */
     private void transferPreferredWithSmallChangeMulUser(Coin amount, HashMap<String, List<TransactionOutput>> lessThanList,
                                                          HashMap<String, List<TransactionOutput>> moreThanList, HashMap<String, List<TransactionOutput>> thisOutputs) {
-        if(lessThanList.size() > 0) {
+        if (lessThanList.size() > 0) {
             //计算所有零钱，是否足够
             Coin lessTotal = Coin.ZERO;
-            Iterator<String> lessit= lessThanList.keySet().iterator();
-            while (lessit.hasNext()){
+            Iterator<String> lessit = lessThanList.keySet().iterator();
+            while (lessit.hasNext()) {
                 String address = lessit.next();
                 List<TransactionOutput> userLessThanlist = lessThanList.get(address);
                 for (TransactionOutput transactionOutput : userLessThanlist) {
@@ -365,7 +333,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 }
             }
 
-            if(lessTotal.isLessThan(amount)) {
+            if (lessTotal.isLessThan(amount)) {
                 //不够，那么必定有大的
                 selectOneOutputMulUser(moreThanList, thisOutputs);
             } else {
@@ -382,7 +350,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
      * 交易选择 -- 以交易数据小优先，该种机制尽量选择一笔输入
      */
     private void transferPreferredWithLessNumber(Coin amount, List<TransactionOutput> lessThanList, List<TransactionOutput> moreThanList, List<TransactionOutput> outputs) {
-        if(moreThanList.size() > 0) {
+        if (moreThanList.size() > 0) {
             //有比本次交易大的未输出交易，直接使用其中最小的一个
             selectOneOutput(moreThanList, outputs);
         } else {
@@ -394,8 +362,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     /*
      * 交易选择 -- 以交易数据小优先，该种机制尽量选择一笔输入
      */
-    private void transferPreferredWithLessNumberMulUser(Coin amount, HashMap<String,List<TransactionOutput>> lessThanList,  HashMap<String,List<TransactionOutput>> moreThanList,  HashMap<String,List<TransactionOutput>> outputs) {
-        if(moreThanList.size() > 0) {
+    private void transferPreferredWithLessNumberMulUser(Coin amount, HashMap<String, List<TransactionOutput>> lessThanList, HashMap<String, List<TransactionOutput>> moreThanList, HashMap<String, List<TransactionOutput>> outputs) {
+        if (moreThanList.size() > 0) {
             //有比本次交易大的未输出交易，直接使用其中最小的一个
             selectOneOutputMulUser(moreThanList, outputs);
         } else {
@@ -408,7 +376,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
      * 选择列表里面金额最小的一笔作为输出
      */
     private void selectOneOutput(List<TransactionOutput> moreThanList, List<TransactionOutput> outputs) {
-        if(moreThanList == null || moreThanList.size() == 0) {
+        if (moreThanList == null || moreThanList.size() == 0) {
             return;
         }
         Collections.sort(moreThanList, new Comparator<TransactionOutput>() {
@@ -416,9 +384,9 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             public int compare(TransactionOutput o1, TransactionOutput o2) {
                 long v1 = o1.getValue();
                 long v2 = o2.getValue();
-                if(v1 == v2) {
+                if (v1 == v2) {
                     return 0;
-                } else if(v1 > v2) {
+                } else if (v1 > v2) {
                     return 1;
                 } else {
                     return -1;
@@ -431,21 +399,21 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     /*
      * 出现的第一笔为输出
      */
-    private void selectOneOutputMulUser(HashMap<String,List<TransactionOutput>> moreThanList, HashMap<String,List<TransactionOutput>> outputs) {
-        if(moreThanList == null || moreThanList.size() == 0) {
+    private void selectOneOutputMulUser(HashMap<String, List<TransactionOutput>> moreThanList, HashMap<String, List<TransactionOutput>> outputs) {
+        if (moreThanList == null || moreThanList.size() == 0) {
             return;
         }
         Iterator<String> moreit = moreThanList.keySet().iterator();
         while (moreit.hasNext()) {
             String address = moreit.next();
             List<TransactionOutput> userMoreThanList = moreThanList.get(address);
-            if(userMoreThanList.size()==0) {
+            if (userMoreThanList.size() == 0) {
                 continue;
-            }else {
+            } else {
                 TransactionOutput out = userMoreThanList.get(0);
                 List<TransactionOutput> oneList = new ArrayList<TransactionOutput>();
                 oneList.add(out);
-                outputs.put(address,oneList);
+                outputs.put(address, oneList);
                 return;
             }
         }
@@ -455,7 +423,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
      * 选择零钱，原则是尽量少的找钱，尽量少的使用输出笔数
      */
     private void selectSmallChange(Coin amount, List<TransactionOutput> lessThanList, List<TransactionOutput> outputs) {
-        if(lessThanList == null || lessThanList.size() == 0) {
+        if (lessThanList == null || lessThanList.size() == 0) {
             return;
         }
         //排序
@@ -464,9 +432,9 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             public int compare(TransactionOutput o1, TransactionOutput o2) {
                 long v1 = o1.getValue();
                 long v2 = o2.getValue();
-                if(v1 == v2) {
+                if (v1 == v2) {
                     return 0;
-                } else if(v1 > v2) {
+                } else if (v1 > v2) {
                     return 1;
                 } else {
                     return -1;
@@ -480,18 +448,18 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         for (TransactionOutput transactionOutput : lessThanList) {
             outputs.add(transactionOutput);
             total = total.add(Coin.valueOf(transactionOutput.getValue()));
-            if(total.isGreaterThan(amount)) {
+            if (total.isGreaterThan(amount)) {
                 //判断是否可以移除最小的几笔交易
                 List<TransactionOutput> removeList = new ArrayList<TransactionOutput>();
                 for (TransactionOutput to : outputs) {
                     total = total.subtract(Coin.valueOf(to.getValue()));
-                    if(total.isGreaterThan(amount)) {
+                    if (total.isGreaterThan(amount)) {
                         removeList.add(to);
                     } else {
                         break;
                     }
                 }
-                if(removeList.size() > 0) {
+                if (removeList.size() > 0) {
                     outputs.removeAll(removeList);
                 }
                 break;
@@ -502,8 +470,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     /*
      * 选择零钱，原则先后顺序
      */
-    private void selectSmallChangeMulUser(Coin amount, HashMap<String,List<TransactionOutput>> lessThanList, HashMap<String,List<TransactionOutput>> outputs) {
-        if(lessThanList == null || lessThanList.size() == 0) {
+    private void selectSmallChangeMulUser(Coin amount, HashMap<String, List<TransactionOutput>> lessThanList, HashMap<String, List<TransactionOutput>> outputs) {
+        if (lessThanList == null || lessThanList.size() == 0) {
             return;
         }
         //已选择的金额
@@ -512,8 +480,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         Iterator<String> lessit = lessThanList.keySet().iterator();
         while (lessit.hasNext()) {
             String address = lessit.next();
-            List<TransactionOutput> userLessThanList=lessThanList.get(address);
-            List<TransactionOutput> userOutputList= new ArrayList<TransactionOutput>();
+            List<TransactionOutput> userLessThanList = lessThanList.get(address);
+            List<TransactionOutput> userOutputList = new ArrayList<TransactionOutput>();
             //从小到大选择
             for (TransactionOutput transactionOutput : userLessThanList) {
                 userOutputList.add(transactionOutput);
@@ -522,29 +490,29 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     break;
                 }
             }
-            outputs.put(address,userOutputList);
+            outputs.put(address, userOutputList);
         }
     }
 
 
-    public Deposits getDeposits(byte[] hash160){
+    public Deposits getDeposits(byte[] hash160) {
         return chainStateStorage.getDeposits(hash160);
     }
 
     @Override
     public JSONArray getAllDeposits() {
         Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
-        JSONArray dataList =  new JSONArray();
-        for(SuperNode superNode : superNodes){
-            JSONObject data  = new JSONObject();
-            data.put("address",superNode.getAddress());
-            Address address =  Address.fromBase58(network ,superNode.getAddress());
-            Deposits deposits =getDeposits(address.getHash160());
+        JSONArray dataList = new JSONArray();
+        for (SuperNode superNode : superNodes) {
+            JSONObject data = new JSONObject();
+            data.put("address", superNode.getAddress());
+            Address address = Address.fromBase58(network, superNode.getAddress());
+            Deposits deposits = getDeposits(address.getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-            if(null!=depositAccountList&&depositAccountList.size()>0){
-                data.put("size" , deposits.getDepositAccounts().size());
-            }else{
-                data.put("size" ,0);
+            if (null != depositAccountList && depositAccountList.size() > 0) {
+                data.put("size", deposits.getDepositAccounts().size());
+            } else {
+                data.put("size", 0);
             }
             dataList.add(data);
         }
@@ -553,46 +521,46 @@ public class TransferAccountServiceImpl implements TransferAccountService {
 
     @Override
     public JSONObject consensusJoin(String nodeAddress, String money, String address, String password) {
-        JSONObject resp =  new JSONObject();
+        JSONObject resp = new JSONObject();
         Utils.checkNotNull(nodeAddress);
-        Collection<MyChannel> connects =ChannelContain.get().getMyChannels();
-        if(connects.size()<=0){
-            resp.put("retCode","1");
-            resp.put("message","当前网络不可用，请稍后再尝试");
-            return resp;
-        }
+        Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
+//        if (connects.size() <= 0) {
+//            resp.put("retCode", "1");
+//            resp.put("message", "当前网络不可用，请稍后再尝试");
+//            return resp;
+//        }
         long height = MainNetworkParams.get().getBestBlockHeight();
-        long localbestheighttime =BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
-        if(height==0){
-            if(SynBlock.get().getSyning().get()){
-                resp.put("retCode","1");
-                resp.put("message","正在同步区块中，请稍后再尝试");
+        long localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
+        if (height == 0) {
+            if (SynBlock.get().getSyning().get()) {
+                resp.put("retCode", "1");
+                resp.put("message", "正在同步区块中，请稍后再尝试");
                 return resp;
-            }else{
+            } else {
                 ConnectionManager.get().init();
-                resp.put("retCode","1");
-                resp.put("message","当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("retCode", "1");
+                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
-        long now  = NtpTimeService.currentTimeSeconds();
-        if(now-localbestheighttime>6){
-            if(SynBlock.get().getSyning().get()) {
-                resp.put("retCode","1");
-                resp.put("message","正在同步区块中，请稍后再尝试");
+        long now = NtpTimeService.currentTimeSeconds();
+        if (now - localbestheighttime > 6) {
+            if (SynBlock.get().getSyning().get()) {
+                resp.put("retCode", "1");
+                resp.put("message", "正在同步区块中，请稍后再尝试");
                 return resp;
-            }else {
+            } else {
                 ConnectionManager.get().init();
-                resp.put("retCode","1");
-                resp.put("message","当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("retCode", "1");
+                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
         locker.lock();
         try {
-            if (money.compareTo("0") <= 0) {
+            if (money.compareTo("10000") < 0) {
                 resp.put("retCode", "1");
-                resp.put("message", "发送的金额需大于0");
+                resp.put("message", "发送的金额需大于10000");
                 return resp;
             }
             Account account = this.getAccountByAddress(address);
@@ -622,25 +590,134 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 resp.put("message", "余额不足");
                 return resp;
             }
-
-            Address nodeAddr =  Address.fromBase58(network,nodeAddress);
+            Address nodeAddr = Address.fromBase58(network, nodeAddress);
             Deposits deposits = getDeposits(nodeAddr.getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-            if(null==depositAccountList||depositAccountList.size()<100){
 
-            }else{
 
+            if (null == depositAccountList || depositAccountList.size() < 100) {
+                Transaction tx = createRegConsensus(money,account,address);
+                verifyAndSendMsg(account,tx);
+            }else {
+                DepositAccount depositAccount =   checkAmtLowest(money, depositAccountList);
+                if(null != depositAccount){
+                    //TODO 验证当前输入金额是否大于集合内的最小金额
+                    //大于最低的账户的金额则
+                    Transaction regTx = createRegConsensus(money,account,address);
+                    verifyAndSendMsg(account,regTx);
+                    Transaction remTx =createRemConsensus(depositAccount);
+                    verifyAndSendMsg(account,remTx);
+                }else {
+                    resp.put("retCode", "1");
+                    resp.put("message", "当前节点共识已满，且参与共识金额小于当前最低的已参与共识金额");
+                    return resp;
+                }
             }
-        }catch (Exception e ){
-        }finally {
+
+            resp.put("retCode", "0");
+            resp.put("message", "交易已上送");
+
+        } catch (Exception e) {
+        } finally {
             locker.unlock();
         }
         //验证本账户金额与交易金额是否正常
         return resp;
+    }
+
+    public DepositAccount checkAmtLowest(String amt, List<DepositAccount> depositAccounts) {
+        long money  = Long.parseLong(amt);
+        DepositAccount lowest = null;
+        for(DepositAccount depositAccount : depositAccounts){
+            if(money>depositAccount.getAmount().value){
+                if(null!=lowest){
+                    lowest = depositAccount;
+                }else if(lowest.getAmount().value>depositAccount.getAmount().value){
+                    lowest = depositAccount;
+                }
+            }
+        }
+        return lowest;
+    }
+
+    public  void verifyAndSendMsg(Account account , Transaction tx){
+        //验证交易是否合法
+        assert transactionValidator.checkTransaction(tx, null);
+        //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
+        boolean success = TransactionCache.getInstace().add(tx);
+        DataContainer.get().addRecord(tx);
+
+        Message message = new Message();
+        byte[] data = SerializationUtil.serializer(tx);
+        byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
+        message.setContent(data);
+        message.setSigner(account.getEcKey().getPubKey());
+        message.setSignContent(sign);
+        message.setType(MessageType.TRANSACTION.getType());
+        message.setTime(NtpTimeService.currentTimeSeconds());
+        //广播交易
+        ConnectionManager.get().TXMessageSend(message);
+    }
+
+    public Transaction createRegConsensus(String money,Account account , String address){
+        //根据交易金额获取当前交易地址下所有的未花费交易
+        Transaction tx = new Transaction(MainNetworkParams.get());
+        tx.setVersion(Definition.VERSION);
+        tx.setType(Definition.TYPE_REG_CONSENSUS);
+        Coin totalInputCoin = Coin.ZERO;
+        Coin pay = Coin.COIN.multiply((long) Double.parseDouble(money));
+        List<TransactionOutput> fromOutputs = selectNotSpentTransaction(pay, account.getAddress());
+        TransactionInput input = new TransactionInput();
+        for (TransactionOutput output : fromOutputs) {
+            input.addFrom(output);
+            totalInputCoin = totalInputCoin.add(Coin.valueOf(output.getValue()));
+        }
+        //创建一个输入的空签名
+        if (account.getAccountType() == network.getSystemAccountVersion()) {
+            //普通账户的签名
+            input.setScriptSig(ScriptBuilder.createInputScript(null, account.getEcKey()));
+        } else {
+            //认证账户的签名
+            input.setScriptSig(ScriptBuilder.createCertAccountInputScript(null, account.getAccountTransaction().getHash().getBytes(), account.getAddress().getHash160()));
+        }
+        tx.addInput(input);
+
+        //交易输出
+        tx.addOutput(pay,0L, Address.fromBase58(network, address));
+        //是否找零
+        if (totalInputCoin.compareTo(pay) > 0) {
+            tx.addOutput(totalInputCoin.subtract(pay), account.getAddress());
+        }
+        //签名交易
+        final LocalTransactionSigner signer = new LocalTransactionSigner();
+        try {
+            if (account.getAccountType() == network.getSystemAccountVersion()) {
+                //普通账户的签名
+                signer.signInputs(tx, account.getEcKey());
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return tx;
+    }
 
 
+    public Transaction createRemConsensus(DepositAccount depositAccount){
+        BaseCommonlyTransaction remTx = (BaseCommonlyTransaction) new Transaction(MainNetworkParams.get());
+        remTx.setVersion(Definition.VERSION);
+        remTx.setType(Definition.TYPE_REM_CONSENSUS);
+        Sha256Hash txhash = depositAccount.getTxHash();
+        Transaction tx = transactionStorage.getTransaction(txhash).getTransaction();
 
+        TransactionInput input = new TransactionInput(tx.getOutput(0));
+        input.setScriptBytes(new byte[0]);
+        remTx.addInput(input);
 
-
+        BaseCommonlyTransaction regTx = (BaseCommonlyTransaction) tx;
+        int accountType = network.getSystemAccountVersion();
+        remTx.addOutput(Coin.valueOf(tx.getOutput(0).getValue()), new Address(network, accountType, regTx.getHash160()));
+        remTx.verify();
+        remTx.verifyScript();
+        return remTx;
     }
 }

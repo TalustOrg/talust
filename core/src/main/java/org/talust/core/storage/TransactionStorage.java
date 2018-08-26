@@ -142,17 +142,6 @@ public class TransactionStorage extends BaseStoreProvider {
                     if(status[i] == TransactionStore.STATUS_USED) {
                         continue;
                     }
-//
-//					//链上状态是否可用
-//					byte[] statueKey = new byte[key.length + 1];
-//					System.arraycopy(key, 0, statueKey, 0, key.length);
-//					statueKey[statueKey.length - 1] = (byte) i;
-//
-//					byte[] content = chainstateStoreProvider.getBytes(statueKey);
-//					if(content == null) {
-//						continue;
-//					}
-
                     //本笔输出是否可用
                     long lockTime = output.getLockTime();
                     if(lockTime < 0l
@@ -214,11 +203,6 @@ public class TransactionStorage extends BaseStoreProvider {
                     System.arraycopy(key, 0, statueKey, 0, key.length);
                     statueKey[statueKey.length - 1] = (byte) i;
 
-                    //交易是否已花费
-//					byte[] content = chainstateStoreProvider.getBytes(statueKey);
-//					if(content == null) {
-//						continue;
-//					}
                     //交易是否已花费
                     if(status != null && status.length > 0 && status[i] == TransactionStore.STATUS_USED) {
                         continue;
@@ -482,7 +466,6 @@ public class TransactionStorage extends BaseStoreProvider {
                 }
             }
         }
-
         return true;
     }
 
@@ -527,6 +510,16 @@ public class TransactionStorage extends BaseStoreProvider {
         put(ADDRESSES_KEY, addressesByte);
         return true;
     }
+
+    /**
+     * 通过交易ID查询交易
+     * @param hash
+     * @return TransactionStore
+     */
+    public TransactionStore getTransaction(Sha256Hash hash) {
+        return blockStorage.getTransaction(hash.getBytes());
+    }
+
 
 
     public List<byte[]> getAddresses() {

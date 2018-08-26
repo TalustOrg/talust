@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.talust.common.crypto.ECKey.ECDSASignature;
 import org.talust.common.crypto.*;
 import org.talust.common.exception.ContentErrorExcetption;
+import org.talust.common.exception.ProtocolException;
 import org.talust.common.exception.VerificationException;
 import org.talust.core.core.AccountTool;
 import org.talust.core.core.NetworkParams;
@@ -42,7 +43,7 @@ import java.util.Arrays;
 
 //用户账号信息
 @Slf4j
-public class Account {
+public class Account extends  Message{
     private NetworkParams network;
 
     //账户类型
@@ -85,6 +86,16 @@ public class Account {
         this.supervisor = new byte[20];
         this.level = 0;
     }
+
+    @Override
+    protected void parse() throws ProtocolException {
+
+    }
+
+    public Account(NetworkParams network, byte[] payload) {
+        super(network, payload, 0);
+    }
+
 
     /**
      * 序列化帐户信息

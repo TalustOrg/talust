@@ -25,6 +25,7 @@
 
 package org.talust.common.tools;
 
+import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.model.Coin;
 
 import java.io.File;
@@ -102,6 +103,10 @@ public final class Configure {
      * 区块生成间隔时间，单位秒
      */
     public static int BLOCK_GEN_TIME = 6;
+
+    public static byte[] CONSENSUS_ACCOUNT_KEYS =Sha256Hash.hashTwice("consensus_keys".getBytes());
+    public static String VOLUNTARILY_EXIT = "VOLUNTARILY_EXIT";
+    public static String PASSIVE_EXIT ="PASSIVE_EXIT";
 
     /**
      * 超级节点获取地址

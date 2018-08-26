@@ -96,8 +96,10 @@ public class AccountController {
     JSONObject getCoins(@RequestParam String  address) {
         Address   addr = Address.fromBase58(MainNetworkParams.get(),address);
        long  value =  TransactionStorage.get().getBalanceAndUnconfirmedBalance(addr.getHash160())[0].value;
+       long  lockValue =  TransactionStorage.get().getBalanceAndUnconfirmedBalance(addr.getHash160())[1].value;
        JSONObject   jsonObject = new JSONObject();
        jsonObject.put("value",ArithUtils.div(value+"" , "100000000",8));
+       jsonObject.put("lockValue",ArithUtils.div(lockValue+"" , "100000000",8));
         return jsonObject  ;
     }
 

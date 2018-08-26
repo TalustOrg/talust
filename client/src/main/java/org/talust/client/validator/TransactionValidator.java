@@ -185,7 +185,7 @@ public class TransactionValidator implements MessageValidator {
                     //共识保证金引用脚本，则验证
                     //因为共识保证金，除了本人会操作，还会有其它共识人操作
                     //并且不一定是转到自己的账户，所以必须对输入输出都做严格的规范
-                    if (!(tx.getType() == Definition.TYPE_REM_CONSENSUS || tx.getType() == Definition.TYPE_VIOLATION)) {
+                    if (!(tx.getType() == Definition.TYPE_REM_CONSENSUS)) {
                         throw new VerificationException("不合法的交易引用");
                     }
                     //输入必须只有一个

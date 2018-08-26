@@ -69,7 +69,6 @@ public final class Definition {
 	public static final int TYPE_PAY = 2;						//普通支付交易
 	public static final int TYPE_REG_CONSENSUS = 3;				//注册成为共识节点
 	public static final int TYPE_REM_CONSENSUS = 4;				//注销共识节点
-	public static final int TYPE_VIOLATION = 5;					// 违规事件处理
 
 
 	
@@ -96,7 +95,7 @@ public final class Definition {
 	 */
 	public static boolean isPaymentTransaction(int type) {
 		return type == TYPE_COINBASE || type == TYPE_PAY || type == TYPE_REG_CONSENSUS
-				|| type == TYPE_REM_CONSENSUS || type == TYPE_VIOLATION ;
+				|| type == TYPE_REM_CONSENSUS  ;
 	}
 	
 	//交易关联
@@ -117,7 +116,6 @@ public final class Definition {
 		TRANSACTION_COMMANDS.add("tx_" + TYPE_CERT_ACCOUNT_REVOKE);
 		TRANSACTION_COMMANDS.add("tx_" + TYPE_REG_CONSENSUS);
 		TRANSACTION_COMMANDS.add("tx_" + TYPE_REM_CONSENSUS);
-		TRANSACTION_COMMANDS.add("tx_" + TYPE_VIOLATION);
 
     	//===========================-分割线=============================//
     	

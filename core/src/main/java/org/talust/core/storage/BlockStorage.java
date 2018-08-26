@@ -28,7 +28,6 @@ package org.talust.core.storage;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.VerificationException;
-import org.talust.common.model.Coin;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
@@ -36,23 +35,16 @@ import org.rocksdb.*;
 import org.talust.common.tools.RandomUtil;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
-import org.talust.core.model.Account;
-import org.talust.core.model.Address;
-import org.talust.core.model.Block;
-import org.talust.core.model.BlockHeader;
+import org.talust.core.model.*;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.Script;
-import org.talust.core.transaction.Output;
-import org.talust.core.transaction.Transaction;
-import org.talust.core.transaction.TransactionInput;
-import org.talust.core.transaction.TransactionOutput;
+import org.talust.core.transaction.*;
 import org.talust.storage.BaseStoreProvider;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
@@ -142,7 +134,7 @@ public class BlockStorage extends BaseStoreProvider {
             //保存交易
             for (int i = 0; i < block.getTxCount(); i++) {
                 Transaction tx = block.getTxs().get(i);
-                log.info("区块包含的交易类型为："+tx.getType());
+                log.info("区块包含的交易类型为：" + tx.getType());
                 TransactionStore txs = new TransactionStore(network, tx, block.getHeight(), null);
                 db.put(tx.getHash().getBytes(), txs.baseSerialize());
                 saveChainstate(block, txs);
@@ -238,7 +230,14 @@ public class BlockStorage extends BaseStoreProvider {
 
                 chainStateStorage.put(key, new byte[]{TransactionStore.STATUS_UNUSE});
             }
+            if (tx.getType() == Definition.TYPE_REG_CONSENSUS) {
+                //如果是共识注册交易，则保存至区块状态表
+                chainStateStorage.addConsensus(tx);
 
+            } else if (tx.getType() == Definition.TYPE_REM_CONSENSUS) {
+                //退出共识
+                chainStateStorage.removeConsensus(tx);
+            }
         }
         checkIsMineAndUpdate(txs);
     }
@@ -261,6 +260,28 @@ public class BlockStorage extends BaseStoreProvider {
             }
         });
     }
+
+    /**
+     * 获取一笔交易
+     *
+     * @param hash
+     * @return TransactionStore
+     */
+    public TransactionStore getTransaction(byte[] hash) {
+        try {
+            byte[] content = db.get(hash);
+            if (content == null) {
+                return null;
+            }
+            TransactionStore store = new TransactionStore(network, content);
+            store.setKey(hash);
+            return store;
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     public boolean checkTxIsMine(Transaction tx) {
         return checkTxIsMine(tx, null);
@@ -525,28 +546,6 @@ public class BlockStorage extends BaseStoreProvider {
 
 
     /**
-     * 获取一笔交易
-     *
-     * @param hash
-     * @return TransactionStore
-     */
-    public TransactionStore getTransaction(byte[] hash) {
-        byte[] content = new byte[0];
-        try {
-            content = db.get(hash);
-        } catch (RocksDBException e) {
-            e.printStackTrace();
-        }
-        if (content == null) {
-            return null;
-        }
-        TransactionStore store = new TransactionStore(network, content);
-        store.setKey(hash);
-
-        return store;
-    }
-
-    /**
      * 获取区块头信息
      *
      * @param hash
@@ -571,4 +570,21 @@ public class BlockStorage extends BaseStoreProvider {
         blockHeaderStore.getBlockHeader().setHash(Sha256Hash.wrap(hash));
         return blockHeaderStore;
     }
+
+
+    /**
+     * 获取账户信息
+     *
+     * @param hash160
+     * @return AccountStore
+     */
+    public Account getAccountInfo(byte[] hash160) {
+        byte[] accountBytes = getBytes(hash160);
+        if (accountBytes == null) {
+            return null;
+        }
+        Account store = new Account(network, accountBytes);
+        return store;
+    }
+
 }
