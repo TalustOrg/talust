@@ -169,7 +169,7 @@ public class SynBlock {
                 if (blocks.size() >= needBlockCount) {
                     break;
                 }
-                for (long idx = start; idx < end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
+                for (long idx = start; idx <= end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
                     boolean needGain = true;//当前块需要下载
                     for (BlockStore block : blocks) {
                         long height = block.getBlock().getHeight();
@@ -243,7 +243,7 @@ public class SynBlock {
             log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
             for (BlockStore block : map.values()) {
                     log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
-                    MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
+                MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
                     if (messageChannel != null) {
                         try{
                             if (blockArrivedValidator.check(messageChannel)) {
@@ -259,6 +259,7 @@ public class SynBlock {
 
             }
         }
+        synBlock();
     }
 
     public MessageHandler getBlockArrivedHandler() {
