@@ -28,7 +28,9 @@ package org.talust.core.network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talust.common.tools.Constant;
+import org.talust.common.tools.IpUtil;
 import org.talust.core.server.NtpTimeService;
+import org.talust.network.netty.ConnectionManager;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -107,7 +109,7 @@ public class RemoteSeedManager implements SeedManager {
 			if(log.isDebugEnabled()) {
 				log.debug("初始化种子节点");
 			}
-			Set<String> myIps = getIps();
+			Set<String> myIps = IpUtil.getIps();
 			for (String seedDomain : SEED_DOMAINS) {
 				try {
 					InetAddress[] response = InetAddress.getAllByName(seedDomain);
@@ -158,36 +160,4 @@ public class RemoteSeedManager implements SeedManager {
 		return list;
 	}
 
-
-	/**
-	 * 多IP处理，可以得到最终ip
-	 * @return Set<String>
-	 */
-	public static Set<String> getIps() {
-		//返回本机所有的IP地址 ，包括了内网和外网的IP4地址
-		Set<String> ips = new HashSet<String>();
-		try {
-			Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
-			InetAddress ip = null;
-			while (netInterfaces.hasMoreElements()) {
-				NetworkInterface ni = netInterfaces.nextElement();
-				Enumeration<InetAddress> address = ni.getInetAddresses();
-				while (address.hasMoreElements()) {
-					ip = address.nextElement();
-					if (!ip.isSiteLocalAddress() && !ip.isLoopbackAddress()
-							&& ip.getHostAddress().indexOf(":") == -1) {// 外网IP
-						ips.add(ip.getHostAddress());
-						break;
-					} else if (ip.isSiteLocalAddress()
-							&& !ip.isLoopbackAddress()
-							&& ip.getHostAddress().indexOf(":") == -1) {// 内网IP
-						ips.add(ip.getHostAddress());
-					}
-				}
-			}
-		} catch (SocketException e) {
-			e.printStackTrace();
-		}
-		return ips;
-	}
 }

@@ -26,8 +26,6 @@
 package org.talust.core.core;
 
 import org.talust.core.model.Message;
-import org.talust.core.transaction.RegConsensusTransaction;
-import org.talust.core.transaction.RemConsensusTransaction;
 import org.talust.core.transaction.Transaction;
 
 import java.util.HashMap;

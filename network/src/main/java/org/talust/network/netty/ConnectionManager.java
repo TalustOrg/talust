@@ -292,28 +292,11 @@ public class ConnectionManager {
         }
     }
 
-
     /**
      * 初始化固定超级服务器ip地址,用于当前节点的连接所用
      */
     private void initSuperIps() {
-        try {
-            Enumeration<?> e1 = NetworkInterface.getNetworkInterfaces();
-            while (e1.hasMoreElements()) {
-                NetworkInterface ni = (NetworkInterface) e1.nextElement();
-                Enumeration<?> e2 = ni.getInetAddresses();
-                while (e2.hasMoreElements()) {
-                    InetAddress ia = (InetAddress) e2.nextElement();
-                    if (ia instanceof Inet6Address) {
-                        continue;
-                    }
-                    myIps.add(ia.getHostAddress());
-                }
-            }
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-
+        myIps.addAll(IpUtil.getIps());
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
         List<String> minings = new ArrayList<>();
         for (Object map : ips.entrySet()) {
