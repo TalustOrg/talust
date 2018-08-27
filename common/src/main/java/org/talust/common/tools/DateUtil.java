@@ -17,6 +17,8 @@ import java.util.function.Supplier;
  * @version $Id$
  */
 public class DateUtil {
+
+    public final static String EMPTY_SRING = "";
     public final static String DEFAULT_PATTERN = "yyyy-MM-dd HH:mm:ss";
     public final static SimpleDateFormat DEFAULT_SDF = new SimpleDateFormat(DEFAULT_PATTERN);
     /** 锁对象 */
@@ -24,6 +26,21 @@ public class DateUtil {
 
     /** 存放不同的日期模板格式的sdf的Map */
     private static Map<String, ThreadLocal<SimpleDateFormat>> sdfMap = new HashMap<>();
+
+
+    /**
+     * 把日期转换成yyyy-MM-dd HH:mm:ss格式
+     *
+     * @param date
+     * @return String
+     */
+    public static String convertDate(Date date) {
+        if (date == null) {
+            return EMPTY_SRING;
+        }
+        return DEFAULT_SDF.format(date);
+    }
+
 
     /**
      * 返回一个ThreadLocal的sdf,每个线程只会new一次sdf

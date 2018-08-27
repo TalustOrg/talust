@@ -591,22 +591,22 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             Deposits deposits = getDeposits(nodeAddr.getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
             if (null == depositAccountList || depositAccountList.size() < 100) {
-                Transaction tx = createRegConsensus(money,account,address,nodeAddr.getHash160());
-                verifyAndSendMsg(account,tx);
-            }else {
-                DepositAccount depositAccount =   checkAmtLowest(money, depositAccountList);
-                if(null != depositAccount){
+                Transaction tx = createRegConsensus(money, account, address, nodeAddr.getHash160());
+                verifyAndSendMsg(account, tx);
+            } else {
+                DepositAccount depositAccount = checkAmtLowest(money, depositAccountList);
+                if (null != depositAccount) {
                     //TODO 验证当前输入金额是否大于集合内的最小金额
                     //大于最低的账户的金额则
-                    Transaction regTx = createRegConsensus(money,account,address,nodeAddr.getHash160());
-                    verifyAndSendMsg(account,regTx);
-                    Transaction remTx =createRemConsensus(depositAccount);
+                    Transaction regTx = createRegConsensus(money, account, address, nodeAddr.getHash160());
+                    verifyAndSendMsg(account, regTx);
+                    Transaction remTx = createRemConsensus(depositAccount,account);
                     JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("isActive",Configure.PASSIVE_EXIT);
-                    jsonObject.put("nodeAddress",nodeAddr.getHash160());
+                    jsonObject.put("isActive", Configure.PASSIVE_EXIT);
+                    jsonObject.put("nodeAddress", nodeAddr.getHash160());
                     remTx.setData(SerializationUtil.serializer(jsonObject));
-                    verifyAndSendMsg(account,remTx);
-                }else {
+                    verifyAndSendMsg(account, remTx);
+                } else {
                     resp.put("retCode", "1");
                     resp.put("message", "当前节点共识已满，且参与共识金额小于当前最低的已参与共识金额");
                     return resp;
@@ -685,21 +685,23 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             }
             Address nodeAddr = Address.fromBase58(network, nodeAddress);
             Deposits deposits = getDeposits(nodeAddr.getHash160());
+            String hash160 =Base58.encode( account.getAddress().getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-            for(DepositAccount depositAccount :depositAccountList){
-              String base58 =   account.getAddress().getBase58();
-              String dposBase58 =Base58.encode(depositAccount.getAddress());
-                if(base58.equals(dposBase58)){
-                    Transaction remTx =createRemConsensus(depositAccount);
+            for (DepositAccount depositAccount : depositAccountList) {
+               String test =Base58.encode(depositAccount.getAddress()) ;
+                boolean is = hash160.equals(test);
+                if (is) {
+                    Transaction remTx = createRemConsensus(depositAccount,account);
                     JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("isActive",Configure.VOLUNTARILY_EXIT);
-                    jsonObject.put("nodeAddress",nodeAddr.getHash160());
+                    jsonObject.put("isActive", Configure.VOLUNTARILY_EXIT);
+                    jsonObject.put("nodeAddress", nodeAddr.getHash160());
                     remTx.setData(SerializationUtil.serializer(jsonObject));
-                    verifyAndSendMsg(account,remTx);
+                    verifyAndSendMsg(account, remTx);
                     resp.put("retCode", "0");
                     resp.put("message", "交易已上送");
                 }
             }
+
         } catch (Exception e) {
         } finally {
             locker.unlock();
@@ -709,13 +711,13 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     }
 
     public DepositAccount checkAmtLowest(String amt, List<DepositAccount> depositAccounts) {
-        long money  = Long.parseLong(amt);
+        long money = Long.parseLong(amt);
         DepositAccount lowest = null;
-        for(DepositAccount depositAccount : depositAccounts){
-            if(money>depositAccount.getAmount().value){
-                if(null!=lowest){
+        for (DepositAccount depositAccount : depositAccounts) {
+            if (money > depositAccount.getAmount().value) {
+                if (null != lowest) {
                     lowest = depositAccount;
-                }else if(lowest.getAmount().value>depositAccount.getAmount().value){
+                } else if (lowest.getAmount().value > depositAccount.getAmount().value) {
                     lowest = depositAccount;
                 }
             }
@@ -723,7 +725,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         return lowest;
     }
 
-    public  void verifyAndSendMsg(Account account , Transaction tx){
+    public void verifyAndSendMsg(Account account, Transaction tx) {
         //验证交易是否合法
         assert transactionValidator.checkTransaction(tx, null);
         //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
@@ -742,8 +744,9 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         ConnectionManager.get().TXMessageSend(message);
     }
 
-    public Transaction createRegConsensus(String money,Account account , String address,byte[] nodeHash160){
+    public Transaction createRegConsensus(String money, Account account, String address, byte[] nodeHash160) {
         //根据交易金额获取当前交易地址下所有的未花费交易
+
         Transaction tx = new Transaction(MainNetworkParams.get());
         tx.setVersion(Definition.VERSION);
         tx.setType(Definition.TYPE_REG_CONSENSUS);
@@ -766,7 +769,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         tx.addInput(input);
 
         //交易输出
-        tx.addOutput(pay,-1L, Address.fromBase58(network, address));
+        tx.addOutput(pay, 0l, Address.fromBase58(network, address));
         //是否找零
         if (totalInputCoin.compareTo(pay) > 0) {
             tx.addOutput(totalInputCoin.subtract(pay), account.getAddress());
@@ -786,23 +789,21 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     }
 
 
-    public Transaction createRemConsensus(DepositAccount depositAccount){
-        BaseCommonlyTransaction remTx = (BaseCommonlyTransaction) new Transaction(MainNetworkParams.get());
+    public Transaction createRemConsensus(DepositAccount depositAccount,Account account) {
+        Transaction remTx = new Transaction(MainNetworkParams.get());
         remTx.setVersion(Definition.VERSION);
         remTx.setType(Definition.TYPE_REM_CONSENSUS);
-        Sha256Hash txhash = depositAccount.getTxHash();
-        Transaction tx = transactionStorage.getTransaction(txhash).getTransaction();
-
-        TransactionInput input = new TransactionInput(tx.getOutput(0));
+        Coin totalInputCoin = Coin.ZERO;
+        List<Sha256Hash> txhashs = depositAccount.getTxHash();
+        TransactionInput input = new TransactionInput();
+        for(Sha256Hash txhash :txhashs){
+            Transaction tx = transactionStorage.getTransaction(txhash).getTransaction();
+            input.addFrom(tx.getOutput(0));
+            totalInputCoin.add(Coin.valueOf(tx.getOutput(0).getValue()));
+        }
         input.setScriptBytes(new byte[0]);
         remTx.addInput(input);
-
-        BaseCommonlyTransaction regTx = (BaseCommonlyTransaction) tx;
-        int accountType = network.getSystemAccountVersion();
-        remTx.addOutput(Coin.valueOf(tx.getOutput(0).getValue()), new Address(network, accountType, regTx.getHash160()));
-        remTx.verify();
-        remTx.verifyScript();
-
+        remTx.addOutput(totalInputCoin, account.getAddress());
         return remTx;
     }
 }

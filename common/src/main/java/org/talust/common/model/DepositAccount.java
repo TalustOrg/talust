@@ -28,6 +28,8 @@ package org.talust.common.model;
 import io.protostuff.Tag;
 import org.talust.common.crypto.Sha256Hash;
 
+import java.util.List;
+
 //储蓄帐户,与挖矿有关
 public class DepositAccount {
     @Tag(1)//帐户地址
@@ -35,7 +37,7 @@ public class DepositAccount {
     @Tag(2)//储蓄数量
     private Coin amount;
     @Tag(3)//储蓄交易hash
-    private Sha256Hash txHash;
+    private List<Sha256Hash> txHash;
 
     public byte[] getAddress() {
         return address;
@@ -53,15 +55,15 @@ public class DepositAccount {
         this.amount = amount;
     }
 
-    public Sha256Hash getTxHash() {
+    public List<Sha256Hash> getTxHash() {
         return txHash;
     }
 
-    public void setTxHash(Sha256Hash txHash) {
+    public void setTxHash(List<Sha256Hash> txHash) {
         this.txHash = txHash;
     }
 
-    public DepositAccount(byte[] address , Coin coin ,Sha256Hash txHash){
+    public DepositAccount(byte[] address , Coin coin , List<Sha256Hash> txHash){
         this.address=address;
         this.amount=coin;
         this.txHash=txHash;

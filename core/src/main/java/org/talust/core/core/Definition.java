@@ -26,6 +26,8 @@
 package org.talust.core.core;
 
 import org.talust.core.model.Message;
+import org.talust.core.transaction.RegConsensusTransaction;
+import org.talust.core.transaction.RemConsensusTransaction;
 import org.talust.core.transaction.Transaction;
 
 import java.util.HashMap;
@@ -122,11 +124,10 @@ public final class Definition {
     	TRANSACTION_RELATION.put(TYPE_COINBASE, Transaction.class);
 		TRANSACTION_RELATION.put(TYPE_PAY, Transaction.class);
 		TRANSACTION_RELATION.put(TYPE_ACCOUNT, Transaction.class);
+		TRANSACTION_RELATION.put(TYPE_REG_CONSENSUS, Transaction.class);
+		TRANSACTION_RELATION.put(TYPE_REM_CONSENSUS, Transaction.class);
 
-		
-
-
-    	//===========================-分割线=============================//
+		//===========================-分割线=============================//
     	
     	for (Map.Entry<Class<? extends Message>, String> entry : MESSAGE_COMMANDS.entrySet()) {
 			COMMANDS_MESSAGE.put(entry.getValue(), entry.getKey());

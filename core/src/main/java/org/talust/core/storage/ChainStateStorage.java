@@ -111,28 +111,36 @@ public class ChainStateStorage extends BaseStoreProvider {
             byte[] deps = db.get(key);
             if (null != deps) {
                 Deposits deposits = SerializationUtil.deserializer(deps, Deposits.class);
-                List<DepositAccount> depositAccountList =   deposits.getDepositAccounts();
-                boolean isDeposed = false;
-                Coin hadDeposCoin = Coin.ZERO ;
-                for(DepositAccount depositAccount :depositAccountList){
-                    if(depositAccount.getAddress().equals(hash160)){
+                List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
+                Coin hadDeposCoin = Coin.ZERO;
+                String hashString =Base58.encode( hash160);
+                DepositAccount realAcccount = null;
+                for (DepositAccount depositAccount : depositAccountList) {
+                    String test =Base58.encode(depositAccount.getAddress()) ;
+                    boolean is = hashString.equals(test);
+                    if (is) {
                         hadDeposCoin = depositAccount.getAmount();
+                        realAcccount= depositAccount;
                         depositAccountList.remove(depositAccount);
-                        isDeposed=true;
                         break;
                     }
                 }
-                if(!isDeposed){
-                    depositAccountList.add(new DepositAccount(hash160,coin,txHash));
-                }else{
-                    depositAccountList.add(new DepositAccount(hash160,hadDeposCoin.add(coin),txHash));
+                if (null!=realAcccount) {
+                    realAcccount.getTxHash().add(txHash);
+                    depositAccountList.add(realAcccount);
+                } else {
+                    List<Sha256Hash> txlist = new ArrayList<>();
+                    txlist.add(txHash);
+                    depositAccountList.add(new DepositAccount(hash160, hadDeposCoin.add(coin), txlist));
                     deposits.setDepositAccounts(depositAccountList);
                 }
                 db.put(key, SerializationUtil.serializer(deposits));
             } else {
                 Deposits deposits = new Deposits();
                 List<DepositAccount> depositAccountList = new ArrayList<>();
-                DepositAccount depositAccount = new DepositAccount(hash160, coin, txHash);
+                List<Sha256Hash> txlist = new ArrayList<>();
+                txlist.add(txHash);
+                DepositAccount depositAccount = new DepositAccount(hash160, coin, txlist);
                 depositAccountList.add(depositAccount);
                 deposits.setDepositAccounts(depositAccountList);
                 db.put(key, SerializationUtil.serializer(deposits));
@@ -161,14 +169,14 @@ public class ChainStateStorage extends BaseStoreProvider {
     }
 
     public void removeDeposit(byte[] miningAddress, Sha256Hash txHash, byte[] hash160, Coin coin) {
-        try{
+        try {
             byte[] key = getDepositSearchKey(miningAddress);
             byte[] deps = db.get(key);
             if (null != deps) {
                 Deposits deposits = SerializationUtil.deserializer(deps, Deposits.class);
                 List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-                for(DepositAccount depositAccount :depositAccountList){
-                    if(depositAccount.getAddress().equals(hash160)){
+                for (DepositAccount depositAccount : depositAccountList) {
+                    if (depositAccount.getAddress().equals(hash160)) {
                         depositAccountList.remove(depositAccount);
                         break;
                     }
@@ -176,7 +184,7 @@ public class ChainStateStorage extends BaseStoreProvider {
                 deposits.setDepositAccounts(depositAccountList);
                 db.put(key, SerializationUtil.serializer(deposits));
             }
-        }catch (Exception e ){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -192,11 +200,9 @@ public class ChainStateStorage extends BaseStoreProvider {
             Sha256Hash txHash = tx.getHash();
             List<TransactionOutput> outputs = tx.getOutputs();
             for (TransactionOutput output : outputs) {
-                if (output.getLockTime() == -1L) {
-                    byte[] hash160 = output.getScript().getChunks().get(2).data;
-                    long value = output.getValue();
-                    addDeposits(hash160, Coin.valueOf(value), tx.getData(), txHash);
-                }
+                byte[] hash160 = output.getScript().getChunks().get(2).data;
+                long value = output.getValue();
+                addDeposits(hash160, Coin.valueOf(value), tx.getData(), txHash);
             }
         } catch (Exception e) {
             log.error("出错了{}", e.getMessage(), e);

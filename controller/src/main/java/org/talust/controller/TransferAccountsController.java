@@ -196,7 +196,6 @@ public class TransferAccountsController {
             resp.put("message", "核心参数缺失");
             return resp;
         }
-
         Account account = transferAccountService.getAccountByAddress(address);
         if (null == account) {
             resp.put("retCode", "1");
