@@ -81,11 +81,7 @@ public class SynBlock {
             e.printStackTrace();
         }
         syning.set(false);
-        if (ConnectionManager.get().superNode) {
-            accountStorage.superNodeLogin();
-        } else {
-            accountStorage.nomorlNodeLogin();
-        }
+
     }
 
     private void synBlock() {

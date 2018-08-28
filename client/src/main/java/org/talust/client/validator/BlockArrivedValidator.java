@@ -82,9 +82,6 @@ public class BlockArrivedValidator implements MessageValidator {
         }else if(block.getHeight()==0){
             result = true;
             return result;
-        }else if(!SynBlock.get().getSyning().get()){
-            log.info("本区块同步有问题,未存储所接收到的区块的前一区块的数据,送达区块高度:{},自身区块高度：{}", height,MainNetworkParams.get().getBestHeight());
-            SynBlock.get().startSynBlock();
         }
 
         if (result) {//继续校验区块里面的每一条数据

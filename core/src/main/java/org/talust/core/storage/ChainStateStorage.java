@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.RocksDBException;
 import org.talust.common.model.DepositAccount;
 import org.talust.common.tools.SerializationUtil;
+import org.talust.core.core.Definition;
 import org.talust.core.model.Address;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.transaction.Transaction;
@@ -207,7 +208,7 @@ public class ChainStateStorage extends BaseStoreProvider {
             Sha256Hash txHash = tx.getHash();
             List<TransactionOutput> outputs = tx.getOutputs();
             for (TransactionOutput output : outputs) {
-                if(output.getLockTime()==0L){
+                if(output.getLockTime()== Definition.LOCKTIME_THRESHOLD-1){
                     byte[] hash160 = output.getScript().getChunks().get(2).data;
                     long value = output.getValue();
                     addDeposits(hash160, Coin.valueOf(value), tx.getData(), txHash);

@@ -188,7 +188,14 @@ public class AccountStorage {
             e.printStackTrace();
         }
     }
-
+    public boolean reloadCoin(){
+        List<byte[]> hash160s = getAccountHash160s();
+        boolean ending =  false;
+       if( TransactionStorage.get().reloadTransaction(hash160s)){
+           ending=   loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
+       }
+       return ending;
+    }
 
     //是否重新加载账户交易
     private void maybeReLoadTransaction(List<byte[]> hash160s) {
@@ -234,7 +241,7 @@ public class AccountStorage {
     /*
      * 从状态链（未花费的地址集合）和未确认的交易加载余额
      */
-    public void loadBalanceFromChainstateAndUnconfirmedTransaction(List<byte[]> hash160s) {
+    public boolean loadBalanceFromChainstateAndUnconfirmedTransaction(List<byte[]> hash160s) {
 
         try {
             for (Account account : accountList) {
@@ -244,6 +251,7 @@ public class AccountStorage {
         }catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+        return true;
     }
 
     //加载单个地址的余额信息
