@@ -168,15 +168,18 @@ public class ChainStateStorage extends BaseStoreProvider {
         return key;
     }
 
-    public void removeDeposit(byte[] miningAddress, Sha256Hash txHash, byte[] hash160, Coin coin) {
+    public void removeDeposit(byte[] miningAddress, byte[] hash160) {
         try {
             byte[] key = getDepositSearchKey(miningAddress);
             byte[] deps = db.get(key);
             if (null != deps) {
                 Deposits deposits = SerializationUtil.deserializer(deps, Deposits.class);
                 List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
+                String hashString =Base58.encode( hash160);
                 for (DepositAccount depositAccount : depositAccountList) {
-                    if (depositAccount.getAddress().equals(hash160)) {
+                    String test =Base58.encode(depositAccount.getAddress()) ;
+                    boolean is = hashString.equals(test);
+                    if (is) {
                         depositAccountList.remove(depositAccount);
                         break;
                     }
@@ -200,9 +203,11 @@ public class ChainStateStorage extends BaseStoreProvider {
             Sha256Hash txHash = tx.getHash();
             List<TransactionOutput> outputs = tx.getOutputs();
             for (TransactionOutput output : outputs) {
-                byte[] hash160 = output.getScript().getChunks().get(2).data;
-                long value = output.getValue();
-                addDeposits(hash160, Coin.valueOf(value), tx.getData(), txHash);
+                if(output.getLockTime()==0L){
+                    byte[] hash160 = output.getScript().getChunks().get(2).data;
+                    long value = output.getValue();
+                    addDeposits(hash160, Coin.valueOf(value), tx.getData(), txHash);
+                }
             }
         } catch (Exception e) {
             log.error("出错了{}", e.getMessage(), e);
@@ -230,7 +235,7 @@ public class ChainStateStorage extends BaseStoreProvider {
         if (isActive.equals(Configure.VOLUNTARILY_EXIT)) {
             //主动退出共识
             //从集合中删除共识节点
-            this.removeDeposit(nodeAddress, oldtxHash, hash160, Coin.valueOf(transactionOutput.getValue()));
+            this.removeDeposit(nodeAddress,hash160);
         } else {
             //被动提出共识
             //验证原共识金额 与现已加入的共识金额
@@ -242,7 +247,7 @@ public class ChainStateStorage extends BaseStoreProvider {
                         //交易异常
                     } else {
                         //从集合中删除共识节点
-                        this.removeDeposit(nodeAddress, oldtxHash, hash160, Coin.valueOf(transactionOutput.getValue()));
+                        this.removeDeposit(nodeAddress, hash160);
                     }
                 }
             } else {
