@@ -113,16 +113,18 @@ public class ChainStateStorage extends BaseStoreProvider {
                 Deposits deposits = SerializationUtil.deserializer(deps, Deposits.class);
                 List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
                 Coin hadDeposCoin = Coin.ZERO;
-                String hashString =Base58.encode( hash160);
                 DepositAccount realAcccount = null;
-                for (DepositAccount depositAccount : depositAccountList) {
-                    String test =Base58.encode(depositAccount.getAddress()) ;
-                    boolean is = hashString.equals(test);
-                    if (is) {
-                        hadDeposCoin = depositAccount.getAmount();
-                        realAcccount= depositAccount;
-                        depositAccountList.remove(depositAccount);
-                        break;
+                if(null!=depositAccountList){
+                    String hashString =Base58.encode( hash160);
+                    for (DepositAccount depositAccount : depositAccountList) {
+                        String test =Base58.encode(depositAccount.getAddress()) ;
+                        boolean is = hashString.equals(test);
+                        if (is) {
+                            hadDeposCoin = depositAccount.getAmount();
+                            realAcccount= depositAccount;
+                            depositAccountList.remove(depositAccount);
+                            break;
+                        }
                     }
                 }
                 if (null!=realAcccount) {
