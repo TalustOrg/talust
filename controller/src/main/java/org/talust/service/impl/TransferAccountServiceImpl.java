@@ -769,7 +769,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         tx.addInput(input);
 
         //交易输出
-        tx.addOutput(pay, 0l, Address.fromBase58(network, address));
+        tx.addOutput(pay, Definition.LOCKTIME_THRESHOLD-1, Address.fromBase58(network, address));
         //是否找零
         if (totalInputCoin.compareTo(pay) > 0) {
             tx.addOutput(totalInputCoin.subtract(pay), account.getAddress());
