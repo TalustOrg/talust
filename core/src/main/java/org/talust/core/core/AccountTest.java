@@ -24,6 +24,7 @@
  */
 package org.talust.core.core;
 
+import org.talust.account.AccountType;
 import org.talust.common.crypto.Base58;
 import org.talust.common.crypto.ECKey;
 import org.talust.common.crypto.Utils;
@@ -71,7 +72,8 @@ public class AccountTest {
         rootAccount.setPriSeed(prikeySeedRoot);
         rootAccount.setAccountType(rootAddr.getVersion());
         rootAccount.setAddress(rootAddr);
-
+        rootAccount.setSupervisor(rootAccount.getAddress().getHash160() );
+        rootAccount.setlevel(AccountType.ROOT.getType());
 //        String mgPw = "";//管理密码
 //        String trPw="";//交易密码
 //        //生成账户管理的私匙
@@ -106,7 +108,8 @@ public class AccountTest {
         talustAccount.setPriSeed(prikeySeedTalust);
         talustAccount.setAccountType(talustAddr.getVersion());
         talustAccount.setAddress(talustAddr);
-
+        talustAccount.setSupervisor(rootAccount.getAddress().getHash160() );
+        talustAccount.setlevel(AccountType.TALUST.getType());
 //        String mgPw = "";//管理密码
 //        String trPw="";//交易密码
 //        //生成账户管理的私匙
