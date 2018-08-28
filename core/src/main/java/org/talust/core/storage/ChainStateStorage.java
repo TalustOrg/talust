@@ -126,6 +126,8 @@ public class ChainStateStorage extends BaseStoreProvider {
                             break;
                         }
                     }
+                }else{
+                    depositAccountList = new ArrayList<>();
                 }
                 if (null!=realAcccount) {
                     realAcccount.getTxHash().add(txHash);
