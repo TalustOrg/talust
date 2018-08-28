@@ -145,20 +145,21 @@ public class TransactionValidator implements MessageValidator {
                         output.setScript(preTransaction.getOutput(index).getScript());
                         fromTx = preTransaction;
                     }
-
-                    //验证引用的交易是否可用
-                    if (fromTx.getLockTime() < 0l ||
-                            (fromTx.getLockTime() > Definition.LOCKTIME_THRESHOLD && fromTx.getLockTime() > NtpTimeService.currentTimeSeconds())
-                            || (fromTx.getLockTime() < Definition.LOCKTIME_THRESHOLD && fromTx.getLockTime() > network.getBestHeight())) {
-                        throw new VerificationException("引用了不可用的交易");
+                    //除参与公示的冻结金额之外都需要验证
+                    if( tx.getType() != Definition.TYPE_REG_CONSENSUS&& tx.getType() != Definition.TYPE_REM_CONSENSUS){
+                        //验证引用的交易是否可用
+                        if (fromTx.getLockTime() < 0l ||
+                                (fromTx.getLockTime() > Definition.LOCKTIME_THRESHOLD && fromTx.getLockTime() > NtpTimeService.currentTimeSeconds())
+                                || (fromTx.getLockTime() < Definition.LOCKTIME_THRESHOLD && fromTx.getLockTime() > network.getBestHeight())) {
+                            throw new VerificationException("引用了不可用的交易");
+                        }
+                        //验证引用的交易输出是否可用
+                        long lockTime = output.getLockTime();
+                        if (lockTime < 0l || (lockTime > Definition.LOCKTIME_THRESHOLD && lockTime > NtpTimeService.currentTimeSeconds())
+                                || (lockTime < Definition.LOCKTIME_THRESHOLD && lockTime > network.getBestHeight())) {
+                            throw new VerificationException("引用了不可用的交易输出");
+                        }
                     }
-                    //验证引用的交易输出是否可用
-                    long lockTime = output.getLockTime();
-                    if (lockTime < 0l || (lockTime > Definition.LOCKTIME_THRESHOLD && lockTime > NtpTimeService.currentTimeSeconds())
-                            || (lockTime < Definition.LOCKTIME_THRESHOLD && lockTime > network.getBestHeight())) {
-                        throw new VerificationException("引用了不可用的交易输出");
-                    }
-
                     TransactionOutput preOutput = fromTx.getOutput(index);
                     txInputFee = txInputFee.add(Coin.valueOf(preOutput.getValue()));
                     output.setValue(preOutput.getValue());
