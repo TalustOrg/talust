@@ -34,6 +34,7 @@ import org.talust.core.network.MainNetworkParams;
 import org.talust.core.storage.AccountStorage;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.AccessControlContext;
 
 public class AccountTest {
@@ -58,18 +59,34 @@ public class AccountTest {
 
         return xor;
     }
-
+    //部分参数名称需要自己改动
     private void gen(){
         //non Root account create Test
         ECKey rootKey = new ECKey();
         Address rootAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(rootKey.getPubKey(false)));
         rootAddr.setBalance(Coin.ZERO);
         rootAddr.setUnconfirmedBalance(Coin.ZERO);
+        byte[] prikeySeedRoot = rootKey.getPubKey(false);
         Account rootAccount = new Account(networkParams);
-        rootAccount.setPriSeed(rootKey.getPrivKeyBytes());
+        rootAccount.setPriSeed(prikeySeedRoot);
         rootAccount.setAccountType(rootAddr.getVersion());
         rootAccount.setAddress(rootAddr);
-        rootAccount.setMgPubkeys(new byte[][]{rootKey.getPubKey(true)});
+
+//        String mgPw = "";//管理密码
+//        String trPw="";//交易密码
+//        //生成账户管理的私匙
+//        BigInteger mgPri1 = AccountTool.genPrivKey1(prikeySeed, mgPw.getBytes());
+//        //生成交易的私匙
+//        BigInteger trPri1 = AccountTool.genPrivKey1(prikeySeed, trPw.getBytes());
+//
+//        BigInteger mgPri2 = AccountTool.genPrivKey2(prikeySeed, mgPw.getBytes());
+//        ECKey mgkey1 = ECKey.fromPrivate(mgPri1);
+//        ECKey mgkey2 = ECKey.fromPrivate(mgPri2);
+//
+//        ECKey trkey1 = ECKey.fromPrivate(trPri1);
+//
+//        rootAccount.setMgPubkeys(new byte[][] {mgkey1.getPubKey(true), mgkey2.getPubKey(true)});	//存储帐户管理公匙
+//        rootAccount.setTrPubkeys(new byte[][] {trkey1.getPubKey(true)});//存储交易公匙
         try {
            // rootAccount.setSigns(rootAccount.signAccount(rootAccount.getEcKey(),null));
             rootAccount.signAccount(rootKey, null);
@@ -84,11 +101,27 @@ public class AccountTest {
         Address talustAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(talustKey.getPubKey(false)));
         talustAddr.setBalance(Coin.ZERO);
         talustAddr.setUnconfirmedBalance(Coin.ZERO);
+        byte[] prikeySeedTalust = talustKey.getPubKey(false);
         Account talustAccount = new Account(networkParams);
-        talustAccount.setPriSeed(talustKey.getPrivKeyBytes());
+        talustAccount.setPriSeed(prikeySeedTalust);
         talustAccount.setAccountType(talustAddr.getVersion());
         talustAccount.setAddress(talustAddr);
-        talustAccount.setMgPubkeys(new byte[][]{talustKey.getPubKey(true)});
+
+//        String mgPw = "";//管理密码
+//        String trPw="";//交易密码
+//        //生成账户管理的私匙
+//        BigInteger mgPri1 = AccountTool.genPrivKey1(prikeySeed, mgPw.getBytes());
+//        //生成交易的私匙
+//        BigInteger trPri1 = AccountTool.genPrivKey1(prikeySeed, trPw.getBytes());
+//
+//        BigInteger mgPri2 = AccountTool.genPrivKey2(prikeySeed, mgPw.getBytes());
+//        ECKey mgkey1 = ECKey.fromPrivate(mgPri1);
+//        ECKey mgkey2 = ECKey.fromPrivate(mgPri2);
+//
+//        ECKey trkey1 = ECKey.fromPrivate(trPri1);
+//
+//        talustAccount.setMgPubkeys(new byte[][] {mgkey1.getPubKey(true), mgkey2.getPubKey(true)});	//存储帐户管理公匙
+//        talustAccount.setTrPubkeys(new byte[][] {trkey1.getPubKey(true)});//存储交易公匙
         try {
            // talustAccount.setSigns(talustAccount.signAccount(talustAccount.getEcKey(), rootAccount.getEcKey()));
             talustAccount.signAccount(talustKey, rootKey);
