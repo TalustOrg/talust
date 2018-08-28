@@ -31,6 +31,7 @@ import org.talust.core.model.Account;
 import org.talust.core.model.Address;
 import org.talust.common.model.Coin;
 import org.talust.core.network.MainNetworkParams;
+import org.talust.core.storage.AccountStorage;
 
 import java.io.IOException;
 import java.security.AccessControlContext;
@@ -40,8 +41,12 @@ public class AccountTest {
 
     NetworkParams networkParams = MainNetworkParams.get();
     public static void main(String[] args) {
-        AccountTest at = new AccountTest();
-        at.start();
+        //解封下面一段代码进行 按需要的账户生成
+        makeAccountFile(5);
+
+        //解封下面两段代码进行root talust 账号生成
+//        AccountTest at = new AccountTest();
+//        at.gen();
     }
 
     protected byte getXor(byte[] body) {
@@ -54,10 +59,8 @@ public class AccountTest {
         return xor;
     }
 
-    private void start(){
-
+    private void gen(){
         //non Root account create Test
-
         ECKey rootKey = new ECKey();
         Address rootAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(rootKey.getPubKey(false)));
         rootAddr.setBalance(Coin.ZERO);
@@ -76,8 +79,6 @@ public class AccountTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
         //root account create Test
         ECKey talustKey = new ECKey();
         Address talustAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(talustKey.getPubKey(false)));
@@ -97,7 +98,6 @@ public class AccountTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         try {
             Account accountTest = Account.parse(rootAccount.serialize(),networkParams);
             Account accountTest2 = Account.parse(talustAccount.serialize(),networkParams);
@@ -105,6 +105,16 @@ public class AccountTest {
             accountTest2.verify();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void makeAccountFile(int num){
+        for(int i = 0 ; i <num; i++){
+            try {
+                AccountStorage.get().createAccount();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
