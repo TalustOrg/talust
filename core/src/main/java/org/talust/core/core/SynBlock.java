@@ -34,12 +34,14 @@ import org.talust.common.tools.SerializationUtil;
 import org.talust.common.tools.ThreadPool;
 import org.talust.core.model.Block;
 import org.talust.core.network.MainNetworkParams;
+import org.talust.core.storage.AccountStorage;
 import org.talust.core.storage.BlockStorage;
 import org.talust.core.storage.BlockStore;
 import org.talust.network.MessageHandler;
 import org.talust.network.MessageValidator;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
+import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.SynRequest;
 
 import java.util.*;
@@ -62,6 +64,7 @@ public class SynBlock {
         return instance;
     }
 
+    private AccountStorage accountStorage = AccountStorage.get();
     private MessageHandler blockArrivedHandler;//区块到来处理器
     private MessageValidator blockArrivedValidator;//区块到来校验器
     private AtomicBoolean syning = new AtomicBoolean(false);//是否正在同步
@@ -78,6 +81,11 @@ public class SynBlock {
             e.printStackTrace();
         }
         syning.set(false);
+        if (ConnectionManager.get().superNode) {
+            accountStorage.superNodeLogin();
+        } else {
+            accountStorage.nomorlNodeLogin();
+        }
     }
 
     private void synBlock() {
@@ -144,8 +152,8 @@ public class SynBlock {
         }
 
         boolean haveGenesis = true;
-        if(selfBlockHeight==0){
-            haveGenesis=false;
+        if (selfBlockHeight == 0) {
+            haveGenesis = false;
         }
         Random rand = new Random();
         long needBlock = maxBlockHeight - selfBlockHeight;//需要下载的块数
@@ -159,8 +167,8 @@ public class SynBlock {
             List<Future<MessageChannel>> results = new ArrayList<>();
             long start = selfBlockHeight + time * THREAD_POOL_SIZE + 1;//开始下载的区块数
             long end = start + THREAD_POOL_SIZE;
-            if (end > maxBlockHeight ) {
-                end = maxBlockHeight ;
+            if (end > maxBlockHeight) {
+                end = maxBlockHeight;
             }
             long needBlockCount = end - start;//需要下载的区块数
             List<BlockStore> blocks = new ArrayList<>();
@@ -182,7 +190,7 @@ public class SynBlock {
                         int selectChannel = rand.nextInt(ac.size());//所选中的块所在的channel进行获取块,选中的channel是随机选择的
                         String scId = ac.get(selectChannel);
                         while (true) {
-                            //log.info("当前请求的通道id:{},整个通道数量情况:{}", scId, channelBlockHeight);
+                            log.info("当前请求的通道id:{},整个通道数量情况:{}", scId, channelBlockHeight);
                             Integer bh = channelBlockHeight.get(scId);//选中的通道拥有的块的高度
                             if (bh < idx) {//选中的通道拥有的块高度不满足要求所取的块高度,则将此通道从备选通道中移除
                                 ac.remove(scId);
@@ -194,7 +202,7 @@ public class SynBlock {
                         }
                         final String selectIp = scId;
                         final long selectBlockHeight = idx;
-                        if(!haveGenesis){
+                        if (!haveGenesis) {
                             Future<MessageChannel> genesis = threadPool.submit(() -> {
                                 Message nodeMessage = new Message();
                                 nodeMessage.setType(MessageType.BLOCK_REQ.getType());
@@ -222,7 +230,7 @@ public class SynBlock {
                         MessageChannel message = result.get();
                         if (message != null) {
                             byte[] content = message.getMessage().getContent();
-                            BlockStore blockStore = SerializationUtil.deserializer(content,BlockStore.class);//远端返回来的区块
+                            BlockStore blockStore = SerializationUtil.deserializer(content, BlockStore.class);//远端返回来的区块
                             blocks.add(blockStore);
                             mapHeightData.put(blockStore.getBlock().getBlockHeader().getHeight(), message);
                         }
@@ -237,25 +245,25 @@ public class SynBlock {
                     return o1.compareTo(o2);
                 }
             });
-            for(BlockStore blockStore : blocks){
-                map.put(blockStore.getBlock().getHeight(),blockStore);
+            for (BlockStore blockStore : blocks) {
+                map.put(blockStore.getBlock().getHeight(), blockStore);
             }
             log.info("从其他网络节点下载下来的区块数为:{}", blocks.size());
             for (BlockStore block : map.values()) {
-                    log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
+                log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
                 MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
-                    if (messageChannel != null) {
-                        try{
-                            if (blockArrivedValidator.check(messageChannel)) {
-                                blockArrivedHandler.handle(messageChannel);
-                            }
-                        }catch (Exception e ){
-                            log.info("区块高度{}的区块数据异常 :{}", block.getBlock().getBlockHeader().getHeight(),e.getMessage());
-                            synBlock();
+                if (messageChannel != null) {
+                    try {
+                        if (blockArrivedValidator.check(messageChannel)) {
+                            blockArrivedHandler.handle(messageChannel);
                         }
-                    } else {
-                        log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());
+                    } catch (Exception e) {
+                        log.info("区块高度{}的区块数据异常 :{}", block.getBlock().getBlockHeader().getHeight(), e.getMessage());
+                        synBlock();
                     }
+                } else {
+                    log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());
+                }
 
             }
         }
