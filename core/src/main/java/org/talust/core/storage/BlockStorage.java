@@ -176,7 +176,7 @@ public class BlockStorage extends BaseStoreProvider {
      *
      * @param block
      */
-    public void revokedBlock(Block block) {
+    public void revokedBlock(Block block) throws Exception {
 
         Sha256Hash bestBlockHash = block.getHash();
 
@@ -224,7 +224,7 @@ public class BlockStorage extends BaseStoreProvider {
      *
      * @param txs
      */
-    public void revokedTransaction(TransactionStore txs) {
+    public void revokedTransaction(TransactionStore txs) throws Exception {
 
         Transaction tx = txs.getTransaction();
 
@@ -333,7 +333,7 @@ public class BlockStorage extends BaseStoreProvider {
             }
         }
 
-        private void saveChainstate (Block block, TransactionStore txs) throws IOException {
+        private void saveChainstate (Block block, TransactionStore txs) throws Exception {
             Transaction tx = txs.getTransaction();
             //TODO 下面的代码请使用状态模式重构
             if (tx.isPaymentTransaction()) {

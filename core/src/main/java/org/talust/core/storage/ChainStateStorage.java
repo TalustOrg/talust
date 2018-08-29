@@ -275,7 +275,7 @@ public class ChainStateStorage extends BaseStoreProvider {
      *
      * @param tx
      */
-    public void removeConsensus(Transaction tx) {
+    public void removeConsensus(Transaction tx) throws Exception {
         JSONObject data = SerializationUtil.deserializer(tx.getData(), JSONObject.class);
         String isActive = data.getString("isActive");
         byte[] nodeAddress = data.getBytes("nodeAddress");
@@ -295,6 +295,7 @@ public class ChainStateStorage extends BaseStoreProvider {
                 for (DepositAccount depositAccount : depositAccountList) {
                     if (depositAccount.getAmount().value < transactionOutput.getValue()) {
                         //交易异常
+                        throw new Exception();
                     } else {
                         //从集合中删除共识节点
                         this.removeDeposit(nodeAddress, hash160);
@@ -302,6 +303,7 @@ public class ChainStateStorage extends BaseStoreProvider {
                 }
             } else {
                 //交易异常
+                throw new Exception();
             }
         }
     }
