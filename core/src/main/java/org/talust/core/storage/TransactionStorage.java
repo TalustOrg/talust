@@ -468,6 +468,52 @@ public class TransactionStorage extends BaseStoreProvider {
         }
         return true;
     }
+    /**
+     * 回滚交易
+     * @param txs
+     */
+    public void processRevokedTransaction(TransactionStore txs) {
+
+        Transaction tx = txs.getTransaction();
+
+        if(tx.isPaymentTransaction()) {
+            //更新交易状态
+            List<TransactionInput> inputs = tx.getInputs();
+            if(inputs != null) {
+                for (TransactionInput input : inputs) {
+                    if(input.getFroms() == null || input.getFroms().size() == 0) {
+                        continue;
+                    }
+                    for (TransactionOutput from : input.getFroms()) {
+                        Sha256Hash fromTxHash = from.getParent().getHash();
+
+                        for (TransactionStore transactionStore : myTxList) {
+                            if(transactionStore.getTransaction().getHash().equals(fromTxHash)) {
+                                //更新内存
+                                byte[] ftxStatus = transactionStore.getStatus();
+                                ftxStatus[from.getIndex()] = TransactionStore.STATUS_UNUSE;
+                                transactionStore.setStatus(ftxStatus);
+                                //更新存储
+                                put(transactionStore.getTransaction().getHash().getBytes(), transactionStore.baseSerialize());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        delete(tx.getHash().getBytes());
+
+        //从内存中删除
+        for (TransactionStore t : myTxList) {
+            if(t.getTransaction().getHash().equals(tx.getHash())) {
+                myTxList.remove(t);
+                break;
+            }
+        }
+    }
+
 
     /**
      * 清理数据

@@ -165,6 +165,51 @@ public class ChainStateStorage extends BaseStoreProvider {
         }
     }
 
+    /**
+     * 回滚过程中的共识重新加入
+     * @param tx
+     */
+    public void revokedConsensus(Transaction tx) {
+
+        //重新加入共识账户列表中
+        //验证当前交易是否已经存在于列表中
+        DepositAccount depositAccount = getDepositAccountByTx(tx);
+        //注册共识的交易
+        if(null!=depositAccount){
+            Sha256Hash txhash = tx.getInput(0).getFroms().get(0).getParent().getHash();
+            TransactionStore regTxStore = BlockStorage.get().getTransaction(txhash.getBytes());
+            if(regTxStore == null) {
+                return;
+            }
+            Transaction regTx = regTxStore.getTransaction();
+            addConsensus(regTx);
+        }
+    }
+
+
+
+
+    public DepositAccount getDepositAccountByTx(Transaction tx){
+        Sha256Hash txHash = tx.getHash();
+        List<TransactionOutput> outputs = tx.getOutputs();
+        for (TransactionOutput output : outputs) {
+            if(output.getLockTime()== Definition.LOCKTIME_THRESHOLD-1){
+                String hash160 = Base58.encode(output.getScript().getChunks().get(2).data);
+                Deposits deposits = getDeposits(tx.getData());
+                for(DepositAccount depositAccount: deposits.getDepositAccounts()){
+                    if(Base58.encode(depositAccount.getAddress()).equals(hash160)){
+                        if(depositAccount.getTxHash().contains(txHash)){
+                                return  depositAccount;
+                        }
+                    }
+                }
+            }
+        }
+        return  null;
+    }
+
+
+
 
     public byte[] getDepositSearchKey(byte[] miningAddress) {
         byte[] key = new byte[miningAddress.length + dpos.getBytes().length];

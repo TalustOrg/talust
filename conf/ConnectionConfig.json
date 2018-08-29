@@ -3,5 +3,5 @@
   "MAX_ACTIVE_CONNECT_COUNT":"2",
   "MAX_SUPER_PASSIVITY_CONNECT_COUNT":"1000",
   "MAX_SUPER_ACTIVE_CONNECT_COUNT":"3",
-  "NODE_SERVER_ADDR":"http://dev.talust.com:18004/supernode.json"
+  "NODE_SERVER_ADDR":"http://dev.talust.com:18004/supernodes.json"
 }
