@@ -799,7 +799,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         for(Sha256Hash txhash :txhashs){
             Transaction tx = transactionStorage.getTransaction(txhash).getTransaction();
             input.addFrom(tx.getOutput(0));
-            totalInputCoin.add(Coin.valueOf(tx.getOutput(0).getValue()));
+            totalInputCoin=  totalInputCoin.add(Coin.valueOf(tx.getOutput(0).getValue()));
         }
         input.setScriptBytes(new byte[0]);
         remTx.addInput(input);
