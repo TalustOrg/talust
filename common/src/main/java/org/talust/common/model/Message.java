@@ -25,7 +25,6 @@
 
 package org.talust.common.model;
 
-import org.talust.common.tools.SerializationUtil;
 import io.protostuff.Tag;
 
 /**

@@ -33,7 +33,6 @@ import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.*;
 import org.talust.common.tools.RandomUtil;
-import org.talust.core.core.ByteHash;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.data.DataContainer;

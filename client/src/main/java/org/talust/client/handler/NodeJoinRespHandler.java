@@ -1,4 +1,4 @@
-package org.talust.client.handler;/*
+/*
  * MIT License
  *
  * Copyright (c) 2017-2018 talust.org talust.io
@@ -22,6 +22,7 @@ package org.talust.client.handler;/*
  * SOFTWARE.
  *
  */
+package org.talust.client.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.model.MessageChannel;

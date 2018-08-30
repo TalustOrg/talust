@@ -1,4 +1,4 @@
-package org.talust.core.server;/*
+/*
  * MIT License
  *
  * Copyright (c) 2017-2018 talust.org talust.io
@@ -22,6 +22,7 @@ package org.talust.core.server;/*
  * SOFTWARE.
  *
  */
+package org.talust.core.server;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ntp.*;

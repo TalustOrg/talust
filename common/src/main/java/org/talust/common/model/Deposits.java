@@ -1,4 +1,4 @@
-package org.talust.common.model;/*
+/*
  * MIT License
  *
  * Copyright (c) 2017-2018 talust.org talust.io
@@ -22,6 +22,7 @@ package org.talust.common.model;/*
  * SOFTWARE.
  *
  */
+package org.talust.common.model;
 
 import io.protostuff.Tag;
 
