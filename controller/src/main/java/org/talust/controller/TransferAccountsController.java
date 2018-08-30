@@ -187,6 +187,7 @@ public class TransferAccountsController {
         JSONObject isOk = transferAccountService.consensusJoin(NodeAddress,money,address,password);
         return isOk;
     }
+
     @ApiOperation(value = "退出共识", notes = "退出共识")
     @PostMapping(value = "leaveSuperNodeDeposite")
     JSONObject leaveSuperNodeDeposite(@RequestParam String NodeAddress ,@RequestParam String password,@RequestParam String address) {

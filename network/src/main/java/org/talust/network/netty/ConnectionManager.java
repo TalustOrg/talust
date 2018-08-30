@@ -297,6 +297,7 @@ public class ConnectionManager {
      */
     private void initSuperIps() {
         myIps.addAll(IpUtil.getIps());
+        log.info("本地网卡抓取为：" +myIps.toString());
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
         List<String> minings = new ArrayList<>();
         for (Object map : ips.entrySet()) {
