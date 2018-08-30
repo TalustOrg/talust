@@ -280,7 +280,6 @@ public class ConnectionManager {
                             cc.addChannel(connect, false);
                             InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
                             getPeersOnline(ip);
-                            selfIp = insocket.getAddress().getHostAddress();
                         }
                     }
                 } catch (Throwable e) {
@@ -312,6 +311,7 @@ public class ConnectionManager {
                 superIps.add(ip);
             } else {
                 superNode = true;
+                selfIp=ip;
 
             }
             superNodes.put(ip, snode);
