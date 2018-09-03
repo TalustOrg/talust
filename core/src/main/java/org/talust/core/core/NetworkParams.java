@@ -29,7 +29,6 @@ package org.talust.core.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.talust.common.tools.Constant;
 import org.talust.core.model.BlockHeader;
 import org.talust.core.model.MessageSerializer;
@@ -174,6 +173,12 @@ public abstract class NetworkParams {
 	 * @return int
 	 */
 	public abstract int getCertAccountVersion();
+
+	/**
+	 * 得到认证账户的地址版本号
+	 * @return int
+	 */
+	public abstract int getMainAccountVersion();
 
 	/**
 	 * 当前服务运行在哪个网络上面

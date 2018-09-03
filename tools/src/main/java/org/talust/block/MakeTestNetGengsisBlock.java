@@ -61,7 +61,7 @@ public class MakeTestNetGengsisBlock {
         input.setScriptSig(ScriptBuilder.createCoinbaseInputScript("this a gengsis tx".getBytes()));
 
         //root账户
-        ECKey key = ECKey.fromPrivate(new BigInteger("114346884908037705206586672597018220174539506952607328716648835904805261540068"));
+        ECKey key = ECKey.fromPrivate(new BigInteger("41914394267790065605521324385363036543549750680470691134122116027920485103770"));
         Address address = AccountTool.newAddress(network, key);
 
 //			Address address = Address.fromBase58(network, "toMahRViJBfKJ49QzYymKVb6JqNCLxTPN4");
@@ -76,7 +76,7 @@ public class MakeTestNetGengsisBlock {
         txs.add(coinBaseTx);
 
         //talust账户
-        ECKey key1 = ECKey.fromPrivate(new BigInteger("2997229700204357452671714648402150025921621779744031016766434714937335169460"));
+        ECKey key1 = ECKey.fromPrivate(new BigInteger("91654280329137014633288388449549323590264236243652107706690914068397935839842"));
         Address address1 = AccountTool.newAddress(network, key1);
 
         //把永久锁定的转入一个账号内

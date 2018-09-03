@@ -86,19 +86,19 @@ public class MainNetworkParams extends NetworkParams {
 	@Override
 	public BlockStore getGengsisBlock() {
 
-		BlockStore gengsisBlock = new BlockStore(this, Hex.decode("0000000000000000000000000000000000000000000000000000000000000000000000001ab5fa8571945d7d251e5b331c043b75e6057c930fbc755f60c503fe5bba00cffba58c5b00000000832103ad7519e36d7e2908b84d83468a396744cb0cda8f0559830a697a150c1aeb52bd76a91417aa3fad211da0c590ebaf5147c41a93220d412d884730450221009abf0fa3674758d2a93da9753cb060b5183a4be9520ad41fe3a32c95c0dd5af202205dbc7be85d22cb069c465a1cb93239fa4a1bdeb2f590dc59dca10a89cf0d5747ac020101000000010012117468697320612067656e6773697320747800000000010000000000000000000000001975c31417aa3fad211da0c590ebaf5147c41a93220d412d88acfba58c5b000000000101000000010012117468697320612067656e6773697320747800000000010000000000000000000000001975c31417aa3fad211da0c590ebaf5147c41a93220d412d88acfba58c5b00000000"));
+		BlockStore gengsisBlock = new BlockStore(this, Hex.decode("00000000000000000000000000000000000000000000000000000000000000000000000004e41976e47cbe3a765a2a00c7acfb5d9d1df91234cbfd6e25d561d4bb9bdf7e28e38c5b00000000832102ba2f8529b7945e8ae0988e969922f6a7e04d3f1b74402f72c3d3a95c96ac502276a914d544052e95c298569f4791081d3d703a94f4df5a88473045022100b035403a3379c7409386109b64bc62b848b05112b53a1beb58cfdedf2944f8a702206f4ad3008b86edac10f496256f44021bb48f4590b6063a81986b1d0bc21e1757ac020101000000010012117468697320612067656e6773697320747800000000010000000000000000000000001975c314d544052e95c298569f4791081d3d703a94f4df5a88ac28e38c5b000000000101000000010012117468697320612067656e6773697320747800000000010000000000000000000000001975c314d544052e95c298569f4791081d3d703a94f4df5a88ac28e38c5b00000000"));
 
 		Sha256Hash merkleHash = gengsisBlock.getBlock().buildMerkleHash();
 
 		if(log.isDebugEnabled()) {
 			log.debug("the gengsis block merkle hash is : {}", merkleHash);
 		}
-		Utils.checkState("1ab5fa8571945d7d251e5b331c043b75e6057c930fbc755f60c503fe5bba00cf".equals(Hex.encode(merkleHash.getBytes())), "the gengsis block merkle hash is error");
+		Utils.checkState("04e41976e47cbe3a765a2a00c7acfb5d9d1df91234cbfd6e25d561d4bb9bdf7e".equals(Hex.encode(merkleHash.getBytes())), "the gengsis block merkle hash is error");
 
 		if(log.isDebugEnabled()) {
 			log.debug("the gengsis block hash key is : {}", gengsisBlock.getBlock().getHash());
 		}
-		Utils.checkState("091799a143e46146c8e659377b8143dbb4f900054567d239dfda33c496447cf7".equals(Hex.encode(gengsisBlock.getBlock().getHash().getBytes())), "the gengsis block hash is error");
+		Utils.checkState("99adc212a4c93abdaaf3c27bd1523dacec17d6e9208914c46b03785665abf23b".equals(Hex.encode(gengsisBlock.getBlock().getHash().getBytes())), "the gengsis block hash is error");
 
 		return gengsisBlock;
 	}
@@ -110,11 +110,11 @@ public class MainNetworkParams extends NetworkParams {
 
 
 	/**
-	 * 主网，普通地址以i开头
+	 * 主网，普通地址以T开头
 	 */
 	@Override
 	public int getSystemAccountVersion() {
-		return 85;
+		return 84;
 	}
 
 	/**
@@ -122,9 +122,15 @@ public class MainNetworkParams extends NetworkParams {
 	 */
 	@Override
 	public int getCertAccountVersion() {
-		return 70;
+		return 86;
 	}
 
 
-
+	/**
+	 * 主网，认证地址以M开头
+	 */
+	@Override
+	public int getMainAccountVersion() {
+		return 77;
+	}
 }
