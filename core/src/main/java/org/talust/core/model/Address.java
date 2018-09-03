@@ -224,23 +224,19 @@ public class Address {
     /*
      * 获取4位的效验码
      */
-    protected byte[] getCheckSin(byte[] versionAndHash160) {
+    protected byte[] getCheckSin(byte[] hash160) {
         byte[] checkSin = new byte[4];
-        System.arraycopy(Sha256Hash.hashTwice(versionAndHash160), 0, checkSin, 0, 4);
+        System.arraycopy(Sha256Hash.hashTwice(hash160), 0, checkSin, 0, 4);
         return checkSin;
     }
 
     protected void checkSign(byte[] sign) throws VerificationException {
         //地址一共25字节
-        byte[] versionAndHash160 = new byte[21];
-        //加上版本号
-        versionAndHash160[0] = (byte) version;
+        byte[] hash160 = new byte[20];
         //加上20字节的hash160
-        System.arraycopy(bytes, 0, versionAndHash160, 1, bytes.length);
-
+        System.arraycopy(bytes, 0, hash160, 0, bytes.length);
         byte[] checkSin = new byte[4];
-        System.arraycopy(Sha256Hash.hashTwice(versionAndHash160), 0, checkSin, 0, 4);
-
+        System.arraycopy(Sha256Hash.hashTwice(hash160), 0, checkSin, 0, 4);
         if(!Arrays.equals(checkSin, sign)) {
             throw new VerificationException("地址校验失败");
         }
