@@ -102,11 +102,11 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         JSONObject resp = new JSONObject();
         Utils.checkNotNull(toAddress);
         Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
-//        if(connects.size()<=0){
-//            resp.put("retCode","1");
-//            resp.put("message","当前网络不可用，请稍后再尝试");
-//            return resp;
-//        }
+        if(connects.size()<=0){
+            resp.put("retCode","1");
+            resp.put("message","当前网络不可用，请稍后再尝试");
+            return resp;
+        }
         long height = MainNetworkParams.get().getBestBlockHeight();
         long localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
         if (height == 0) {
@@ -526,11 +526,11 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         JSONObject resp = new JSONObject();
         Utils.checkNotNull(nodeAddress);
         Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
-//        if (connects.size() <= 0) {
-//            resp.put("retCode", "1");
-//            resp.put("message", "当前网络不可用，请稍后再尝试");
-//            return resp;
-//        }
+        if (connects.size() <= 0) {
+            resp.put("retCode", "1");
+            resp.put("message", "当前网络不可用，请稍后再尝试");
+            return resp;
+        }
         long height = MainNetworkParams.get().getBestBlockHeight();
         long localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
         if (height == 0) {
@@ -634,11 +634,11 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         JSONObject resp = new JSONObject();
         Utils.checkNotNull(nodeAddress);
         Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
-//        if (connects.size() <= 0) {
-//            resp.put("retCode", "1");
-//            resp.put("message", "当前网络不可用，请稍后再尝试");
-//            return resp;
-//        }
+        if (connects.size() <= 0) {
+            resp.put("retCode", "1");
+            resp.put("message", "当前网络不可用，请稍后再尝试");
+            return resp;
+        }
         long height = MainNetworkParams.get().getBestBlockHeight();
         long localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
         if (height == 0) {
