@@ -36,6 +36,7 @@ import org.talust.common.crypto.AESEncrypt;
 import org.talust.common.crypto.Base58;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
+import org.talust.common.exception.KeyCrypterException;
 import org.talust.common.model.*;
 import org.talust.common.tools.*;
 import org.talust.core.core.Definition;
@@ -85,7 +86,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         }
         try {
             AESEncrypt.decrypt(account.getPriSeed(), password);
-        } catch (org.spongycastle.crypto.InvalidCipherTextException e) {
+        } catch (KeyCrypterException e) {
             e.printStackTrace();
         }
         return true;

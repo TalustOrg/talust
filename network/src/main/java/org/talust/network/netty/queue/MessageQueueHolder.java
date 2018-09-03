@@ -26,9 +26,6 @@
 package org.talust.network.netty.queue;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talust.common.crypto.ECKey;
-import org.talust.common.crypto.Sha256Hash;
-import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 import org.talust.common.tools.StringUtils;
@@ -118,18 +115,6 @@ public class MessageQueueHolder {
         mapValidators.put(messageType.getType(), validator);
     }
 
-
-    /**
-     * 检测签名
-     *
-     * @return
-     */
-    public boolean checkSign(Message message) {
-        Sha256Hash hash = Sha256Hash.of(message.getContent());
-        byte[] signer = message.getSigner();
-        byte[] signContent = message.getSignContent();
-        return ECKey.verify(hash.getBytes(), signContent, signer);
-    }
 
     /**
      * 广播消息,向本节点所连接的所有节点广播消息
