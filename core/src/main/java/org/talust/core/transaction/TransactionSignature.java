@@ -25,7 +25,7 @@
 package org.talust.core.transaction;
 
 
-import org.talust.common.crypto.ECKey;
+import org.talust.core.core.ECKey;
 import org.talust.common.crypto.Utils;
 
 import java.io.ByteArrayOutputStream;

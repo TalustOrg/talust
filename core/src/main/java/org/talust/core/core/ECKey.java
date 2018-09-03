@@ -22,9 +22,11 @@
  * SOFTWARE.
  *
  */
-package org.talust.common.crypto;
+package org.talust.core.core;
 
 import org.spongycastle.crypto.params.*;
+import org.talust.common.crypto.*;
+import org.talust.common.exception.KeyCrypterException;
 import org.talust.common.tools.AssertUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +44,13 @@ import org.spongycastle.crypto.signers.HMacDSAKCalculator;
 import org.spongycastle.math.ec.ECPoint;
 import org.spongycastle.math.ec.FixedPointCombMultiplier;
 import org.spongycastle.math.ec.FixedPointUtil;
+import org.talust.core.server.NtpTimeService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Arrays;
 
 /**
  * 椭圆曲线加密
@@ -442,4 +446,46 @@ public class ECKey {
     public void setEncryptedPrivateKey(EncryptedData encryptedPrivateKey) {
         this.encryptedPrivateKey = encryptedPrivateKey;
     }
+
+    /**
+     * aes加密
+     * @param password
+     * @return ECKey
+     * @throws KeyCrypterException
+     */
+    public ECKey encrypt(String password) throws KeyCrypterException {
+        Utils.checkNotNull(password);
+
+        final byte[] privKeyBytes = getPrivKeyBytes();
+
+        byte[] iv = Arrays.copyOf(AccountTool.genPrivKey1(getPubKey(), password.getBytes()).toByteArray(), 16);
+        EncryptedData encryptedPrivateKey = AESEncrypt.encrypt(privKeyBytes, iv, new KeyParameter(Sha256Hash.hash(password.getBytes())));
+
+        ECKey result = ECKey.fromEncrypted(encryptedPrivateKey, getPubKey());
+        result.setCreationTimeSeconds(NtpTimeService.currentTimeMillis());
+
+        return result;
+    }
+
+    /**
+     * 解密
+     * @param password
+     * @return ECKey
+     * @throws KeyCrypterException
+     */
+    public ECKey decrypt(String password) throws KeyCrypterException {
+
+        Utils.checkNotNull(password);
+
+        byte[] unencryptedPrivateKey = AESEncrypt.decrypt(encryptedPrivateKey, new KeyParameter(Sha256Hash.hash(password.getBytes())));
+        BigInteger newPriv = new BigInteger(1, unencryptedPrivateKey);
+        ECKey key = ECKey.fromPrivate(newPriv);
+
+        if (!Arrays.equals(key.getPubKey(), getPubKey()))
+            throw new KeyCrypterException("密码错误");
+        key.setCreationTimeSeconds(NtpTimeService.currentTimeMillis());
+        key.encryptedPrivateKey = encryptedPrivateKey;
+        return key;
+    }
+
 }

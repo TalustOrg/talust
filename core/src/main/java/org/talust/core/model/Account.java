@@ -26,7 +26,8 @@ package org.talust.core.model;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.talust.common.crypto.ECKey.ECDSASignature;
+import org.talust.core.core.ECKey;
+import org.talust.core.core.ECKey.ECDSASignature;
 import org.talust.common.crypto.*;
 import org.talust.common.exception.ContentErrorExcetption;
 import org.talust.common.exception.ProtocolException;

@@ -27,10 +27,11 @@ package org.talust.core.storage;
 
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.talust.common.crypto.*;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
+import org.talust.core.core.ECKey;
 import org.talust.core.model.Account;
 import org.talust.core.model.Address;
 import org.talust.common.model.Coin;
@@ -155,7 +156,6 @@ public class AccountStorage {
                 log.warn("账户文件路径读取错误");
             }
         }
-
     }
 
     /**
@@ -188,6 +188,112 @@ public class AccountStorage {
             e.printStackTrace();
         }
     }
+
+
+    public JSONObject encryptWallet(String password,String address) {
+        JSONObject resp = new JSONObject();
+        //密码位数和难度检测
+        if(!validPassword(password)) {
+            log.info("输入的密码需6位或以上，且包含字母和数字");
+            resp.put("retCode",1);
+            resp.put("msg","输入的密码需6位或以上，且包含字母和数字");
+            return resp;
+        }
+
+        int successCount = 0; //成功个数
+        Account account = null;
+        if(address!=null){
+            account = getAccount(address);
+            if(account == null){
+                log.info("账户"+address+"不存在");
+                resp.put("retCode",1);
+                resp.put("msg","账户"+address+"不存在");
+                return resp;
+            }
+        }else {
+            account = getDefaultAccount();
+        }
+
+        if(account.isEncrypted()) {
+            log.info("账户"+address+"已经加密");
+            resp.put("retCode",1);
+            resp.put("msg","账户"+address+"已经加密");
+            return resp;
+        }
+        ECKey eckey = account.getEcKey();
+        try {
+            ECKey newKey = eckey.encrypt(password);
+            account.setEcKey(newKey);
+            account.setPriSeed(newKey.getEncryptedPrivateKey().getEncryptedBytes());
+
+            //重新签名
+            account.signAccount(eckey, null);
+
+            //回写到钱包文件
+            File accountFile = new File(Configure.DATA_ACCOUNT, account.getAddress().getBase58());
+
+            FileOutputStream fos = new FileOutputStream(accountFile);
+            try {
+                //数据存放格式，type+20字节的hash160+私匙长度+私匙+公匙长度+公匙，钱包加密后，私匙是
+                fos.write(account.serialize());
+                successCount++;
+            } finally {
+                fos.close();
+            }
+        } catch (Exception e) {
+            log.error("加密 {} 失败: {}", account.getAddress().getBase58(), e.getMessage(), e);
+            resp.put("retCode",1);
+            resp.put("msg","账户"+address+"加密失败");
+            return resp;
+        }
+        String message = "成功加密"+account.getAddress();
+        resp.put("retCode",0);
+        resp.put("msg",message);
+        return resp;
+    }
+    /**
+     * 通过地址获取账户
+     * @param address
+     * @return Account
+     */
+    public Account getAccount(String address) {
+        for (Account account : accountList) {
+            if(account.getAddress().getBase58().equals(address)) {
+                return account;
+            }
+        }
+        return null;
+    }
+    /**
+     * 获取默认账户
+     * @return Account
+     */
+    public Account getDefaultAccount() {
+        if(accountList == null || accountList.size() == 0) {
+            return null;
+        }
+        return accountList.get(0);
+    }
+
+    /**
+     * 校验密码难度
+     * @param password
+     * @return boolean
+     */
+    public static boolean validPassword(String password) {
+        if(StringUtils.isEmpty(password)){
+            return false;
+        }
+        if(password.length() < 6){
+            return false;
+        }
+        if(password.matches("(.*)[a-zA-z](.*)") && password.matches("(.*)\\d+(.*)")){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public boolean reloadCoin(){
         List<byte[]> hash160s = getAccountHash160s();
         boolean ending =  false;

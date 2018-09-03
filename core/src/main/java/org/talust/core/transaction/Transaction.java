@@ -30,6 +30,7 @@ import org.talust.common.crypto.*;
 import org.talust.common.exception.ProtocolException;
 import org.talust.common.exception.VerificationException;
 import org.talust.core.core.Definition;
+import org.talust.core.core.ECKey;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.model.Address;
 import org.talust.common.model.Coin;

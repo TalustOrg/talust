@@ -26,7 +26,6 @@ package org.talust.core.core;
 
 import org.talust.account.AccountType;
 import org.talust.common.crypto.Base58;
-import org.talust.common.crypto.ECKey;
 import org.talust.common.crypto.Utils;
 import org.talust.core.model.Account;
 import org.talust.core.model.Address;
@@ -35,8 +34,6 @@ import org.talust.core.network.MainNetworkParams;
 import org.talust.core.storage.AccountStorage;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.AccessControlContext;
 
 public class AccountTest {
 

@@ -27,7 +27,7 @@ package org.talust.core.script;
 
 import static org.talust.core.script.ScriptOpCodes.*;
 
-import org.talust.common.crypto.ECKey;
+import org.talust.core.core.ECKey;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.core.core.Definition;
 import org.talust.core.transaction.TransactionSignature;

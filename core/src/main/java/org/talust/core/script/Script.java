@@ -28,7 +28,7 @@ package org.talust.core.script;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talust.common.crypto.ECKey;
+import org.talust.core.core.ECKey;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.UnsafeByteArrayOutputStream;
 import org.talust.common.crypto.Utils;

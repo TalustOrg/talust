@@ -26,7 +26,7 @@ package org.talust.core.transaction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talust.common.crypto.ECKey;
+import org.talust.core.core.ECKey;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.VerificationException;

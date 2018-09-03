@@ -63,6 +63,13 @@ public class AccountController {
         return jsonObject  ;
     }
 
+    @ApiOperation(value = "账户加密", notes = "账户加密")
+    @PostMapping(value = "encryptWallet")
+    JSONObject encryptWallet(@RequestParam String  address,@RequestParam String password) {
+        return AccountStorage.get().encryptWallet(password,address);
+    }
+
+
 
     @ApiOperation(value = "查询全部地址拥有的代币", notes = "查询拥有的代币")
     @PostMapping(value = "getAllCoins")

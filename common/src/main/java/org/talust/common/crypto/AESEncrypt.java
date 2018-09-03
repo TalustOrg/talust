@@ -31,6 +31,7 @@ import org.spongycastle.crypto.modes.CBCBlockCipher;
 import org.spongycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.crypto.params.ParametersWithIV;
+import org.talust.common.exception.KeyCrypterException;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -40,9 +41,9 @@ import java.util.Arrays;
  */
 public class AESEncrypt {
 
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final SecureRandom secureRandom = new SecureRandom();
 
-    public static byte[] encrypt(byte[] plainBytes, String password) throws InvalidCipherTextException {
+    public static byte[] encrypt(byte[] plainBytes, String password) throws KeyCrypterException {
         EncryptedData ed = encrypt(plainBytes, new KeyParameter(Sha256Hash.hash(password.getBytes())));
         return ed.getEncryptedBytes();
     }
@@ -54,7 +55,7 @@ public class AESEncrypt {
      * @param aesKey
      * @return EncryptedData
      */
-    public static EncryptedData encrypt(byte[] plainBytes, KeyParameter aesKey) throws InvalidCipherTextException {
+    public static EncryptedData encrypt(byte[] plainBytes, KeyParameter aesKey) throws KeyCrypterException {
         return encrypt(plainBytes, EncryptedData.DEFAULT_IV, aesKey);
     }
 
@@ -66,28 +67,31 @@ public class AESEncrypt {
      * @param aesKey
      * @return EncryptedData
      */
-    public static EncryptedData encrypt(byte[] plainBytes, byte[] iv, KeyParameter aesKey) throws InvalidCipherTextException {
+    public static EncryptedData encrypt(byte[] plainBytes, byte[] iv, KeyParameter aesKey) throws KeyCrypterException {
         Utils.checkNotNull(plainBytes);
         Utils.checkNotNull(aesKey);
 
-        if (iv == null) {
-            iv = new byte[16];
-            SECURE_RANDOM.nextBytes(iv);
+        try {
+            if(iv == null) {
+                iv = new byte[16];
+                secureRandom.nextBytes(iv);
+            }
+            ParametersWithIV keyWithIv = new ParametersWithIV(aesKey, iv);
+
+            // Encrypt using AES.
+            BufferedBlockCipher cipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESFastEngine()));
+            cipher.init(true, keyWithIv);
+            byte[] encryptedBytes = new byte[cipher.getOutputSize(plainBytes.length)];
+            final int length1 = cipher.processBytes(plainBytes, 0, plainBytes.length, encryptedBytes, 0);
+            final int length2 = cipher.doFinal(encryptedBytes, length1);
+
+            return new EncryptedData(iv, Arrays.copyOf(encryptedBytes, length1 + length2));
+        } catch (Exception e) {
+            throw new KeyCrypterException("Could not encrypt bytes.", e);
         }
-
-        ParametersWithIV keyWithIv = new ParametersWithIV(aesKey, iv);
-
-        // Encrypt using AES.
-        BufferedBlockCipher cipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESFastEngine()));
-        cipher.init(true, keyWithIv);
-        byte[] encryptedBytes = new byte[cipher.getOutputSize(plainBytes.length)];
-        final int length1 = cipher.processBytes(plainBytes, 0, plainBytes.length, encryptedBytes, 0);
-        final int length2 = cipher.doFinal(encryptedBytes, length1);
-
-        return new EncryptedData(iv, Arrays.copyOf(encryptedBytes, length1 + length2));
     }
 
-    public static byte[] decrypt(byte[] dataToDecrypt,String password) throws InvalidCipherTextException {
+    public static byte[] decrypt(byte[] dataToDecrypt,String password) throws KeyCrypterException {
         EncryptedData data = new EncryptedData(EncryptedData.DEFAULT_IV,dataToDecrypt);
         return decrypt(data,new KeyParameter(Sha256Hash.hash(password.getBytes())));
     }
@@ -99,22 +103,26 @@ public class AESEncrypt {
      * @param aesKey
      * @return byte[]
      */
-    public static byte[] decrypt(EncryptedData dataToDecrypt, KeyParameter aesKey) throws InvalidCipherTextException {
+    public static byte[] decrypt(EncryptedData dataToDecrypt, KeyParameter aesKey) throws KeyCrypterException {
         Utils.checkNotNull(dataToDecrypt);
         Utils.checkNotNull(aesKey);
 
-        ParametersWithIV keyWithIv = new ParametersWithIV(new KeyParameter(aesKey.getKey()), dataToDecrypt.getInitialisationVector());
+        try {
+            ParametersWithIV keyWithIv = new ParametersWithIV(new KeyParameter(aesKey.getKey()), dataToDecrypt.getInitialisationVector());
 
-        // Decrypt the message.
-        BufferedBlockCipher cipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESFastEngine()));
-        cipher.init(false, keyWithIv);
+            // Decrypt the message.
+            BufferedBlockCipher cipher = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESFastEngine()));
+            cipher.init(false, keyWithIv);
 
-        byte[] cipherBytes = dataToDecrypt.getEncryptedBytes();
-        byte[] decryptedBytes = new byte[cipher.getOutputSize(cipherBytes.length)];
-        final int length1 = cipher.processBytes(cipherBytes, 0, cipherBytes.length, decryptedBytes, 0);
-        final int length2 = cipher.doFinal(decryptedBytes, length1);
+            byte[] cipherBytes = dataToDecrypt.getEncryptedBytes();
+            byte[] decryptedBytes = new byte[cipher.getOutputSize(cipherBytes.length)];
+            final int length1 = cipher.processBytes(cipherBytes, 0, cipherBytes.length, decryptedBytes, 0);
+            final int length2 = cipher.doFinal(decryptedBytes, length1);
 
-        return Arrays.copyOf(decryptedBytes, length1 + length2);
+            return Arrays.copyOf(decryptedBytes, length1 + length2);
+        } catch (Exception e) {
+            throw new KeyCrypterException("Could not decrypt bytes", e);
+        }
     }
 
     public static void main(String[] args) throws Exception{

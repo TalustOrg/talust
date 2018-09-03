@@ -25,7 +25,7 @@
 package org.talust.core.model;
 
 
-import org.talust.common.crypto.ECKey;
+import org.talust.core.core.ECKey;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.crypto.VarInt;

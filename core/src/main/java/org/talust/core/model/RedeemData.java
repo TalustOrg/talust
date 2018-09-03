@@ -26,7 +26,7 @@ package org.talust.core.model;
 
 
 
-import org.talust.common.crypto.ECKey;
+import org.talust.core.core.ECKey;
 import org.talust.common.crypto.Utils;
 import org.talust.core.script.Script;
 
