@@ -45,7 +45,7 @@ import java.util.Arrays;
 public class Address {
 
     //base58的长度
-    public static final int HASH_LENGTH = 25;
+    public static final int HASH_LENGTH = 24;
     //address 的 RIPEMD160 长度
     public static final int LENGTH = 20;
     //所处网络环境
@@ -92,10 +92,9 @@ public class Address {
      */
     public Address(NetworkParams network, String address) throws AddressFormatException, WrongNetworkException{
         byte[] versionAndDataBytes = Base58.decodeChecked(address);
-        byte versionByte = versionAndDataBytes[0];
-        version = versionByte & 0xFF;
+        version = (int)address.substring(0,1).toCharArray()[0];
         bytes = new byte[LENGTH];
-        System.arraycopy(versionAndDataBytes, 1, bytes, 0, LENGTH);
+        System.arraycopy(versionAndDataBytes, 0, bytes, 0, LENGTH);
 
         if (network != null) {
             if (!isAcceptableVersion(network, version)) {
@@ -132,32 +131,6 @@ public class Address {
     }
 
     /**
-     * 根据hash内容创建地址
-     * @param network
-     * @param hashs
-     * @return Address
-     * @throws AddressFormatException
-     */
-    public static Address fromHashs(NetworkParams network, byte[] hashs) throws AddressFormatException {
-
-        if(hashs == null || hashs.length != HASH_LENGTH) {
-            throw new AddressFormatException();
-        }
-
-        int version = hashs[0] & 0XFF;
-        byte[] content = new byte[LENGTH];
-        System.arraycopy(hashs, 1, content, 0, LENGTH);
-
-        byte[] sign = new byte[4];
-        System.arraycopy(hashs, 21, sign, 0, 4);
-
-        Address address = new Address(network, version, content);
-        address.checkSign(sign);
-
-        return address;
-    }
-
-    /**
      * 根据base58创建地址
      * @param network
      * @param address
@@ -170,14 +143,6 @@ public class Address {
 
     public NetworkParams getParameters() {
         return network;
-    }
-
-    public static NetworkParams getParametersFromAddress(String address) throws AddressFormatException {
-        try {
-            return Address.fromBase58(null, address).getParameters();
-        } catch (WrongNetworkException e) {
-            throw new RuntimeException(e);  // Cannot happen.
-        }
     }
 
     /**

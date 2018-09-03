@@ -132,6 +132,7 @@ public class Base58 {
      * @throws Exception if the input is not base 58 or the checksum does not validate.
      */
     public static byte[] decodeChecked(String input)  {
+        input =  input.substring(1);
         byte[] decoded  = decode(input);
         if (decoded.length < 4) {
             throw new AddressFormatException("Input too short");
