@@ -63,6 +63,18 @@ public class DataContainer {
 
 
     /**
+     * 验证交易是否已存
+     * @param record
+     */
+    public boolean checkRecord(Transaction record) {
+        try {
+            lock.readLock().lock();
+            return datas.contains(record);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+    /**
      * 删除一条记录
      *
      * @param record

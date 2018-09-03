@@ -314,5 +314,12 @@ public class AccountStorage {
         }
         return null;
     }
-
+    public Account getAccountByAddress(byte[] address) {
+        for (Account account : accountList) {
+            if (account.getAddress().getHash160().equals(address)) {
+                return account;
+            }
+        }
+        return null;
+    }
 }

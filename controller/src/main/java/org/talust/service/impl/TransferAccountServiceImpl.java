@@ -46,12 +46,10 @@ import org.talust.core.data.TransactionCache;
 import org.talust.core.model.Account;
 import org.talust.core.model.Address;
 import org.talust.core.network.MainNetworkParams;
+import org.talust.core.script.Script;
 import org.talust.core.script.ScriptBuilder;
 import org.talust.core.server.NtpTimeService;
-import org.talust.core.storage.AccountStorage;
-import org.talust.core.storage.BlockStorage;
-import org.talust.core.storage.ChainStateStorage;
-import org.talust.core.storage.TransactionStorage;
+import org.talust.core.storage.*;
 import org.talust.core.transaction.*;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
@@ -508,8 +506,15 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
             if (null != depositAccountList && depositAccountList.size() > 0) {
                 data.put("size", deposits.getDepositAccounts().size());
+                Coin totalCoin  = Coin.ZERO;
+                for(DepositAccount depositAccount :depositAccountList){
+                    totalCoin =totalCoin.add(depositAccount.getAmount());
+                }
+                data.put("totalCoin",ArithUtils.div(totalCoin.getValue()+"","100000000",8)  );
             } else {
                 data.put("size", 0);
+                data.put("totalCoin",0);
+
             }
             dataList.add(data);
         }
@@ -707,6 +712,39 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             locker.unlock();
         }
         //验证本账户金额与交易金额是否正常
+        return resp;
+    }
+
+    @Override
+    public JSONObject searchAllTransfer() {
+        List<byte[]> hashs =   AccountStorage.get().getAccountHash160s();
+        Map<byte[],List<TransactionStore>> txMaps = new HashMap<>();
+        List<TransactionStore> txList = transactionStorage.getMyTxList();
+        for(TransactionStore transactionStore : txList){
+            Transaction tx = transactionStore.getTransaction();
+            List<TransactionOutput> outputs = tx.getOutputs();
+            for (int i = 0; i < outputs.size(); i++) {
+                TransactionOutput output = outputs.get(i);
+                Script script = output.getScript();
+                for (byte[] hash160 : hashs) {
+                    if(Arrays.equals(script.getChunks().get(2).data, hash160)) {
+                        if(txMaps.containsKey(hash160)){
+                            txMaps.get(hash160).add(transactionStore);
+                        }else{
+                            List<TransactionStore> transactionStores = new ArrayList<>();
+                            transactionStores.add(transactionStore);
+                            txMaps.put(hash160,transactionStores);
+                        }
+                    }
+                }
+            }
+        }
+        JSONObject resp = new JSONObject();
+        for(byte[] hash :hashs){
+            List<TransactionStore> transactionStores = txMaps.get(hash);
+            Account account= AccountStorage.get().getAccountByAddress(hash);
+            resp.put(account.getAddress().getBase58(),transactionStores);
+        }
         return resp;
     }
 

@@ -86,13 +86,13 @@ public class IpUtil {
                     ip = address.nextElement();  
                     if (!ip.isSiteLocalAddress() && !ip.isLoopbackAddress()  
                             && ip.getHostAddress().indexOf(":") == -1) {// 外网IP  
-                    	ips.add(ip.getHostAddress());  
-                        break;  
-                    } else if (ip.isSiteLocalAddress()  
-                            && !ip.isLoopbackAddress()  
-                            && ip.getHostAddress().indexOf(":") == -1) {// 内网IP  
-                    	ips.add(ip.getHostAddress());  
-                    }  
+                    	ips.add(ip.getHostAddress());
+                        break;
+                    } else if (ip.isSiteLocalAddress()
+                            && !ip.isLoopbackAddress()
+                            && ip.getHostAddress().indexOf(":") == -1) {// 内网IP
+                    	ips.add(ip.getHostAddress());
+                    }
                 }  
             }  
         } catch (SocketException e) {  

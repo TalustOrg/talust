@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.consensus.Conference;
+import org.talust.core.core.Definition;
 import org.talust.core.data.DataContainer;
 import org.talust.core.data.TransactionCache;
 import org.talust.core.transaction.Transaction;
@@ -47,12 +48,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class TransactionHandler implements MessageHandler {
     @Override
     public boolean handle(MessageChannel message) {
-        boolean result = true;
-        if(!ConnectionManager.get().getMasterIp().equals(ConnectionManager.get().getSelfIp())){
-            ConnectionManager.get().TXMessageSend(message.getMessage());
-        }
         Transaction transaction = SerializationUtil.deserializer(message.getMessage().getContent(), Transaction.class);
-        DataContainer.get().addRecord(transaction);
+        log.info("接收到节点IP：{}的交易传输，交易类型{}",message.getFromIp(),transaction.getType());
+        boolean result = DataContainer.get().checkRecord(transaction);
+        if(!result){
+            if(!ConnectionManager.get().getMasterIp().equals(ConnectionManager.get().getSelfIp())){
+                ConnectionManager.get().TXMessageSend(message.getMessage());
+            }
+            DataContainer.get().addRecord(transaction);
+        }
         return result;
     }
 

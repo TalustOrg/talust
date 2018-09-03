@@ -35,6 +35,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 import org.talust.common.tools.ArithUtils;
 import org.talust.core.core.NetworkParams;
+import org.talust.core.model.Account;
 import org.talust.core.model.Address;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.storage.AccountStorage;
@@ -48,50 +49,7 @@ import java.util.List;
 @Api("帐户相关的Api")
 public class AccountController {
 
-    @ApiOperation(value = "登录帐户", notes = "帐户信息已经存在的情况下,登录")
-    @PostMapping(value = "login")
-    ResponseMessage login() {
-       List<String> addrs =new ArrayList<>();
-        try {
-//            AccountStorage.get().walletLogin();
-        } catch (Exception e) {
-            if (e instanceof ErrorPasswordException) {
-                return ResponseMessage.error("登录的账户和密码不匹配,请确认后输入!");
-            } else if (e instanceof EncryptedExistException) {
-                return ResponseMessage.error("已经存在此前的账户信息与当前登录帐户不匹配!");
-            } else if (e instanceof AccountFileNotExistException) {
-                return ResponseMessage.error("当前系统还未有用户,请先创建!");
-            }
-            e.printStackTrace();
-        }
-        JSONObject json = new JSONObject();
-        json.put("success", true);
-        json.put("addrs", addrs);
-        return ResponseMessage.ok(addrs);
-    }
-
-    @ApiOperation(value = "创建帐户", notes = "新创建帐户")
-    @PostMapping(value = "register")
-    ResponseMessage register(@RequestParam String  accPassword) {
-        System.out.println(accPassword);
-        String address = "";
-        try {
-//            address =   AccountStorage.get().createAccount(accPassword);
-        } catch (Exception e) {
-            if (e instanceof ErrorPasswordException) {
-                return ResponseMessage.error("登录的账户和密码不匹配,请确认后输入!");
-            } else if (e instanceof EncryptedExistException) {
-                return ResponseMessage.error("已经存在此前的账户信息与当前登录帐户不匹配!");
-            } else if (e instanceof AccountFileNotExistException) {
-                return ResponseMessage.error("当前系统还未有用户,请先创建!");
-            }
-        }
-        JSONObject json = new JSONObject();
-        json.put("success", true);
-        return ResponseMessage.ok(address);
-    }
-
-    @ApiOperation(value = "查询拥有的代币", notes = "查询拥有的代币")
+    @ApiOperation(value = "查询单一地址拥有的代币", notes = "查询拥有的代币")
     @PostMapping(value = "getCoins")
     JSONObject getCoins(@RequestParam String  address) {
         JSONObject   jsonObject = new JSONObject();
@@ -106,4 +64,21 @@ public class AccountController {
     }
 
 
+    @ApiOperation(value = "查询全部地址拥有的代币", notes = "查询拥有的代币")
+    @PostMapping(value = "getAllCoins")
+    JSONObject getAllCoins() {
+        JSONObject   jsonObject = new JSONObject();
+        List<Account> accountList = AccountStorage.get().getAccountList();
+        for(Account account :accountList){
+            if(AccountStorage.get().reloadCoin()){
+                JSONObject data = new JSONObject();
+                long  value =  TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[0].value;
+                long  lockValue =  TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[1].value;
+                data.put("value",ArithUtils.div(value+"" , "100000000",8));
+                data.put("lockValue",ArithUtils.div(lockValue+"" , "100000000",8));
+                jsonObject.put(account.getAddress().getBase58(),data);
+            }
+        }
+        return jsonObject  ;
+    }
 }

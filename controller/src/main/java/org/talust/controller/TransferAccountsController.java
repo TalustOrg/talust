@@ -55,8 +55,8 @@ public class TransferAccountsController {
     private TransferAccountService transferAccountService;
 
     @ApiOperation(value = "发起转账", notes = "帐户信息已经存在的情况下,转账")
-    @PostMapping(value = "tansfer")
-    JSONObject tansfer(@RequestParam String toAddress, @RequestParam String money, @RequestParam String address, @RequestParam String password) {
+    @PostMapping(value = "transfer")
+    JSONObject transfer(@RequestParam String toAddress, @RequestParam String money, @RequestParam String address, @RequestParam String password) {
         JSONObject resp = new JSONObject();
         if (StringUtil.isNullOrEmpty(toAddress) || StringUtil.isNullOrEmpty(money)) {
             resp.put("retCode", "1");
@@ -227,6 +227,21 @@ public class TransferAccountsController {
 
         JSONObject isOk = transferAccountService.consensusLeave(NodeAddress,address,password);
         return isOk;
+    }
+
+    @ApiOperation(value = "查询所有交易", notes = "查询所有地址下的所有交易记录")
+    @PostMapping(value = "searchTransactions")
+    JSONObject searchAllTransfer(){
+        JSONObject resp =  new JSONObject();
+        try{
+            resp.put("retCode", "0");
+            JSONObject data =transferAccountService.searchAllTransfer();
+            resp.put("data",data);
+        }catch (Exception e ){
+            resp.put("retCode", "1");
+            resp.put("message", "数据异常");
+        }
+        return resp;
     }
 
 }

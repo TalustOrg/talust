@@ -152,7 +152,7 @@ public class BlockChainServer {
         AccountStorage.get();
         TransactionStorage.get().init();
 
-        MakeTestNetGengsisBlock.main(null   );
+//        MakeTestNetGengsisBlock.main(null   );
 
         BlockChainServer.get().start();
 

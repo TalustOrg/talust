@@ -151,6 +151,7 @@ public class ChannelContain {
      * 向所有的超级节点发送消息
      */
     public void sendMessageToSuperNode( Message message){
+        log.info("向所有超级节点扩散消息");
         if(null!=superIps&&superIps.size()>0){
             for(String ip : superIps){
                 sendMessage(ip,message);
@@ -161,6 +162,7 @@ public class ChannelContain {
      * 向随机的一个超级节点发送消息
      */
     public void sendMessageToRandomSuperNode(Message message){
+        log.info("向随机超级节点扩散消息");
         List<String> snodes = new ArrayList<>();
         if(null!=superChannel&&superChannel.size()>0){
             snodes = new ArrayList<>(superChannel.size());

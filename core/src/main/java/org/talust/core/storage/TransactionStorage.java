@@ -575,4 +575,12 @@ public class TransactionStorage extends BaseStoreProvider {
     public void setAddresses(List<byte[]> addresses) {
         this.addresses = addresses;
     }
+
+    public List<TransactionStore> getMyTxList() {
+        return myTxList;
+    }
+
+    public void setMyTxList(List<TransactionStore> myTxList) {
+        this.myTxList = myTxList;
+    }
 }

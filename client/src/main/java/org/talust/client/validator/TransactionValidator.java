@@ -249,17 +249,13 @@ public class TransactionValidator implements MessageValidator {
                         log.info("锁仓时间必须大于24小时");
                         return false;
                     }
-                    isLock = true;
                 }
             }
-
             //输出金额不能大于输入金额
             if (txOutputFee.isGreaterThan(txInputFee)) {
                 log.info("交易输入小于交易输出");
                 return false;
             }
-
-
         }
         return true;
     }
