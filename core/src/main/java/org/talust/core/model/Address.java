@@ -185,17 +185,15 @@ public class Address {
      * @return byte[]
      */
     public byte[] getHash() {
-        //地址一共25字节
-        byte[] versionAndHash160 = new byte[21];
-        //加上版本号
-        versionAndHash160[0] = (byte) version;
+        //地址一共24字节
+        byte[] hash160 = new byte[20];
         //加上20字节的hash160
-        System.arraycopy(bytes, 0, versionAndHash160, 1, bytes.length);
+        System.arraycopy(bytes, 0, hash160, 0, bytes.length);
         //加上4位的效验码
-        byte[] checkSin = getCheckSin(versionAndHash160);
-        byte[] base58bytes = new byte[25];
-        System.arraycopy(versionAndHash160, 0, base58bytes, 0, versionAndHash160.length);
-        System.arraycopy(checkSin, 0, base58bytes, versionAndHash160.length, checkSin.length);
+        byte[] checkSin = getCheckSin(hash160);
+        byte[] base58bytes = new byte[24];
+        System.arraycopy(hash160, 0, base58bytes, 0, hash160.length);
+        System.arraycopy(checkSin, 0, base58bytes, hash160.length, checkSin.length);
         return base58bytes;
     }
 
@@ -224,7 +222,8 @@ public class Address {
     }
 
     public String getBase58() {
-        return Base58.encode(getHash());
+        char ver = (char) version;
+        return ver+Base58.encode(getHash());
     }
 
     /**

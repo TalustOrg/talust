@@ -114,7 +114,7 @@ public class MainNetworkParams extends NetworkParams {
 	 */
 	@Override
 	public int getSystemAccountVersion() {
-		return 102;
+		return 85;
 	}
 
 	/**
