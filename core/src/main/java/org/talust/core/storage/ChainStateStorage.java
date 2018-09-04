@@ -132,6 +132,7 @@ public class ChainStateStorage extends BaseStoreProvider {
                 }
                 if (null!=realAcccount) {
                     realAcccount.getTxHash().add(txHash);
+                    realAcccount.setAmount(realAcccount.getAmount().add(coin));
                     depositAccountList.add(realAcccount);
                 } else {
                     List<Sha256Hash> txlist = new ArrayList<>();

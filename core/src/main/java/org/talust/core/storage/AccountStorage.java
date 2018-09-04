@@ -234,8 +234,15 @@ public class AccountStorage {
 
             FileOutputStream fos = new FileOutputStream(accountFile);
             try {
-                //数据存放格式，type+20字节的hash160+私匙长度+私匙+公匙长度+公匙，钱包加密后，私匙是
-                fos.write(account.serialize());
+
+                byte[] data = account.serialize();
+                JSONObject fileJson = new JSONObject();
+                fileJson.put("data", data);
+                fileJson.put("address",account.getAddress().getBase58());
+                fileJson.put("privateKey", account.getPriSeed());
+                fileJson.put("isEncrypted", account.isEncrypted());
+                fos.write(fileJson.toJSONString().getBytes());
+                fos.flush();
                 successCount++;
             } finally {
                 fos.close();
@@ -246,7 +253,7 @@ public class AccountStorage {
             resp.put("msg","账户"+address+"加密失败");
             return resp;
         }
-        String message = "成功加密"+account.getAddress();
+        String message = "成功加密"+account.getAddress().getBase58();
         resp.put("retCode",0);
         resp.put("msg",message);
         return resp;
