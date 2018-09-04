@@ -508,14 +508,27 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             if (null != depositAccountList && depositAccountList.size() > 0) {
                 data.put("size", deposits.getDepositAccounts().size());
                 Coin totalCoin  = Coin.ZERO;
+                Coin minCoin  =Coin.ZERO;
+                Coin maxCoin  =Coin.ZERO;
                 for(DepositAccount depositAccount :depositAccountList){
-                    totalCoin =totalCoin.add(depositAccount.getAmount());
+                    Coin coin  = depositAccount.getAmount();
+                    if(minCoin.isGreaterThan(coin)||minCoin.isZero()){
+                        minCoin=coin;
+                    }
+                    if(maxCoin.isLessThan(coin)){
+                        maxCoin=coin;
+                    }
+                    totalCoin =totalCoin.add(coin);
                 }
+
                 data.put("totalCoin",ArithUtils.div(totalCoin.getValue()+"","100000000",8)  );
+                data.put("minCoin",ArithUtils.div(minCoin.getValue()+"","100000000",8)  );
+                data.put("maxCoin",ArithUtils.div(maxCoin.getValue()+"","100000000",8)  );
             } else {
                 data.put("size", 0);
                 data.put("totalCoin",0);
-
+                data.put("minCoin",0 );
+                data.put("maxCoin",0 );
             }
             dataList.add(data);
         }
@@ -561,9 +574,9 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         }
         locker.lock();
         try {
-            if (money.compareTo("10") < 0) {
+            if (money.compareTo("10000") < 0) {
                 resp.put("retCode", "1");
-                resp.put("message", "发送的金额需大于10");
+                resp.put("message", "发送的金额需大于10000");
                 return resp;
             }
             Account account = this.getAccountByAddress(address);

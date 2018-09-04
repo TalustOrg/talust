@@ -42,11 +42,11 @@ public class AccountTest {
     NetworkParams networkParams = MainNetworkParams.get();
     public static void main(String[] args) {
         //解封下面一段代码进行 按需要的账户生成
-      //  makeAccountFile(21);
+        makeAccountFile(3);
 
         //解封下面两段代码进行root talust 账号生成
-       AccountTest at = new AccountTest();
-        at.gen();
+//       AccountTest at = new AccountTest();
+//        at.gen();
 
 
     }
@@ -74,24 +74,13 @@ public class AccountTest {
         rootAccount.setAddress(rootAddr);
         rootAccount.setSupervisor(rootAccount.getAddress().getHash160() );
         rootAccount.setlevel(AccountType.ROOT.getType());
-        String mgPw = "TALUST";//管理密码
         String trPw="TALUST";//交易密码
-        //生成账户管理的私匙
-        BigInteger mgPri1 = AccountTool.genPrivKey1(prikeySeedRoot, mgPw.getBytes());
         //生成交易的私匙
         BigInteger trPri1 = AccountTool.genPrivKey1(prikeySeedRoot, trPw.getBytes());
-
-        BigInteger mgPri2 = AccountTool.genPrivKey2(prikeySeedRoot, mgPw.getBytes());
-        ECKey mgkey1 = ECKey.fromPrivate(mgPri1);
-        ECKey mgkey2 = ECKey.fromPrivate(mgPri2);
-
         ECKey trkey1 = ECKey.fromPrivate(trPri1);
-
-        rootAccount.setMgPubkeys(new byte[][] {mgkey1.getPubKey(true), mgkey2.getPubKey(true)});	//存储帐户管理公匙
         rootAccount.setTrPubkeys(new byte[][] {trkey1.getPubKey(true)});//存储交易公匙
         try {
-            rootAccount.setSigns(rootAccount.signAccount(rootAccount.getEcKey(),null));
-            rootAccount.signAccount(rootKey, null);
+            rootAccount.signAccount();
             System.out.println("address rootAccount haxString:"+Base58.encode(rootAddr.getHash160()));
             System.out.println("address rootAccount privateKey:"+rootKey.getPrivKey());
             System.out.println("data rootAccount: "+Base58.encode(rootAccount.serialize()));
@@ -110,27 +99,24 @@ public class AccountTest {
         talustAccount.setAddress(talustAddr);
         talustAccount.setSupervisor(rootAccount.getAddress().getHash160() );
         talustAccount.setlevel(AccountType.TALUST.getType());
-        String mgPwT = "TALUST";//管理密码
         String trPwT="TALUST";//交易密码
-        //生成账户管理的私匙
-        BigInteger mgPri1T = AccountTool.genPrivKey1(prikeySeedTalust, mgPwT.getBytes());
         //生成交易的私匙
         BigInteger trPri1T = AccountTool.genPrivKey1(prikeySeedTalust, trPwT.getBytes());
-
-        BigInteger mgPri2T = AccountTool.genPrivKey2(prikeySeedTalust, mgPwT.getBytes());
-        ECKey mgkey1T = ECKey.fromPrivate(mgPri1T);
-        ECKey mgkey2T = ECKey.fromPrivate(mgPri2T);
-
         ECKey trkey1T = ECKey.fromPrivate(trPri1T);
-
-        talustAccount.setMgPubkeys(new byte[][] {mgkey1T.getPubKey(true), mgkey2T.getPubKey(true)});	//存储帐户管理公匙
         talustAccount.setTrPubkeys(new byte[][] {trkey1T.getPubKey(true)});//存储交易公匙
         try {
-            talustAccount.setSigns(talustAccount.signAccount(talustAccount.getEcKey(), rootAccount.getEcKey()));
-            talustAccount.signAccount(talustKey, rootKey);
+            talustAccount.signAccount();
             System.out.println("address talustAccount haxString:"+Base58.encode(talustAddr.getHash160() ));
             System.out.println("address talustAccount privateKey:"+talustKey.getPrivKey());
             System.out.println("data talustAccount: "+Base58.encode(talustAccount.serialize()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            Account accountTest = Account.parse(rootAccount.serialize(),networkParams);
+            Account accountTest2 = Account.parse(talustAccount.serialize(),networkParams);
+            accountTest.verify();
+            accountTest2.verify();
         } catch (IOException e) {
             e.printStackTrace();
         }
