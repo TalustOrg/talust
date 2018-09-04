@@ -29,7 +29,6 @@ import com.alibaba.fastjson.JSONObject;
 import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
-import org.talust.common.crypto.Utils;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
@@ -214,7 +213,7 @@ public class ConnectionManager {
         for (String fixedIp : superIps) {
             snodes.add(fixedIp);
         }
-        log.info("连接到网络,当前节点ip:{},全网超级节点数:{}", this.selfIp, snodes.size());
+        log.info("连接网络,当前节点ip:{},全网超级节点数:{}", this.selfIp, snodes.size());
         ChannelContain cc = ChannelContain.get();
         if(snodes.size()>0){
             connectAllSuperNode(superIps, cc);
@@ -295,8 +294,8 @@ public class ConnectionManager {
      * 初始化固定超级服务器ip地址,用于当前节点的连接所用
      */
     private void initSuperIps() {
-        myIps.addAll(IpUtil.getIps());
-        log.info("本地网卡抓取为：" +myIps.toString());
+        myIps.addAll(IpUtil.getOutIps());
+        log.info("本地外网IP抓取为：" +myIps.toString());
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
         List<String> minings = new ArrayList<>();
         for (Object map : ips.entrySet()) {
@@ -310,15 +309,18 @@ public class ConnectionManager {
             if (!myIps.contains(ip)) {
                 superIps.add(ip);
             } else {
+                log.info("当前节点IP为：{} 确认为超级节点",ip);
                 superNode = true;
                 selfIp=ip;
-
             }
             superNodes.put(ip, snode);
         }
         CacheManager.get().put(new String(Constant.MINING_ADDRESS), minings);
-        if (null == selfIp) {
+        if(!superNode&&null == selfIp){
+
+            myIps.addAll(IpUtil.getInIps());
             selfIp = myIps.iterator().next();
+            log.info("非超级节点变更自身IP为：{}",selfIp);
         }
         log.info("获得超级节点数为:{}", superIps.size());
     }

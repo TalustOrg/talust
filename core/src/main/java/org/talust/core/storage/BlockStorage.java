@@ -28,6 +28,7 @@ package org.talust.core.storage;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.VerificationException;
+import org.talust.common.tools.ArithUtils;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import lombok.extern.slf4j.Slf4j;
@@ -363,9 +364,8 @@ public class BlockStorage extends BaseStoreProvider {
                 for (TransactionOutput output : outputs) {
                     Sha256Hash id = tx.getHash();
                     int index = output.getIndex();
-
+                    log.info("输出类型为：{}，输出金额为：{}",tx.getType(),ArithUtils.div(output.getValue()+"","100000000",8) );
                     byte[] key = new byte[id.getBytes().length + 1];
-
                     System.arraycopy(id.getBytes(), 0, key, 0, key.length - 1);
                     key[key.length - 1] = (byte) index;
 

@@ -30,12 +30,9 @@ import org.slf4j.LoggerFactory;
 import org.talust.common.tools.Constant;
 import org.talust.common.tools.IpUtil;
 import org.talust.core.server.NtpTimeService;
-import org.talust.network.netty.ConnectionManager;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.*;
 
 /**
@@ -109,7 +106,7 @@ public class RemoteSeedManager implements SeedManager {
 			if(log.isDebugEnabled()) {
 				log.debug("初始化种子节点");
 			}
-			Set<String> myIps = IpUtil.getIps();
+			Set<String> myIps = IpUtil.getOutIps();
 			for (String seedDomain : SEED_DOMAINS) {
 				try {
 					InetAddress[] response = InetAddress.getAllByName(seedDomain);

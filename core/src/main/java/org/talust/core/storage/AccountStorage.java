@@ -38,6 +38,7 @@ import org.talust.common.model.Coin;
 import org.talust.core.network.MainNetworkParams;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -97,7 +98,7 @@ public class AccountStorage {
         byte[] data = account.serialize();
         JSONObject fileJson = new JSONObject();
         fileJson.put("data", data);
-        fileJson.put("address",account.getAddress().getBase58());
+        fileJson.put("address", account.getAddress().getBase58());
         fileJson.put("privateKey", account.getPriSeed());
         fileJson.put("isEncrypted", account.isEncrypted());
         FileOutputStream fos = new FileOutputStream(accFile);
@@ -128,7 +129,7 @@ public class AccountStorage {
                 log.warn("创建账户时出错！");
             }
         } else {
-            try{
+            try {
                 for (String path : list) {
                     File file = new File(path);
                     if (file.exists()) {
@@ -152,7 +153,7 @@ public class AccountStorage {
                 //或许重新加载账户相关的交易记录
                 maybeReLoadTransaction(hash160s);
                 loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.warn("账户文件路径读取错误");
             }
         }
@@ -190,34 +191,34 @@ public class AccountStorage {
     }
 
 
-    public JSONObject encryptWallet(String password,String address) {
+    public JSONObject encryptWallet(String password, String address) {
         JSONObject resp = new JSONObject();
         //密码位数和难度检测
-        if(!validPassword(password)) {
+        if (!validPassword(password)) {
             log.info("输入的密码需6位或以上，且包含字母和数字");
-            resp.put("retCode",1);
-            resp.put("msg","输入的密码需6位或以上，且包含字母和数字");
+            resp.put("retCode", 1);
+            resp.put("msg", "输入的密码需6位或以上，且包含字母和数字");
             return resp;
         }
 
         int successCount = 0; //成功个数
         Account account = null;
-        if(address!=null){
+        if (address != null) {
             account = getAccount(address);
-            if(account == null){
-                log.info("账户"+address+"不存在");
-                resp.put("retCode",1);
-                resp.put("msg","账户"+address+"不存在");
+            if (account == null) {
+                log.info("账户" + address + "不存在");
+                resp.put("retCode", 1);
+                resp.put("msg", "账户" + address + "不存在");
                 return resp;
             }
-        }else {
+        } else {
             account = getDefaultAccount();
         }
 
-        if(account.isEncrypted()) {
-            log.info("账户"+address+"已经加密");
-            resp.put("retCode",1);
-            resp.put("msg","账户"+address+"已经加密");
+        if (account.isEncrypted()) {
+            log.info("账户" + address + "已经加密");
+            resp.put("retCode", 1);
+            resp.put("msg", "账户" + address + "已经加密");
             return resp;
         }
         ECKey eckey = account.getEcKey();
@@ -234,11 +235,10 @@ public class AccountStorage {
 
             FileOutputStream fos = new FileOutputStream(accountFile);
             try {
-
                 byte[] data = account.serialize();
                 JSONObject fileJson = new JSONObject();
                 fileJson.put("data", data);
-                fileJson.put("address",account.getAddress().getBase58());
+                fileJson.put("address", account.getAddress().getBase58());
                 fileJson.put("privateKey", account.getPriSeed());
                 fileJson.put("isEncrypted", account.isEncrypted());
                 fos.write(fileJson.toJSONString().getBytes());
@@ -249,34 +249,70 @@ public class AccountStorage {
             }
         } catch (Exception e) {
             log.error("加密 {} 失败: {}", account.getAddress().getBase58(), e.getMessage(), e);
-            resp.put("retCode",1);
-            resp.put("msg","账户"+address+"加密失败");
+            resp.put("retCode", 1);
+            resp.put("msg", "账户" + address + "加密失败");
             return resp;
         }
-        String message = "成功加密"+account.getAddress().getBase58();
-        resp.put("retCode",0);
-        resp.put("msg",message);
+        String message = "成功加密" + account.getAddress().getBase58();
+        resp.put("retCode", 0);
+        resp.put("msg", message);
         return resp;
     }
+
+    /**
+     * 文件导入账户
+     */
+    public boolean importAccountFile(Account account) {
+        accountList.add(account);
+        //回写到钱包文件
+        try {
+            String accPath = Configure.DATA_ACCOUNT + File.separator + account.getAddress().getBase58();
+            File accountFile = new File(accPath);
+            FileOutputStream fos = new FileOutputStream(accountFile);
+            byte[] data = account.serialize();
+            JSONObject fileJson = new JSONObject();
+            fileJson.put("data", data);
+            fileJson.put("address", account.getAddress().getBase58());
+            fileJson.put("privateKey", account.getPriSeed());
+            fileJson.put("isEncrypted", account.isEncrypted());
+            fos.write(fileJson.toJSONString().getBytes());
+            fos.flush();
+        }  catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        TransactionStorage.get().addAddress(account.getAddress().getHash160());
+        //加载账户信息
+        List<byte[]> hash160s = getAccountHash160s();
+        //或许重新加载账户相关的交易记录
+        maybeReLoadTransaction(hash160s);
+        loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
+        return true;
+    }
+
     /**
      * 通过地址获取账户
+     *
      * @param address
      * @return Account
      */
     public Account getAccount(String address) {
         for (Account account : accountList) {
-            if(account.getAddress().getBase58().equals(address)) {
+            if (account.getAddress().getBase58().equals(address)) {
                 return account;
             }
         }
         return null;
     }
+
     /**
      * 获取默认账户
+     *
      * @return Account
      */
     public Account getDefaultAccount() {
-        if(accountList == null || accountList.size() == 0) {
+        if (accountList == null || accountList.size() == 0) {
             return null;
         }
         return accountList.get(0);
@@ -284,30 +320,31 @@ public class AccountStorage {
 
     /**
      * 校验密码难度
+     *
      * @param password
      * @return boolean
      */
     public static boolean validPassword(String password) {
-        if(StringUtils.isEmpty(password)){
+        if (StringUtils.isEmpty(password)) {
             return false;
         }
-        if(password.length() < 6){
+        if (password.length() < 6) {
             return false;
         }
-        if(password.matches("(.*)[a-zA-z](.*)") && password.matches("(.*)\\d+(.*)")){
+        if (password.matches("(.*)[a-zA-z](.*)") && password.matches("(.*)\\d+(.*)")) {
             return true;
         } else {
             return false;
         }
     }
 
-    public boolean reloadCoin(){
+    public boolean reloadCoin() {
         List<byte[]> hash160s = getAccountHash160s();
-        boolean ending =  false;
-       if( TransactionStorage.get().reloadTransaction(hash160s)){
-           ending=   loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
-       }
-       return ending;
+        boolean ending = false;
+        if (TransactionStorage.get().reloadTransaction(hash160s)) {
+            ending = loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
+        }
+        return ending;
     }
 
     //是否重新加载账户交易
@@ -316,7 +353,7 @@ public class AccountStorage {
         List<byte[]> hash160sStore = TransactionStorage.get().getAddresses();
 
         //如果个数一样，则判断是否完全相同
-        if(hash160s.size() == hash160sStore.size()) {
+        if (hash160s.size() == hash160sStore.size()) {
             Comparator<byte[]> comparator = new Comparator<byte[]>() {
                 @Override
                 public int compare(byte[] o1, byte[] o2) {
@@ -327,12 +364,12 @@ public class AccountStorage {
             Collections.sort(hash160sStore, comparator);
             boolean fullSame = true;
             for (int i = 0; i < hash160s.size(); i++) {
-                if(!Arrays.equals(hash160sStore.get(i), hash160s.get(i))) {
+                if (!Arrays.equals(hash160sStore.get(i), hash160s.get(i))) {
                     fullSame = false;
                     break;
                 }
             }
-            if(fullSame) {
+            if (fullSame) {
                 return;
             }
         }
@@ -361,7 +398,7 @@ public class AccountStorage {
                 Address address = account.getAddress();
                 loadAddressBalance(address);
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         return true;
@@ -427,6 +464,7 @@ public class AccountStorage {
         }
         return null;
     }
+
     public Account getAccountByAddress(byte[] address) {
         for (Account account : accountList) {
             if (account.getAddress().getHash160().equals(address)) {

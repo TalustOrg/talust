@@ -609,7 +609,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             Address nodeAddr = Address.fromBase58(network, nodeAddress);
             Deposits deposits = getDeposits(nodeAddr.getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-            if (null == depositAccountList || depositAccountList.size() < 100) {
+            if (null == depositAccountList || depositAccountList.size() < 1) {
                 Transaction tx = createRegConsensus(money, account, address, nodeAddr.getHash160());
                 verifyAndSendMsg(account, tx);
             } else {

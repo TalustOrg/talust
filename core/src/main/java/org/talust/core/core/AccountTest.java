@@ -42,11 +42,11 @@ public class AccountTest {
     NetworkParams networkParams = MainNetworkParams.get();
     public static void main(String[] args) {
         //解封下面一段代码进行 按需要的账户生成
-        makeAccountFile(3);
+//        makeAccountFile(3);
 
-        //解封下面两段代码进行root talust 账号生成
-//       AccountTest at = new AccountTest();
-//        at.gen();
+//        解封下面两段代码进行root talust 账号生成
+       AccountTest at = new AccountTest();
+        at.gen();
 
 
     }
@@ -75,12 +75,11 @@ public class AccountTest {
         rootAccount.setSupervisor(rootAccount.getAddress().getHash160() );
         rootAccount.setlevel(AccountType.ROOT.getType());
         String trPw="TALUST";//交易密码
-        //生成交易的私匙
-        BigInteger trPri1 = AccountTool.genPrivKey1(prikeySeedRoot, trPw.getBytes());
-        ECKey trkey1 = ECKey.fromPrivate(trPri1);
-        rootAccount.setTrPubkeys(new byte[][] {trkey1.getPubKey(true)});//存储交易公匙
+        ECKey newKey = rootKey.encrypt(trPw);
+        rootAccount.setEcKey(newKey);
+        rootAccount.setPriSeed(newKey.getEncryptedPrivateKey().getEncryptedBytes());
         try {
-            rootAccount.signAccount();
+            rootAccount.signAccount(rootKey, null);
             System.out.println("address rootAccount haxString:"+Base58.encode(rootAddr.getHash160()));
             System.out.println("address rootAccount privateKey:"+rootKey.getPrivKey());
             System.out.println("data rootAccount: "+Base58.encode(rootAccount.serialize()));
@@ -100,13 +99,12 @@ public class AccountTest {
         talustAccount.setSupervisor(rootAccount.getAddress().getHash160() );
         talustAccount.setlevel(AccountType.TALUST.getType());
         String trPwT="TALUST";//交易密码
-        //生成交易的私匙
-        BigInteger trPri1T = AccountTool.genPrivKey1(prikeySeedTalust, trPwT.getBytes());
-        ECKey trkey1T = ECKey.fromPrivate(trPri1T);
-        talustAccount.setTrPubkeys(new byte[][] {trkey1T.getPubKey(true)});//存储交易公匙
+        ECKey newTalustKey = talustKey.encrypt(trPwT);
+        talustAccount.setEcKey(newTalustKey);
+        talustAccount.setPriSeed(newTalustKey.getEncryptedPrivateKey().getEncryptedBytes());
         try {
-            talustAccount.signAccount();
-            System.out.println("address talustAccount haxString:"+Base58.encode(talustAddr.getHash160() ));
+            talustAccount.signAccount(talustKey, null);
+            System.out.println("address talustAccount haxString:"+talustAddr.getHashAsHex());
             System.out.println("address talustAccount privateKey:"+talustKey.getPrivKey());
             System.out.println("data talustAccount: "+Base58.encode(talustAccount.serialize()));
         } catch (IOException e) {
