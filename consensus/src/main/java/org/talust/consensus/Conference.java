@@ -151,7 +151,6 @@ public class Conference {
                 this.master = nextMaster;
                 ConnectionManager.get().setMasterIp(master.getIp());
                 if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
-
                     ConsensusService.get().startGenBlock();
                 }
             } else {//说明已经改变完成

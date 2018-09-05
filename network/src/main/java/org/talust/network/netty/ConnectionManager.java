@@ -279,11 +279,12 @@ public class ConnectionManager {
                             cc.addChannel(connect, false);
                             InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
                             getPeersOnline(ip);
+                            needConCount--;
                         }
                     }
                 } catch (Throwable e) {
+                    break;
                 }
-                needConCount--;
             } else {
                 break;
             }

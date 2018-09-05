@@ -42,11 +42,11 @@ public class AccountTest {
     NetworkParams networkParams = MainNetworkParams.get();
     public static void main(String[] args) {
         //解封下面一段代码进行 按需要的账户生成
-//        makeAccountFile(3);
+        makeAccountFile(2);
 
 //        解封下面两段代码进行root talust 账号生成
-       AccountTest at = new AccountTest();
-        at.gen();
+//       AccountTest at = new AccountTest();
+//        at.gen();
 
 
     }

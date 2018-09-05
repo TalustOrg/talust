@@ -27,9 +27,13 @@ package org.talust.network.netty;
 import com.alibaba.fastjson.JSONObject;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
+import org.talust.common.tools.IpUtil;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Set;
 
 public class PeersManager {
     private static PeersManager instance = new PeersManager();
@@ -68,10 +72,11 @@ public class PeersManager {
             e.printStackTrace();
         }
     }
-    public void peerConfigInit(){
+
+    public void peerConfigInit() {
         try {
             File config = new File(peerConfigFilePath);
-            JSONObject peerConfig =  JSONObject.parseObject(FileUtil.fileToTxt(config));
+            JSONObject peerConfig = JSONObject.parseObject(FileUtil.fileToTxt(config));
             Configure.setMaxPassivityConnectCount(peerConfig.getInteger("MAX_PASSIVITY_CONNECT_COUNT"));
             Configure.setMaxActiveConnectCount(peerConfig.getInteger("MAX_ACTIVE_CONNECT_COUNT"));
             Configure.setMaxSuperActivrConnectCount(peerConfig.getInteger("MAX_SUPER_PASSIVITY_CONNECT_COUNT"));
@@ -82,6 +87,7 @@ public class PeersManager {
             e.printStackTrace();
         }
     }
+
     /**
      * 写入JSON文件
      */
@@ -100,22 +106,38 @@ public class PeersManager {
 
     public void addPeer(String ip) {
         try {
-            File peerFile = new File(peerPath);
-            JSONObject nowPeers = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
-            nowPeers.put(ip,"1");
-            FileOutputStream fos = new FileOutputStream(peerFile);
-            fos.write(nowPeers.toJSONString().getBytes());
-            fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
+            InetAddress address = InetAddress.getByName(ip);
+            if (!IpUtil.internalIp(address.getAddress())) {
+                try {
+                    File peerFile = new File(peerPath);
+                    JSONObject nowPeers = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));
+                    nowPeers.put(ip, "1");
+                    FileOutputStream fos = new FileOutputStream(peerFile);
+                    fos.write(nowPeers.toJSONString().getBytes());
+                    fos.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (UnknownHostException e) {
             e.printStackTrace();
         }
     }
 
     public void addPeer(JSONObject peers) {
+        Set<String> ips = peers.keySet();
+        for(String ip :ips){
+            try{
+                InetAddress address = InetAddress.getByName(ip);
+                if(IpUtil.internalIp(address.getAddress())){
+                    peers.remove(ip);
+                }
+            }catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         try {
             File peerFile = new File(peerPath);
             JSONObject nowPeers = JSONObject.parseObject(FileUtil.fileToTxt(peerFile));

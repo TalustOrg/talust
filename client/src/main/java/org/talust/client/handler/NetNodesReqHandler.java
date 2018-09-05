@@ -43,7 +43,6 @@ public class NetNodesReqHandler implements MessageHandler {
     private MessageQueue mq = MessageQueue.get();
     @Override
     public boolean handle(MessageChannel message) {
-        AllNodes an = new AllNodes();
         JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
         byte[] serializer = SerializationUtil.serializer(peerJ);
         Message alm = new Message();

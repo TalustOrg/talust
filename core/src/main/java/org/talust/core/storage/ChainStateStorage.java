@@ -292,7 +292,7 @@ public class ChainStateStorage extends BaseStoreProvider {
             //验证原共识金额 与现已加入的共识金额
             Deposits deposits = getDeposits(nodeAddress);
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-            if (depositAccountList.size() == 100) {
+            if (depositAccountList.size() == 1) {
                 for (DepositAccount depositAccount : depositAccountList) {
                     if (depositAccount.getAmount().value < transactionOutput.getValue()) {
                         //交易异常

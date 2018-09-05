@@ -73,15 +73,12 @@ public class ChannelContain {
         InetSocketAddress insocket = (InetSocketAddress) sc.remoteAddress();
         String remoteIp = insocket.getAddress().getHostAddress();
         myChannel.setRemoteIp(remoteIp);
-        InetSocketAddress loSocket = (InetSocketAddress) sc.localAddress();
-        String localIp = loSocket.getAddress().getHostAddress();
-        myChannel.setLocalIp(localIp);
+        myChannel.setLocalIp(ConnectionManager.get().selfIp);
         mapChannel.put(remoteIp, myChannel);
         if (superIps.contains(remoteIp)) {
             superChannel.put(remoteIp, myChannel);
         }
         allNodeIps.add(remoteIp);
-        ConnectionManager.get().selfIp = localIp;
     }
 
     public synchronized void removeChannel(Channel sc) {

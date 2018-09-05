@@ -114,7 +114,6 @@ public class BlockStorage extends BaseStoreProvider {
             //保存创始块则不限制
             Block block = blockStore.getBlock();
             Sha256Hash hash = block.getHash();
-
             Sha256Hash preHash = block.getPreHash();
             if (preHash == null) {
                 throw new VerificationException("要保存的区块缺少上一区块的引用");
@@ -124,7 +123,9 @@ public class BlockStorage extends BaseStoreProvider {
                     bestBlockHeader.getBlockHeader().getHeight() + 1 == block.getHeight()) {
                 //要保存的块和最新块能连接上，通过
             } else {
-                throw new VerificationException("错误的区块，保存失败");
+                log.error("区块错误，交易回滚！");
+                this.revokedBlock(block);
+                throw new VerificationException("错误的区块，保存失败,区块回滚");
             }
 
             if (blockStore.getNextHash() == null) {
@@ -141,15 +142,13 @@ public class BlockStorage extends BaseStoreProvider {
                 db.put(tx.getHash().getBytes(), txs.baseSerialize());
                 saveChainstate(block, txs);
             }
-
+            log.info("保存区块高度为：{}的区块",blockStore.getBlock().getHeight());
             //保存块头
             byte[] blockHeaderBytes = blockStore.serializeHeaderToBytes();
             db.put(hash.getBytes(), blockHeaderBytes);
 
-
             byte[] heightBytes = new byte[4];
             Utils.uint32ToByteArrayBE(block.getHeight(), heightBytes, 0);
-
             db.put(heightBytes, hash.getBytes());
 
             //更新最新区块
@@ -162,9 +161,9 @@ public class BlockStorage extends BaseStoreProvider {
                 preBlockHeader.setNextHash(block.getHash());
                 db.put(preBlockHeader.getBlockHeader().getHash().getBytes(), preBlockHeader.baseSerialize());
             }
-
         } catch (Exception e) {
             log.info("保存区块出错：", e);
+            this.revokedBlock(blockStore.getBlock());
         } finally {
             blockLock.unlock();
         }
@@ -176,7 +175,7 @@ public class BlockStorage extends BaseStoreProvider {
      *
      * @param block
      */
-    public void revokedBlock(Block block) throws Exception {
+    public void revokedBlock(Block block) {
 
         Sha256Hash bestBlockHash = block.getHash();
 
@@ -224,7 +223,7 @@ public class BlockStorage extends BaseStoreProvider {
      *
      * @param txs
      */
-    public void revokedTransaction(TransactionStore txs) throws Exception {
+    public void revokedTransaction(TransactionStore txs)  {
 
         Transaction tx = txs.getTransaction();
 
@@ -283,7 +282,11 @@ public class BlockStorage extends BaseStoreProvider {
                 //注册共识，因为是回滚区块，需要从共识列表中删除
                 //退出共识
                 //从共识账户列表中删除
-                chainStateStorage.removeConsensus(tx);
+                try {
+                    chainStateStorage.removeConsensus(tx);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 //乖节点遵守系统规则，被T则停止共识，否则就会被排除链外
             } else if (tx.getType() == Definition.TYPE_REM_CONSENSUS) {

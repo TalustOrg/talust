@@ -600,7 +600,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 }
             }
             //当前余额可用余额
-            long balance = account.getAddress().getBalance().value;
+            long balance =Long.parseLong(ArithUtils.div(account.getAddress().getBalance().value+"","100000000",8))  ;
             if (ArithUtils.compareStr(balance + "", money) < 0) {
                 resp.put("retCode", "1");
                 resp.put("message", "余额不足");
@@ -764,11 +764,11 @@ public class TransferAccountServiceImpl implements TransferAccountService {
 
 
     public DepositAccount checkAmtLowest(String amt, List<DepositAccount> depositAccounts) {
-        long money = Long.parseLong(amt);
+        long money = Long.parseLong(ArithUtils.mul(amt,"100000000",0));
         DepositAccount lowest = null;
         for (DepositAccount depositAccount : depositAccounts) {
             if (money > depositAccount.getAmount().value) {
-                if (null != lowest) {
+                if (null == lowest) {
                     lowest = depositAccount;
                 } else if (lowest.getAmount().value > depositAccount.getAmount().value) {
                     lowest = depositAccount;
