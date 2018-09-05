@@ -158,10 +158,11 @@ public class SynBlock {
         if (mod != 0) {
             times++;
         }
+        boolean saved = true;
         for (int time = 0; time < times; time++) {
             //循环每一轮
             List<Future<MessageChannel>> results = new ArrayList<>();
-            long start = selfBlockHeight + time * THREAD_POOL_SIZE + 1;//开始下载的区块数
+            long start = selfBlockHeight + time * THREAD_POOL_SIZE;//开始下载的区块数
             long end = start + THREAD_POOL_SIZE;
             if (end > maxBlockHeight) {
                 end = maxBlockHeight;
@@ -173,7 +174,7 @@ public class SynBlock {
                 if (blocks.size() >= needBlockCount) {
                     break;
                 }
-                for (long idx = start; idx <= end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
+                for (long idx = start + 1; idx <= end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
                     boolean needGain = true;//当前块需要下载
                     for (BlockStore block : blocks) {
                         long height = block.getBlock().getHeight();
@@ -249,9 +250,11 @@ public class SynBlock {
                 log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
                 MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
                 if (messageChannel != null) {
+
                     try {
-                        if (blockArrivedValidator.check(messageChannel)) {
-                            blockArrivedHandler.handle(messageChannel);
+                        if (blockArrivedValidator.check(messageChannel) && saved) {
+                            saved = false;
+                            saved = blockArrivedHandler.handle(messageChannel);
                         }
                     } catch (Exception e) {
                         log.info("区块高度{}的区块数据异常 :{}", block.getBlock().getBlockHeader().getHeight(), e.getMessage());
@@ -263,7 +266,9 @@ public class SynBlock {
 
             }
         }
-        synBlock();
+        if (saved) {
+            synBlock();
+        }
     }
 
     public MessageHandler getBlockArrivedHandler() {

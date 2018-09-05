@@ -105,7 +105,7 @@ public class BlockStorage extends BaseStoreProvider {
      * @param blockStore
      * @throws IOException
      */
-    public void saveBlock(BlockStore blockStore) throws IOException, VerificationException {
+    public long saveBlock(BlockStore blockStore) throws IOException, VerificationException {
         blockLock.lock();
         try {
             //最新的区块
@@ -167,6 +167,7 @@ public class BlockStorage extends BaseStoreProvider {
         } finally {
             blockLock.unlock();
         }
+        return network.getBestHeight();
     }
 
 

@@ -35,6 +35,7 @@ import org.talust.core.network.MainNetworkParams;
 import org.talust.core.storage.BlockStore;
 import org.talust.network.MessageHandler;
 import org.talust.core.storage.BlockStorage;
+import sun.applet.Main;
 
 import java.io.IOException;
 
@@ -46,11 +47,11 @@ public class BlockArrivedHandler implements MessageHandler {
     public boolean handle(MessageChannel messageChannel) {
         log.info("接收到远端ip:{} 发送过来的区块数据", messageChannel.getFromIp());
         try {
-            saveBlock(messageChannel);
+            return saveBlock(messageChannel);
         } catch (Throwable e) {
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     /**
@@ -59,16 +60,19 @@ public class BlockArrivedHandler implements MessageHandler {
      * @param messageChannel
      * @return
      */
-    public byte[] saveBlock(MessageChannel messageChannel) {
+    public boolean saveBlock(MessageChannel messageChannel) {
         byte[] blockBytes = messageChannel.getMessage().getContent();
-        BlockStore blockStore =SerializationUtil.deserializer(blockBytes,BlockStore.class);
+        BlockStore blockStore = SerializationUtil.deserializer(blockBytes, BlockStore.class);
         try {
             //最值该节点的最新高度
-            blockStorage.saveBlock(blockStore);
+            long old = MainNetworkParams.get().getBestHeight();
+            long now = blockStorage.saveBlock(blockStore);
+            if(old<now){
+                return true;
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            return false;
         }
-        //@TODO 区块存储时,需要将里面的数据解析出来进行一些索引的存储,比如交易信息这些
-        return null;
+        return false;
     }
 }
