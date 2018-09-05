@@ -139,7 +139,7 @@ public class ConnectionManager {
             }
         }
         PeersManager.get().removePeerList(unusedIps);
-        if (cc.getActiveConnectionCount() == 0) {
+        if (cc.getActiveConnectionCount() < Configure.MAX_ACTIVE_CONNECT_COUNT) {
             superNodeJoin();
         }
     }

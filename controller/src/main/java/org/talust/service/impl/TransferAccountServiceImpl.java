@@ -609,7 +609,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             Address nodeAddr = Address.fromBase58(network, nodeAddress);
             Deposits deposits = getDeposits(nodeAddr.getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-            if (null == depositAccountList || depositAccountList.size() < 1) {
+            if (null == depositAccountList || depositAccountList.size() < 100) {
                 Transaction tx = createRegConsensus(money, account, address, nodeAddr.getHash160());
                 verifyAndSendMsg(account, tx);
             } else {
@@ -619,7 +619,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     //大于最低的账户的金额则
                     Transaction regTx = createRegConsensus(money, account, address, nodeAddr.getHash160());
                     verifyAndSendMsg(account, regTx);
-                    Transaction remTx = createRemConsensus(depositAccount,account);
+                    Transaction remTx = createRemConsensus(depositAccount,null);
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("isActive", Configure.PASSIVE_EXIT);
                     jsonObject.put("nodeAddress", nodeAddr.getHash160());
@@ -848,6 +848,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         remTx.setType(Definition.TYPE_REM_CONSENSUS);
         Coin totalInputCoin = Coin.ZERO;
         List<Sha256Hash> txhashs = depositAccount.getTxHash();
+
         TransactionInput input = new TransactionInput();
         for(Sha256Hash txhash :txhashs){
             Transaction tx = transactionStorage.getTransaction(txhash).getTransaction();
@@ -856,7 +857,12 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         }
         input.setScriptBytes(new byte[0]);
         remTx.addInput(input);
-        remTx.addOutput(totalInputCoin, account.getAddress());
+        if(null ==account){
+            Address  address = new Address(MainNetworkParams.get(),depositAccount.getAddress());
+            remTx.addOutput(totalInputCoin, address);
+        }else{
+            remTx.addOutput(totalInputCoin, account.getAddress());
+        }
         return remTx;
     }
 }
