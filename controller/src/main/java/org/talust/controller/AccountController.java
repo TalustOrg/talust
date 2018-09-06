@@ -31,12 +31,17 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.talust.common.tools.ArithUtils;
+import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
+import org.talust.core.core.SynBlock;
 import org.talust.core.model.Account;
 import org.talust.core.model.Address;
 import org.talust.core.network.MainNetworkParams;
+import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.AccountStorage;
+import org.talust.core.storage.BlockStorage;
 import org.talust.core.storage.TransactionStorage;
+import org.talust.network.netty.ConnectionManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,16 +77,34 @@ public class AccountController {
     @PostMapping(value = "getAllCoins")
     JSONObject getAllCoins() {
         JSONObject jsonObject = new JSONObject();
-        List<Account> accountList = AccountStorage.get().getAccountList();
-        for (Account account : accountList) {
-            if (AccountStorage.get().reloadCoin()) {
-                JSONObject data = new JSONObject();
-                long value = TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[0].value;
-                long lockValue = TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[1].value;
-                data.put("value", ArithUtils.div(value + "", "100000000", 8));
-                data.put("lockValue", ArithUtils.div(lockValue + "", "100000000", 8));
-                jsonObject.put(account.getAddress().getBase58(), data);
+        long localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
+        long now = NtpTimeService.currentTimeSeconds();
+        if (now - localbestheighttime > Configure.BLOCK_GEN_TIME) {
+            if (SynBlock.get().getSyning().get()) {
+                jsonObject.put("retCode", "1");
+                jsonObject.put("message", "正在同步区块中，请稍后再尝试");
+                return jsonObject;
+            } else {
+                ConnectionManager.get().init();
+                jsonObject.put("retCode", "1");
+                jsonObject.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                return jsonObject;
             }
+        }
+        List<Account> accountList = AccountStorage.get().getAccountList();
+        if(null!=accountList){
+            for (Account account : accountList) {
+                if (AccountStorage.get().reloadCoin()) {
+                    JSONObject data = new JSONObject();
+                    long value = TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[0].value;
+                    long lockValue = TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[1].value;
+                    data.put("value", ArithUtils.div(value + "", "100000000", 8));
+                    data.put("lockValue", ArithUtils.div(lockValue + "", "100000000", 8));
+                    jsonObject.put(account.getAddress().getBase58(), data);
+                }
+            }
+        }else{
+            jsonObject.put("msg","无账户数据！");
         }
         return jsonObject;
     }

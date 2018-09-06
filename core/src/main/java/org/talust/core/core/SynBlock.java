@@ -34,6 +34,7 @@ import org.talust.common.tools.SerializationUtil;
 import org.talust.common.tools.ThreadPool;
 import org.talust.core.model.Block;
 import org.talust.core.network.MainNetworkParams;
+import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.AccountStorage;
 import org.talust.core.storage.BlockStorage;
 import org.talust.core.storage.BlockStore;
@@ -158,7 +159,6 @@ public class SynBlock {
         if (mod != 0) {
             times++;
         }
-        boolean saved = true;
         for (int time = 0; time < times; time++) {
             //循环每一轮
             List<Future<MessageChannel>> results = new ArrayList<>();
@@ -250,11 +250,12 @@ public class SynBlock {
                 log.info("经过排序后的区块高度为:{}", block.getBlock().getBlockHeader().getHeight());
                 MessageChannel messageChannel = mapHeightData.get(block.getBlock().getBlockHeader().getHeight());
                 if (messageChannel != null) {
-
                     try {
-                        if (blockArrivedValidator.check(messageChannel) && saved) {
-                            saved = false;
-                            saved = blockArrivedHandler.handle(messageChannel);
+                        if (blockArrivedValidator.check(messageChannel)) {
+                            log.info("SynBlock准备存储区块时间：{},区块高度：{}",NtpTimeService.currentTimeSeconds(),block.getBlock().getBlockHeader().getHeight());
+                            blockArrivedHandler.handle(messageChannel);
+                        }else{
+                            log.info("区块验证失败");
                         }
                     } catch (Exception e) {
                         log.info("区块高度{}的区块数据异常 :{}", block.getBlock().getBlockHeader().getHeight(), e.getMessage());
@@ -266,9 +267,7 @@ public class SynBlock {
 
             }
         }
-        if (saved) {
-            synBlock();
-        }
+        synBlock();
     }
 
     public MessageHandler getBlockArrivedHandler() {

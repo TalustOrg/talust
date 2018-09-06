@@ -24,8 +24,6 @@ public class ConsensusService {
     public static ConsensusService get() {
         return instance;
     }
-
-    private CacheManager cu = CacheManager.get();
     private Conference conference = Conference.get();
     private ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
     private PackBlockTool packBlockTool = new PackBlockTool();
@@ -80,7 +78,7 @@ public class ConsensusService {
                 try {
                     //检测master是否正常,通过块判断
                     int nowSecond = DateUtil.getTimeSecond();
-                    long ct = cu.getCurrentBlockTime();
+                    long ct = MainNetworkParams.get().getBestBlockHeader().getTime();
                     if (ct > 0) {
                         if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {//未收到区块响应
                             conference.changeMaster();

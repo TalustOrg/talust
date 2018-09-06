@@ -47,11 +47,11 @@ public class BlockArrivedHandler implements MessageHandler {
     public boolean handle(MessageChannel messageChannel) {
         log.info("接收到远端ip:{} 发送过来的区块数据", messageChannel.getFromIp());
         try {
-            return saveBlock(messageChannel);
+             saveBlock(messageChannel);
         } catch (Throwable e) {
             e.printStackTrace();
         }
-        return false;
+        return true;
     }
 
     /**
@@ -60,19 +60,13 @@ public class BlockArrivedHandler implements MessageHandler {
      * @param messageChannel
      * @return
      */
-    public boolean saveBlock(MessageChannel messageChannel) {
+    public void saveBlock(MessageChannel messageChannel) {
         byte[] blockBytes = messageChannel.getMessage().getContent();
         BlockStore blockStore = SerializationUtil.deserializer(blockBytes, BlockStore.class);
         try {
             //最值该节点的最新高度
-            long old = MainNetworkParams.get().getBestHeight();
-            long now = blockStorage.saveBlock(blockStore);
-            if(old<now){
-                return true;
-            }
+             blockStorage.saveBlock(blockStore);
         } catch (IOException e) {
-            return false;
         }
-        return false;
     }
 }

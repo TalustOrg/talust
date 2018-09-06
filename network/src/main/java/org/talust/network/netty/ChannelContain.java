@@ -148,12 +148,13 @@ public class ChannelContain {
      * 向所有的超级节点发送消息
      */
     public void sendMessageToSuperNode( Message message){
-        log.info("向所有超级节点扩散消息");
+        log.info("向所有包含自己的超级节点扩散消息");
         if(null!=superIps&&superIps.size()>0){
             for(String ip : superIps){
                 sendMessage(ip,message);
             }
         }
+        sendMessage(cm.selfIp,message);
     }
     /**
      * 向随机的一个超级节点发送消息

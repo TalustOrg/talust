@@ -42,7 +42,6 @@ import org.talust.common.tools.*;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.core.SynBlock;
-import org.talust.core.data.DataContainer;
 import org.talust.core.data.TransactionCache;
 import org.talust.core.model.Account;
 import org.talust.core.model.Address;
@@ -217,8 +216,6 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             assert transactionValidator.checkTransaction(tx, null);
             //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
             boolean success = TransactionCache.getInstace().add(tx);
-            DataContainer.get().addRecord(tx);
-
             Message message = new Message();
             byte[] data = SerializationUtil.serializer(tx);
             byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
@@ -783,8 +780,6 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         assert transactionValidator.checkTransaction(tx, null);
         //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
         boolean success = TransactionCache.getInstace().add(tx);
-        DataContainer.get().addRecord(tx);
-
         Message message = new Message();
         byte[] data = SerializationUtil.serializer(tx);
         byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();

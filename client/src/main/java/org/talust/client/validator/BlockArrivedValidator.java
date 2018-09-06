@@ -36,11 +36,10 @@ import org.talust.common.tools.Configure;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.core.core.ByteHash;
 import org.talust.core.core.Definition;
-import org.talust.core.core.SynBlock;
-import org.talust.core.data.ConsensusCalculationUtil;
 import org.talust.core.model.Block;
 import org.talust.core.model.BlockHeader;
 import org.talust.core.network.MainNetworkParams;
+import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.BlockHeaderStore;
 import org.talust.core.storage.BlockStore;
 import org.talust.core.transaction.Transaction;
@@ -65,6 +64,7 @@ public class BlockArrivedValidator implements MessageValidator {
         boolean result = false;
         BlockStore blockStore = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), BlockStore.class);
         Block block = blockStore.getBlock();
+        log.info("准备验证存储区块时间：{},区块高度：{}",NtpTimeService.currentTimeSeconds(),block.getBlockHeader().getHeight());
         long height = block.getHeight();
         boolean checkRepeat = CacheManager.get().checkRepeat(("block_height:" + height), Configure.BLOCK_GEN_TIME);
         if (checkRepeat) {//说明本节点接收到过同样的消息,则直接将该消息扔掉
@@ -80,8 +80,7 @@ public class BlockArrivedValidator implements MessageValidator {
                 result = true;
             }
         }else if(block.getHeight()==0){
-            result = true;
-            return result;
+            return true;
         }
 
         if (result) {//继续校验区块里面的每一条数据
