@@ -53,17 +53,16 @@ import java.util.List;
  */
 @Slf4j
 public class TransactionValidator implements MessageValidator {
-    private MessageQueueHolder mqHolder = MessageQueueHolder.get();
     private NetworkParams network = MainNetworkParams.get();
     private BlockStorage blockStorage = BlockStorage.get();
     private TransactionCache transactionCache = TransactionCache.getInstace();
     private ChainStateStorage chainStateStorage =  ChainStateStorage.get();
-    private double nearZero = 0.0000000000001;
 
     @Override
     public boolean check(MessageChannel message) {//对每一条交易数据进行验证
         Message msg = message.getMessage();
         Transaction transaction = SerializationUtil.deserializer(msg.getContent(), Transaction.class);
+        log.info("收到IP：{}发送的交易数据，交易类型为：{}",message.getFromIp() , transaction.getType());
         if(checkTransaction(transaction,null)){
             return true;
         }
@@ -77,9 +76,12 @@ public class TransactionValidator implements MessageValidator {
      * @param txs 当输入引用找不到时，就在这个列表里面查找（当同一个区块包含多个交易链时需要用到）
      */
     public boolean checkTransaction(Transaction tx, List<Transaction> txs) {
+        try{
+            tx.verify();
+        }catch (Exception e ){
+            e.printStackTrace();
+        }
 
-
-        tx.verify();
         //验证交易的合法性
         if (tx instanceof BaseCommonlyTransaction) {
             ((BaseCommonlyTransaction) tx).verifyScript();
@@ -92,7 +94,6 @@ public class TransactionValidator implements MessageValidator {
             return false;
         }
         //如果是转帐交易
-        //TODO 以下代码请使用状态模式重构
         if (tx.isPaymentTransaction() && tx.getType() != Definition.TYPE_COINBASE) {
             //验证交易的输入来源，是否已花费的交易，同时验证金额
             Coin txInputFee = Coin.ZERO;

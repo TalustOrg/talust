@@ -30,6 +30,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.talust.common.model.Coin;
 import org.talust.common.tools.ArithUtils;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
@@ -98,6 +99,8 @@ public class AccountController {
                     JSONObject data = new JSONObject();
                     long value = TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[0].value;
                     long lockValue = TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[1].value;
+                    account.getAddress().setBalance(Coin.valueOf(value));
+                    account.getAddress().setUnconfirmedBalance(Coin.valueOf(lockValue));
                     data.put("value", ArithUtils.div(value + "", "100000000", 8));
                     data.put("lockValue", ArithUtils.div(lockValue + "", "100000000", 8));
                     jsonObject.put(account.getAddress().getBase58(), data);

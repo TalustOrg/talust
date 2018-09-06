@@ -178,6 +178,7 @@ public class ChannelContain {
             Random rand = new Random();
             int selNode = rand.nextInt(size);
             String node = snodes.get(selNode);
+            log.info("随机发送交易数据到IP：{}",node);
             if(IsIpConnect(node)){
                 sendMessage(node,message);
             }else{

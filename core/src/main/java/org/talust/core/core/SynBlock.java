@@ -255,7 +255,8 @@ public class SynBlock {
                             log.info("SynBlock准备存储区块时间：{},区块高度：{}",NtpTimeService.currentTimeSeconds(),block.getBlock().getBlockHeader().getHeight());
                             blockArrivedHandler.handle(messageChannel);
                         }else{
-                            log.info("区块验证失败");
+                            log.info("区块验证失败,重新同步");
+                            synBlock();
                         }
                     } catch (Exception e) {
                         log.info("区块高度{}的区块数据异常 :{}", block.getBlock().getBlockHeader().getHeight(), e.getMessage());

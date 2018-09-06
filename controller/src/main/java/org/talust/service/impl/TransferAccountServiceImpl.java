@@ -167,8 +167,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 }
             }
             //当前余额可用余额
-            long balance = account.getAddress().getBalance().value;
-            if (ArithUtils.compareStr(balance + "", money) < 0) {
+            long balance =  account.getAddress().getBalance().value;
+            if (ArithUtils.compareStr(balance + "",ArithUtils.mul(money,"100000000",0) ) < 0) {
                 resp.put("retCode", "1");
                 resp.put("message", "余额不足");
                 return resp;
@@ -213,21 +213,22 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 log.error(e.getMessage(), e);
             }
             //验证交易是否合法
-            assert transactionValidator.checkTransaction(tx, null);
-            //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
-            boolean success = TransactionCache.getInstace().add(tx);
-            Message message = new Message();
-            byte[] data = SerializationUtil.serializer(tx);
-            byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
-            message.setContent(data);
-            message.setSigner(account.getEcKey().getPubKey());
-            message.setSignContent(sign);
-            message.setType(MessageType.TRANSACTION.getType());
-            message.setTime(NtpTimeService.currentTimeSeconds());
-            //广播交易
-            ConnectionManager.get().TXMessageSend(message);
-            resp.put("retCode", "0");
-            resp.put("message", "交易已上送");
+            if( transactionValidator.checkTransaction(tx, null)){
+                //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
+                boolean success = TransactionCache.getInstace().add(tx);
+                Message message = new Message();
+                byte[] data = SerializationUtil.serializer(tx);
+                byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
+                message.setContent(data);
+                message.setSigner(account.getEcKey().getPubKey());
+                message.setSignContent(sign);
+                message.setType(MessageType.TRANSACTION.getType());
+                message.setTime(NtpTimeService.currentTimeSeconds());
+                //广播交易
+                ConnectionManager.get().TXMessageSend(message);
+                resp.put("retCode", "0");
+                resp.put("message", "交易已上送");
+            }
         } catch (Exception e) {
         } finally {
             locker.unlock();

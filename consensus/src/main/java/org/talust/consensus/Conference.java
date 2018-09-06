@@ -108,6 +108,7 @@ public class Conference {
                 if (value > needOkNumber) {
                     master = ConnectionManager.get().getSuperNodeByIp(next.getKey());
                     ConnectionManager.get().setMasterIp(master.getIp());
+                    CacheManager.get().setCurrentBlockGenIp(master.getIp());
                     return master;
                 }
             }
@@ -116,6 +117,7 @@ public class Conference {
             if (superNode) {//如果当前节点是超级节点,则启动共识机制
                 master = ConnectionManager.get().getSuperNodeByIp(ConnectionManager.get().getSelfIp());
                 ConnectionManager.get().setMasterIp(master.getIp());
+                CacheManager.get().setCurrentBlockGenIp(master.getIp());
                 return master;
             }
         }

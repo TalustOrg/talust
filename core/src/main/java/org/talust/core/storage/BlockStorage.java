@@ -161,6 +161,7 @@ public class BlockStorage extends BaseStoreProvider {
                 preBlockHeader.setNextHash(block.getHash());
                 db.put(preBlockHeader.getBlockHeader().getHash().getBytes(), preBlockHeader.baseSerialize());
             }
+
         } catch (Exception e) {
             log.info("保存区块出错：", e);
             this.revokedBlock(blockStore.getBlock());
