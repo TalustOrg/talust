@@ -441,50 +441,125 @@ public class BlockStorage extends BaseStoreProvider {
          */
         public boolean checkTxIsMine (Transaction transaction,byte[] hash160){
             //是否是跟自己有关的交易
+            String result;
             if (transaction.isPaymentTransaction()) {
                 //普通交易
                 //输入
                 List<TransactionInput> inputs = transaction.getInputs();
-                if (inputs != null && inputs.size() > 0) {
-                    for (TransactionInput input : inputs) {
-                        if (input.getFroms() == null || input.getFroms().size() == 0) {
-                            continue;
-                        }
-                        for (TransactionOutput from : input.getFroms()) {
-                            //对上一交易的引用以及索引值
-                            Sha256Hash fromId = from.getParent().getHash();
-                            int index = from.getIndex();
-
-                            TransactionStore txStore = getTransaction(fromId.getBytes());
-                            if (txStore == null) {
-                                return false;
-                            }
-                            from = (TransactionOutput) txStore.getTransaction().getOutput(index);
-
-                            Script script = from.getScript();
-                            if (hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
-                                    hash160 != null && script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
-                                return true;
-                            }
-                        }
+                result = checkTxInputIsMine(inputs,hash160);
+                if(result!=null){
+                    if(result.equals("0")){
+                        return  true;
+                    }else{
+                        return false;
                     }
                 }
                 //输出
                 List<TransactionOutput> outputs = transaction.getOutputs();
-                for (TransactionOutput output : outputs) {
-                    Script script = output.getScript();
-                    if (hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
-                            hash160 != null && script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
-                        if (transaction.getType() == Definition.TYPE_COINBASE) {
-                            return true;
-                        } else {
-                            return true;
-                        }
+                result = checkTxOuntputIsMine(outputs,hash160,transaction.getType());
+                if(result!=null){
+                    if(result.equals("0")){
+                        return  true;
+                    }else{
+                        return false;
                     }
                 }
             }
             return false;
         }
+
+        //检查输入交易是否是我的
+        public String checkTxInputIsMine( List<TransactionInput> inputs, byte[] hash160){
+            if (inputs != null && inputs.size() > 0) {
+                for (TransactionInput input : inputs) {
+                    if (input.getFroms() == null || input.getFroms().size() == 0) {
+                        continue;
+                    }
+                    for (TransactionOutput from : input.getFroms()) {
+                        //对上一交易的引用以及索引值
+                        Sha256Hash fromId = from.getParent().getHash();
+                        int index = from.getIndex();
+
+                        TransactionStore txStore = getTransaction(fromId.getBytes());
+                        if (txStore == null) {
+                            return "1";
+                        }
+                        from = (TransactionOutput) txStore.getTransaction().getOutput(index);
+                        Script script = from.getScript();
+                        if (hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
+                                hash160 != null && script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
+                            return "0";
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+
+        public List<TransactionInput> findTxInputsIsMine( List<TransactionInput> inputs, byte[] hash160){
+            List<TransactionInput> inputList = new ArrayList<>();
+            if (inputs != null && inputs.size() > 0) {
+                for (TransactionInput input : inputs) {
+                    if (input.getFroms() == null || input.getFroms().size() == 0) {
+                        continue;
+                    }
+                    for (TransactionOutput from : input.getFroms()) {
+                        //对上一交易的引用以及索引值
+                        Sha256Hash fromId = from.getParent().getHash();
+                        int index = from.getIndex();
+
+                        TransactionStore txStore = getTransaction(fromId.getBytes());
+                        if (txStore == null) {
+                            return null;
+                        }
+                        from = (TransactionOutput) txStore.getTransaction().getOutput(index);
+                        Script script = from.getScript();
+                        if (hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
+                                hash160 != null && script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
+                            inputList.add(input);
+                            break;
+                        }
+                    }
+                }
+            }
+            return  inputList;
+        }
+
+
+        public List<TransactionOutput> findTxOutputIsMine(List<TransactionOutput> outputs,byte[] hash160,int txType){
+            List<TransactionOutput> outputList = new ArrayList<>();
+            for (TransactionOutput output : outputs) {
+                Script script = output.getScript();
+                if (hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
+                        hash160 != null && script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
+                    if (txType == Definition.TYPE_COINBASE) {
+                        outputList.add(output);
+                    } else {
+                        outputList.add(output);
+                    }
+                }
+            }
+            return  outputList;
+        }
+
+        //检查输出交易是否是我的
+        public String checkTxOuntputIsMine(List<TransactionOutput> outputs,byte[] hash160,int txType){
+            //输出
+            for (TransactionOutput output : outputs) {
+                Script script = output.getScript();
+                if (hash160 == null && script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data) ||
+                        hash160 != null && script.isSentToAddress() && Arrays.equals(script.getChunks().get(2).data, hash160)) {
+                    if (txType == Definition.TYPE_COINBASE) {
+                        return "0";
+                    } else {
+                        return "0";
+                    }
+                }
+            }
+            return null;
+        }
+
 
         //更新与自己相关的交易
         public void updateMineTx (TransactionStore txs){

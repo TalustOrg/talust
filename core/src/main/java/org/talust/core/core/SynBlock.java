@@ -65,7 +65,6 @@ public class SynBlock {
         return instance;
     }
 
-    private AccountStorage accountStorage = AccountStorage.get();
     private MessageHandler blockArrivedHandler;//区块到来处理器
     private MessageValidator blockArrivedValidator;//区块到来校验器
     private AtomicBoolean syning = new AtomicBoolean(false);//是否正在同步
@@ -174,7 +173,7 @@ public class SynBlock {
                 if (blocks.size() >= needBlockCount) {
                     break;
                 }
-                for (long idx = start + 1; idx <= end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
+                for (long idx = start+1; idx <= end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
                     boolean needGain = true;//当前块需要下载
                     for (BlockStore block : blocks) {
                         long height = block.getBlock().getHeight();
@@ -217,6 +216,7 @@ public class SynBlock {
                             nodeMessage.setContent(Long.toString(selectBlockHeight).getBytes());//所请求的块的高度
                             log.info("向网络节点:{} 请求区块高度为:{}的区块...", selectIp, selectBlockHeight);
                             MessageChannel message = SynRequest.get().synReq(nodeMessage, selectIp);
+                            log.info("获得向IP：{}，请求高度：{}的区块内容，{}",selectIp,selectBlockHeight,null!=message);
                             return message;
                         });
                         results.add(submit);

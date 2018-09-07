@@ -51,10 +51,12 @@ import org.talust.core.script.ScriptBuilder;
 import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.*;
 import org.talust.core.transaction.*;
+import org.talust.model.TxMine;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.ConnectionManager;
 import org.talust.service.TransferAccountService;
+import sun.applet.Main;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -102,9 +104,9 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         JSONObject resp = new JSONObject();
         Utils.checkNotNull(toAddress);
         Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
-        if(connects.size()<=0){
-            resp.put("retCode","1");
-            resp.put("message","当前网络不可用，请稍后再尝试");
+        if (connects.size() <= 0) {
+            resp.put("retCode", "1");
+            resp.put("message", "当前网络不可用，请稍后再尝试");
             return resp;
         }
         long height = MainNetworkParams.get().getBestBlockHeight();
@@ -167,8 +169,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 }
             }
             //当前余额可用余额
-            long balance =  account.getAddress().getBalance().value;
-            if (ArithUtils.compareStr(balance + "",ArithUtils.mul(money,"100000000",0) ) < 0) {
+            long balance = account.getAddress().getBalance().value;
+            if (ArithUtils.compareStr(balance + "", ArithUtils.mul(money, "100000000", 0)) < 0) {
                 resp.put("retCode", "1");
                 resp.put("message", "余额不足");
                 return resp;
@@ -213,7 +215,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 log.error(e.getMessage(), e);
             }
             //验证交易是否合法
-            if( transactionValidator.checkTransaction(tx, null)){
+            if (transactionValidator.checkTransaction(tx, null)) {
                 //加入内存池，因为广播的Inv消息出去，其它对等体会回应getDatas获取交易详情，会从本机内存取出来发送
                 boolean success = TransactionCache.getInstace().add(tx);
                 Message message = new Message();
@@ -505,28 +507,28 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
             if (null != depositAccountList && depositAccountList.size() > 0) {
                 data.put("size", deposits.getDepositAccounts().size());
-                Coin totalCoin  = Coin.ZERO;
-                Coin minCoin  =Coin.ZERO;
-                Coin maxCoin  =Coin.ZERO;
-                for(DepositAccount depositAccount :depositAccountList){
-                    Coin coin  = depositAccount.getAmount();
-                    if(minCoin.isGreaterThan(coin)||minCoin.isZero()){
-                        minCoin=coin;
+                Coin totalCoin = Coin.ZERO;
+                Coin minCoin = Coin.ZERO;
+                Coin maxCoin = Coin.ZERO;
+                for (DepositAccount depositAccount : depositAccountList) {
+                    Coin coin = depositAccount.getAmount();
+                    if (minCoin.isGreaterThan(coin) || minCoin.isZero()) {
+                        minCoin = coin;
                     }
-                    if(maxCoin.isLessThan(coin)){
-                        maxCoin=coin;
+                    if (maxCoin.isLessThan(coin)) {
+                        maxCoin = coin;
                     }
-                    totalCoin =totalCoin.add(coin);
+                    totalCoin = totalCoin.add(coin);
                 }
 
-                data.put("totalCoin",ArithUtils.div(totalCoin.getValue()+"","100000000",8)  );
-                data.put("minCoin",ArithUtils.div(minCoin.getValue()+"","100000000",8)  );
-                data.put("maxCoin",ArithUtils.div(maxCoin.getValue()+"","100000000",8)  );
+                data.put("totalCoin", ArithUtils.div(totalCoin.getValue() + "", "100000000", 8));
+                data.put("minCoin", ArithUtils.div(minCoin.getValue() + "", "100000000", 8));
+                data.put("maxCoin", ArithUtils.div(maxCoin.getValue() + "", "100000000", 8));
             } else {
                 data.put("size", 0);
-                data.put("totalCoin",0);
-                data.put("minCoin",0 );
-                data.put("maxCoin",0 );
+                data.put("totalCoin", 0);
+                data.put("minCoin", 0);
+                data.put("maxCoin", 0);
             }
             dataList.add(data);
         }
@@ -598,7 +600,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 }
             }
             //当前余额可用余额
-            long balance =Long.parseLong(ArithUtils.div(account.getAddress().getBalance().value+"","100000000",8))  ;
+            long balance = Long.parseLong(ArithUtils.div(account.getAddress().getBalance().value + "", "100000000", 8));
             if (ArithUtils.compareStr(balance + "", money) < 0) {
                 resp.put("retCode", "1");
                 resp.put("message", "余额不足");
@@ -617,7 +619,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     //大于最低的账户的金额则
                     Transaction regTx = createRegConsensus(money, account, address, nodeAddr.getHash160());
                     verifyAndSendMsg(account, regTx);
-                    Transaction remTx = createRemConsensus(depositAccount,null);
+                    Transaction remTx = createRemConsensus(depositAccount, null);
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("isActive", Configure.PASSIVE_EXIT);
                     jsonObject.put("nodeAddress", nodeAddr.getHash160());
@@ -702,13 +704,13 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             }
             Address nodeAddr = Address.fromBase58(network, nodeAddress);
             Deposits deposits = getDeposits(nodeAddr.getHash160());
-            String hash160 =Base58.encode( account.getAddress().getHash160());
+            String hash160 = Base58.encode(account.getAddress().getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
             for (DepositAccount depositAccount : depositAccountList) {
-               String test =Base58.encode(depositAccount.getAddress()) ;
+                String test = Base58.encode(depositAccount.getAddress());
                 boolean is = hash160.equals(test);
                 if (is) {
-                    Transaction remTx = createRemConsensus(depositAccount,account);
+                    Transaction remTx = createRemConsensus(depositAccount, account);
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("isActive", Configure.VOLUNTARILY_EXIT);
                     jsonObject.put("nodeAddress", nodeAddr.getHash160());
@@ -729,40 +731,89 @@ public class TransferAccountServiceImpl implements TransferAccountService {
 
     @Override
     public JSONObject searchAllTransfer() {
-        List<byte[]> hashs =   AccountStorage.get().getAccountHash160s();
-        Map<byte[],List<TransactionStore>> txMaps = new HashMap<>();
+        List<byte[]> hashs = AccountStorage.get().getAccountHash160s();
+        Map<byte[], List<TransactionStore>> txMaps = new HashMap<>();
         List<TransactionStore> txList = transactionStorage.getMyTxList();
-        for(TransactionStore transactionStore : txList){
+        for (TransactionStore transactionStore : txList) {
             Transaction tx = transactionStore.getTransaction();
-            List<TransactionOutput> outputs = tx.getOutputs();
-            for (int i = 0; i < outputs.size(); i++) {
-                TransactionOutput output = outputs.get(i);
-                Script script = output.getScript();
-                for (byte[] hash160 : hashs) {
-                    if(Arrays.equals(script.getChunks().get(2).data, hash160)) {
-                        if(txMaps.containsKey(hash160)){
-                            txMaps.get(hash160).add(transactionStore);
-                        }else{
-                            List<TransactionStore> transactionStores = new ArrayList<>();
-                            transactionStores.add(transactionStore);
-                            txMaps.put(hash160,transactionStores);
+            if(tx.getType()!=Definition.TYPE_COINBASE){
+                List<TransactionOutput> outputs = tx.getOutputs();
+                for (int i = 0; i < outputs.size(); i++) {
+                    TransactionOutput output = outputs.get(i);
+                    Script script = output.getScript();
+                    for (byte[] hash160 : hashs) {
+                        if (Arrays.equals(script.getChunks().get(2).data, hash160)) {
+                            if (txMaps.containsKey(hash160)) {
+                                txMaps.get(hash160).add(transactionStore);
+                            } else {
+                                List<TransactionStore> transactionStores = new ArrayList<>();
+                                transactionStores.add(transactionStore);
+                                txMaps.put(hash160, transactionStores);
+                            }
                         }
                     }
                 }
             }
         }
         JSONObject resp = new JSONObject();
-        for(byte[] hash :hashs){
+        for (byte[] hash : hashs) {
             List<TransactionStore> transactionStores = txMaps.get(hash);
-            Account account= AccountStorage.get().getAccountByAddress(hash);
-            resp.put(account.getAddress().getBase58(),transactionStores);
+            Account account = AccountStorage.get().getAccountByAddress(hash);
+            List<TransactionInput> allInput = new ArrayList<>();
+            List<TransactionOutput> allOutput = new ArrayList<>();
+            for (TransactionStore transactionStore : transactionStores) {
+                List<TransactionInput> inputs = transactionStore.getTransaction().getInputs();
+                List<TransactionOutput> outputs = transactionStore.getTransaction().getOutputs();
+                allInput.addAll(BlockStorage.get().findTxInputsIsMine(inputs, hash));
+                allOutput.addAll(BlockStorage.get().findTxOutputIsMine(outputs, hash, transactionStore.getTransaction().getType()));
+            }
+            List<TxMine> txMines = new ArrayList<>();
+            for (TransactionInput input : allInput) {
+                TxMine txMine = new TxMine();
+                txMine.setInOut(1);
+                txMine.setTime(input.getParent().getTime());
+                List<TransactionOutput> transactionOutputs = input.getFroms();
+                long all = 0;
+                for (TransactionOutput transactionOutput : transactionOutputs) {
+                    all = all + transactionOutput.getValue();
+                }
+                txMine.setMoney(all / 100000000);
+                List<TransactionOutput> transactionOutputList = input.getParent().getOutputs();
+                String address = null;
+                for (TransactionOutput transactionOutput : transactionOutputList) {
+                    if (!Arrays.equals(transactionOutput.getScript().getChunks().get(2).data, hash)) {
+                        address = Address.fromP2PKHash(MainNetworkParams.get(), MainNetworkParams.get().getSystemAccountVersion(), transactionOutput.getScript().getChunks().get(2).data).getBase58();
+                    }
+                }
+                txMine.setAddress(address);
+                txMines.add(txMine);
+            }
+            for (TransactionOutput output : allOutput) {
+                TxMine txMine = new TxMine();
+                txMine.setInOut(0);
+                txMine.setMoney(output.getValue() / 100000000);
+                txMine.setTime(output.getParent().getTime());
+                txMine.setAddress(account.getAddress().getBase58());
+                txMines.add(txMine);
+            }
+            Collections.sort(txMines, new Comparator<TxMine>() {
+                @Override
+                public int compare(TxMine o1, TxMine o2) {
+                    if (o1.getTime() > o2.getTime()) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                }
+            });
+            resp.put(account.getAddress().getBase58(), txMines);
         }
         return resp;
     }
 
 
     public DepositAccount checkAmtLowest(String amt, List<DepositAccount> depositAccounts) {
-        long money = Long.parseLong(ArithUtils.mul(amt,"100000000",0));
+        long money = Long.parseLong(ArithUtils.mul(amt, "100000000", 0));
         DepositAccount lowest = null;
         for (DepositAccount depositAccount : depositAccounts) {
             if (money > depositAccount.getAmount().value) {
@@ -818,7 +869,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         tx.addInput(input);
 
         //交易输出
-        tx.addOutput(pay, Definition.LOCKTIME_THRESHOLD-1, Address.fromBase58(network, address));
+        tx.addOutput(pay, Definition.LOCKTIME_THRESHOLD - 1, Address.fromBase58(network, address));
         //是否找零(
         if (totalInputCoin.compareTo(pay) > 0) {
             tx.addOutput(totalInputCoin.subtract(pay), account.getAddress());
@@ -838,7 +889,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     }
 
 
-    public Transaction createRemConsensus(DepositAccount depositAccount,Account account) {
+    public Transaction createRemConsensus(DepositAccount depositAccount, Account account) {
         Transaction remTx = new Transaction(MainNetworkParams.get());
         remTx.setVersion(Definition.VERSION);
         remTx.setType(Definition.TYPE_REM_CONSENSUS);
@@ -846,17 +897,17 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         List<Sha256Hash> txhashs = depositAccount.getTxHash();
 
         TransactionInput input = new TransactionInput();
-        for(Sha256Hash txhash :txhashs){
+        for (Sha256Hash txhash : txhashs) {
             Transaction tx = transactionStorage.getTransaction(txhash).getTransaction();
             input.addFrom(tx.getOutput(0));
-            totalInputCoin=  totalInputCoin.add(Coin.valueOf(tx.getOutput(0).getValue()));
+            totalInputCoin = totalInputCoin.add(Coin.valueOf(tx.getOutput(0).getValue()));
         }
         input.setScriptBytes(new byte[0]);
         remTx.addInput(input);
-        if(null ==account){
-            Address  address = new Address(MainNetworkParams.get(),depositAccount.getAddress());
+        if (null == account) {
+            Address address = new Address(MainNetworkParams.get(), depositAccount.getAddress());
             remTx.addOutput(totalInputCoin, address);
-        }else{
+        } else {
             remTx.addOutput(totalInputCoin, account.getAddress());
         }
         return remTx;

@@ -64,43 +64,49 @@ public class BlockArrivedValidator implements MessageValidator {
         boolean result = false;
         BlockStore blockStore = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), BlockStore.class);
         Block block = blockStore.getBlock();
-        log.info("准备验证存储区块时间：{},区块高度：{}",NtpTimeService.currentTimeSeconds(),block.getBlockHeader().getHeight());
         long height = block.getHeight();
-        boolean checkRepeat = CacheManager.get().checkRepeat(("block_height:" + height), Configure.BLOCK_GEN_TIME);
-        if (checkRepeat) {//说明本节点接收到过同样的消息,则直接将该消息扔掉
-            return false;
-        }
-        Sha256Hash prevBlock = block.getPreHash();//前一区块hash
-        byte[] preBlockBytes = storageService.get(prevBlock.getBytes());
-        if (preBlockBytes != null) {
-            BlockHeader blockHeader = new BlockHeader(MainNetworkParams.get(), preBlockBytes);
-            long preHeight = blockHeader.getHeight();
-            long nowHeight = block.getHeight();
-            if ((nowHeight - preHeight) == 1) {
-                result = true;
+        long nowHeight = MainNetworkParams.get().getBestBlockHeight();
+        log.info("准备验证存储区块时间：{},区块高度：{},本地区块高度：{}",NtpTimeService.currentTimeSeconds(),height,nowHeight);
+        if((height-nowHeight)==1){
+            boolean checkRepeat = CacheManager.get().checkRepeat(("block_height:" + height), Configure.BLOCK_GEN_TIME);
+            if (checkRepeat) {//说明本节点接收到过同样的消息,则直接将该消息扔掉
+                log.info("区块高度：{}的区块已经被接收过，直接抛弃",height);
+                return false;
             }
-        }else if(block.getHeight()==0){
-            return true;
-        }
+            Sha256Hash prevBlock = block.getPreHash();//前一区块hash
+            byte[] preBlockBytes = storageService.get(prevBlock.getBytes());
+            if (preBlockBytes != null) {
+                BlockHeader blockHeader = new BlockHeader(MainNetworkParams.get(), preBlockBytes);
+                long preHeight = blockHeader.getHeight();
+                if ((height - preHeight) == 1) {
+                    result = true;
+                }
+            }else if(block.getHeight()==0){
+                return true;
+            }
 
-        if (result) {//继续校验区块里面的每一条数据
-            block.verify();
-            block.verifyScript();
-            if (verifyBlock(block)) {
-                List<Transaction> data = block.getTxs();
-                for (Transaction datum : data) {
-                    MessageChannel nm = new MessageChannel();
-                    Message msg = new Message();
-                    msg.setContent(SerializationUtil.serializer(datum));
-                    nm.setMessage(msg);
-                    boolean check = transactionValidator.check(nm);
-                    if (!check) {
-                        log.info("区块中的交易信息校验失败...");
-                        result = false;
-                        break;
+            if (result) {//继续校验区块里面的每一条数据
+                block.verify();
+                block.verifyScript();
+                if (verifyBlock(block)) {
+                    List<Transaction> data = block.getTxs();
+                    for (Transaction datum : data) {
+                        MessageChannel nm = new MessageChannel();
+                        Message msg = new Message();
+                        msg.setContent(SerializationUtil.serializer(datum));
+                        nm.setMessage(msg);
+                        boolean check = transactionValidator.check(nm);
+                        if (!check) {
+                            log.info("区块中的交易信息校验失败...");
+                            result = false;
+                            break;
+                        }
                     }
                 }
             }
+        }else{
+            log.info("接受到的区块高度不一致！");
+            return false;
         }
         return result;
     }
