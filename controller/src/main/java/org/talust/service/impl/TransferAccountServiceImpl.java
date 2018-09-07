@@ -28,6 +28,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.spongycastle.crypto.tls.MACAlgorithm;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -40,6 +41,7 @@ import org.talust.common.exception.KeyCrypterException;
 import org.talust.common.model.*;
 import org.talust.common.tools.*;
 import org.talust.core.core.Definition;
+import org.talust.core.core.ECKey;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.core.SynBlock;
 import org.talust.core.data.TransactionCache;
@@ -588,7 +590,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             if (account.isEncrypted()) {
                 if (StringUtil.isNullOrEmpty(password)) {
                     resp.put("retCode", "1");
-                    resp.put("message", "输入钱包密码进行转账");
+                    resp.put("message", "输入钱包密码进行交易");
                     return resp;
                 } else {
                     boolean pswCorrect = this.decryptAccount(password, account);
@@ -691,7 +693,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             if (account.isEncrypted()) {
                 if (StringUtil.isNullOrEmpty(password)) {
                     resp.put("retCode", "1");
-                    resp.put("message", "输入钱包密码进行转账");
+                    resp.put("message", "输入钱包密码进行交易");
                     return resp;
                 } else {
                     boolean pswCorrect = this.decryptAccount(password, account);
@@ -736,7 +738,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         List<TransactionStore> txList = transactionStorage.getMyTxList();
         for (TransactionStore transactionStore : txList) {
             Transaction tx = transactionStore.getTransaction();
-            if(tx.getType()!=Definition.TYPE_COINBASE){
+            if (tx.getType() != Definition.TYPE_COINBASE) {
                 List<TransactionOutput> outputs = tx.getOutputs();
                 for (int i = 0; i < outputs.size(); i++) {
                     TransactionOutput output = outputs.get(i);
@@ -770,7 +772,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             List<TxMine> txMines = new ArrayList<>();
             for (TransactionInput input : allInput) {
                 TxMine txMine = new TxMine();
-                txMine.setInOut(1);
+                txMine.setInOut("in");
                 txMine.setTime(input.getParent().getTime());
                 List<TransactionOutput> transactionOutputs = input.getFroms();
                 long all = 0;
@@ -789,11 +791,13 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 txMines.add(txMine);
             }
             for (TransactionOutput output : allOutput) {
+                byte[] publicKey =  output.getParent().getInputs().get(0).getScriptSig().getChunks().get(1).data;
+               Address address =  Address.fromP2PKHash(MainNetworkParams.get(),MainNetworkParams.get().getSystemAccountVersion(), Utils.sha256hash160(publicKey));
                 TxMine txMine = new TxMine();
-                txMine.setInOut(0);
+                txMine.setInOut("out");
                 txMine.setMoney(output.getValue() / 100000000);
                 txMine.setTime(output.getParent().getTime());
-                txMine.setAddress(account.getAddress().getBase58());
+                txMine.setAddress(address.getBase58());
                 txMines.add(txMine);
             }
             Collections.sort(txMines, new Comparator<TxMine>() {
@@ -809,6 +813,11 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             resp.put(account.getAddress().getBase58(), txMines);
         }
         return resp;
+    }
+
+    @Override
+    public JSONObject searchAllCoinBaseTransfer() {
+        return null;
     }
 
 

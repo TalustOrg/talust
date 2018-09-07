@@ -44,8 +44,7 @@ import org.talust.core.storage.BlockStorage;
 import org.talust.core.storage.TransactionStorage;
 import org.talust.network.netty.ConnectionManager;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 @RestController
@@ -115,13 +114,16 @@ public class AccountController {
     @ApiOperation(value = "导入账户", notes = "导入账户")
     @PostMapping(value = "importAccountFile")
     JSONObject importAccountFile(@RequestParam String path) {
+        JSONObject resp = new JSONObject();
         //验证文件是否存在
         if (null == path) {
-            //路径为空
+            resp.put("retCode",1);
+            resp.put("msg","文件路径为空");
         }
         File file = new File(path);
         if (!file.exists()) {
-            //文件不存在
+            resp.put("retCode",1);
+            resp.put("msg","文件不存在");
         }
         try {
             String   content = FileUtil.fileToTxt(file);
@@ -134,9 +136,45 @@ public class AccountController {
                 log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            resp.put("retCode",1);
+            resp.put("msg","文件读写错误");
         }
-
-        return null;
+        resp.put("retCode",0);
+        resp.put("msg","账户文件导入成功");
+        return resp;
     }
+
+
+    @ApiOperation(value = "导出账户", notes = "导出账户")
+    @PostMapping(value = "outPutAccountFile")
+    JSONObject outPutAccountFile(@RequestParam String path,@RequestParam String address) {
+        JSONObject resp = new JSONObject();
+        try {
+            File file = new File(path);
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            String accPath = Configure.DATA_ACCOUNT + File.separator +address;
+            File oldFile = new File(accPath);
+            String content = FileUtil.fileToTxt(oldFile);
+            FileOutputStream fos = new FileOutputStream(file);
+            JSONObject fileJson = JSONObject.parseObject(content);
+            fos.write(fileJson.toJSONString().getBytes());
+            fos.flush();
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                }
+            }
+        } catch (IOException e) {
+            resp.put("retCode",1);
+            resp.put("msg","文件下载异常，请重试");
+        }
+        resp.put("retCode",0);
+        resp.put("msg","文件下载成功");
+        return resp;
+    }
+
+
 }

@@ -34,6 +34,7 @@ import org.talust.core.transaction.TransactionSignature;
 import org.talust.common.crypto.Utils;
 import org.talust.core.model.Address;
 
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -275,7 +276,8 @@ public class ScriptBuilder {
     public static Script createInputScript(TransactionSignature signature, ECKey pubKey) {
         byte[] pubkeyBytes = pubKey.getPubKey();
         byte[] sigBytes = signature != null ? signature.encode() : new byte[]{};
-        return new ScriptBuilder().data(sigBytes).data(pubkeyBytes).build();
+        Script script = new ScriptBuilder().data(sigBytes).data(pubkeyBytes).build();
+        return script;
     }
 
     /**

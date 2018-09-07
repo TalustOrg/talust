@@ -229,13 +229,29 @@ public class TransferAccountsController {
         return isOk;
     }
 
-    @ApiOperation(value = "查询所有交易", notes = "查询所有地址下的所有交易记录")
-    @PostMapping(value = "searchTransactions")
-    JSONObject searchAllTransfer(){
+    @ApiOperation(value = "查询所有非挖矿交易", notes = "查询所有地址下的所有非挖矿交易记录")
+    @PostMapping(value = "searchTransactionsOutOfCoinBase")
+    JSONObject searchTransactionsOutOfCoinBase(){
         JSONObject resp =  new JSONObject();
         try{
             resp.put("retCode", "0");
             JSONObject data =transferAccountService.searchAllTransfer();
+            resp.put("data",data);
+        }catch (Exception e ){
+            resp.put("retCode", "1");
+            resp.put("message", "数据异常");
+        }
+        return resp;
+    }
+
+
+    @ApiOperation(value = "查询所有挖矿交易", notes = "查询所有地址下的所有挖矿交易记录")
+    @PostMapping(value = "searchTransactionsOfCoinBase")
+    JSONObject searchTransactionsOfCoinBase(){
+        JSONObject resp =  new JSONObject();
+        try{
+            resp.put("retCode", "0");
+            JSONObject data =transferAccountService.searchAllCoinBaseTransfer();
             resp.put("data",data);
         }catch (Exception e ){
             resp.put("retCode", "1");
