@@ -48,7 +48,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class AccountStorage {
 
     private Account account;
-    private List<Account> accountList = new ArrayList<Account>();
+    private Map<String ,Account> accountMap = new HashMap<>();
     private MainNetworkParams network = MainNetworkParams.get();
     private static AccountStorage instance = new AccountStorage();
 
@@ -111,7 +111,7 @@ public class AccountStorage {
             }
         }
         account.setEcKey(key);
-        accountList.add(account);
+        accountMap.put(account.getAddress().getBase58(),account);
         return address;
     }
 
@@ -137,10 +137,10 @@ public class AccountStorage {
                         //说明已经有账户信息
                         if (content != null && content.length() > 0) {
                             JSONObject fileJson = JSONObject.parseObject(content);
-                            account = Account.parse(fileJson.getBytes("data"), network);
+                            account = Account.parse(fileJson.getBytes("data"),0, network);
                             try {
                                 account.verify();
-                                accountList.add(account);
+                                accountMap.put(account.getAddress().getBase58(),account);
                                 TransactionStorage.get().addAddress(account.getAddress().getHash160());
                             } catch (Exception e) {
                                 log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
@@ -148,11 +148,6 @@ public class AccountStorage {
                         }
                     }
                 }
-                //加载账户信息
-                List<byte[]> hash160s = getAccountHash160s();
-                //或许重新加载账户相关的交易记录
-                maybeReLoadTransaction(hash160s);
-                loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
             } catch (Exception e) {
                 log.warn("账户文件路径读取错误");
             }
@@ -174,17 +169,12 @@ public class AccountStorage {
                 account = Account.parse(fileJson.getBytes("data"), 0, network);
                 try {
                     account.verify();
-                    accountList.add(account);
+                    accountMap.put(account.getAddress().getBase58(),account);
                     TransactionStorage.get().addAddress(account.getAddress().getHash160());
                 } catch (Exception e) {
                     log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
                 }
             }
-            //加载账户信息
-            List<byte[]> hash160s = getAccountHash160s();
-            //或许重新加载账户相关的交易记录
-            maybeReLoadTransaction(hash160s);
-            loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -203,10 +193,12 @@ public class AccountStorage {
             //说明已经有账户信息
             if (content != null && content.length() > 0) {
                 JSONObject fileJson = JSONObject.parseObject(content);
-                account = Account.parse(fileJson.getBytes("data"), network);
+                account = Account.parse(fileJson.getBytes("data"),0, network);
                 try {
                     account.verify();
-                    accountList.remove(account);
+                    log.info("移除账户前有{}个账户",accountMap.size());
+                    accountMap.remove(account.getAddress().getBase58());
+                    log.info("移除账户后有{}个账户",accountMap.size());
                     TransactionStorage.get().removeAddress(account.getAddress().getHash160());
                 } catch (Exception e) {
                     log.warn("账户验证出错", account.getAddress().getBase58(), e);
@@ -215,11 +207,6 @@ public class AccountStorage {
                     return resp;
                 }
             }
-            //加载账户信息
-            List<byte[]> hash160s = getAccountHash160s();
-            //或许重新加载账户相关的交易记录
-            maybeReLoadTransaction(hash160s);
-            loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
             boolean result = file.delete();
         } catch (IOException e) {
             e.printStackTrace();
@@ -302,7 +289,7 @@ public class AccountStorage {
      * 文件导入账户
      */
     public boolean importAccountFile(Account account) {
-        accountList.add(account);
+        accountMap.put(account.getAddress().getBase58(),account);
         //回写到钱包文件
         try {
             String accPath = Configure.DATA_ACCOUNT + File.separator + account.getAddress().getBase58();
@@ -322,11 +309,6 @@ public class AccountStorage {
             e.printStackTrace();
         }
         TransactionStorage.get().addAddress(account.getAddress().getHash160());
-        //加载账户信息
-        List<byte[]> hash160s = getAccountHash160s();
-        //或许重新加载账户相关的交易记录
-        maybeReLoadTransaction(hash160s);
-        loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
         return true;
     }
 
@@ -337,7 +319,7 @@ public class AccountStorage {
      * @return Account
      */
     public Account getAccount(String address) {
-        for (Account account : accountList) {
+        for (Account account : accountMap.values()) {
             if (account.getAddress().getBase58().equals(address)) {
                 return account;
             }
@@ -351,10 +333,10 @@ public class AccountStorage {
      * @return Account
      */
     public Account getDefaultAccount() {
-        if (accountList == null || accountList.size() == 0) {
+        if (accountMap == null || accountMap.size() == 0) {
             return null;
         }
-        return accountList.get(0);
+        return accountMap.values().iterator().next();
     }
 
     /**
@@ -380,14 +362,14 @@ public class AccountStorage {
     public boolean reloadCoin() {
         List<byte[]> hash160s = getAccountHash160s();
         boolean ending = false;
-        if (TransactionStorage.get().reloadTransaction(hash160s)) {
+        if (maybeReLoadTransaction(hash160s)) {
             ending = loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
         }
         return ending;
     }
 
     //是否重新加载账户交易
-    private void maybeReLoadTransaction(List<byte[]> hash160s) {
+    private boolean maybeReLoadTransaction(List<byte[]> hash160s) {
         //判断上次加载的和本次的账户是否完全一致
         List<byte[]> hash160sStore = TransactionStorage.get().getAddresses();
 
@@ -409,16 +391,16 @@ public class AccountStorage {
                 }
             }
             if (fullSame) {
-                return;
+                return true;
             }
         }
-        TransactionStorage.get().reloadTransaction(hash160s);
+       return  TransactionStorage.get().reloadTransaction(hash160s);
     }
 
     //获取账户对应的has160
     public List<byte[]> getAccountHash160s() {
         CopyOnWriteArrayList<byte[]> hash160s = new CopyOnWriteArrayList<byte[]>();
-        for (Account account : accountList) {
+        for (Account account : accountMap.values()) {
             Address address = account.getAddress();
             byte[] hash160 = address.getHash160();
 
@@ -433,7 +415,7 @@ public class AccountStorage {
     public boolean loadBalanceFromChainstateAndUnconfirmedTransaction(List<byte[]> hash160s) {
 
         try {
-            for (Account account : accountList) {
+            for (Account account : accountMap.values()) {
                 Address address = account.getAddress();
                 loadAddressBalance(address);
             }
@@ -482,21 +464,20 @@ public class AccountStorage {
         this.account = account;
     }
 
-    public List<Account> getAccountList() {
-        return accountList;
+    public Map<String, Account> getAccountMap() {
+        return accountMap;
     }
 
-    public void setAccountList(List<Account> accountList) {
-        this.accountList = accountList;
+    public void setAccountMap(Map<String, Account> accountMap) {
+        this.accountMap = accountMap;
     }
-
 
     /**
      * @return
      */
 
     public Account getAccountByAddress(String address) {
-        for (Account account : accountList) {
+        for (Account account : accountMap.values()) {
             if (account.getAddress().getBase58().equals(address)) {
                 return account;
             }
@@ -505,8 +486,8 @@ public class AccountStorage {
     }
 
     public Account getAccountByAddress(byte[] address) {
-        for (Account account : accountList) {
-            if (account.getAddress().getHash160().equals(address)) {
+        for (Account account : accountMap.values()) {
+            if (  Arrays.equals( account.getAddress().getHash160(),address)) {
                 return account;
             }
         }

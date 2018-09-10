@@ -45,6 +45,7 @@ import org.talust.core.storage.TransactionStorage;
 import org.talust.network.netty.ConnectionManager;
 
 import java.io.*;
+import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -91,17 +92,13 @@ public class AccountController {
                 return jsonObject;
             }
         }
-        List<Account> accountList = AccountStorage.get().getAccountList();
+        Collection<Account> accountList =  AccountStorage.get().getAccountMap().values();
         if (null != accountList) {
             for (Account account : accountList) {
                 if (AccountStorage.get().reloadCoin()) {
                     JSONObject data = new JSONObject();
-                    long value = TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[0].value;
-                    long lockValue = TransactionStorage.get().getBalanceAndUnconfirmedBalance(account.getAddress().getHash160())[1].value;
-                    account.getAddress().setBalance(Coin.valueOf(value));
-                    account.getAddress().setUnconfirmedBalance(Coin.valueOf(lockValue));
-                    data.put("value", ArithUtils.div(value + "", "100000000", 8));
-                    data.put("lockValue", ArithUtils.div(lockValue + "", "100000000", 8));
+                    data.put("value", ArithUtils.div(account.getAddress().getBalance() + "", "100000000", 8));
+                    data.put("lockValue", ArithUtils.div(account.getAddress().getUnconfirmedBalance() + "", "100000000", 8));
                     jsonObject.put(account.getAddress().getBase58(), data);
                 }
             }

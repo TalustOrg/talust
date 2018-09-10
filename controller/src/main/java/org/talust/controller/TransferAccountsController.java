@@ -64,7 +64,7 @@ public class TransferAccountsController {
             return resp;
         }
         try {
-            money  = ArithUtils.mul(money, "1", 8);
+            money = ArithUtils.mul(money, "1", 8);
         } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "金额不正确");
@@ -77,7 +77,7 @@ public class TransferAccountsController {
             return resp;
         }
         try {
-           Base58.decodeChecked(toAddress);
+            Base58.decodeChecked(toAddress);
         } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "目标账户验证失败");
@@ -97,7 +97,7 @@ public class TransferAccountsController {
                 }
             }
         }
-        JSONObject isOk = transferAccountService.transfer(toAddress,money,address,password);
+        JSONObject isOk = transferAccountService.transfer(toAddress, money, address, password);
         return isOk;
     }
 
@@ -105,35 +105,35 @@ public class TransferAccountsController {
     @PostMapping(value = "searchOneSuperNodeDeposite")
     JSONObject searchOneSuperNodeDeposite(@RequestParam String address) {
         JSONObject resp = new JSONObject();
-        Address superNode =  Address.fromBase58(MainNetworkParams.get(),address);
-        Deposits deposits =  transferAccountService.getDeposits(superNode.getHash160());
+        Address superNode = Address.fromBase58(MainNetworkParams.get(), address);
+        Deposits deposits = transferAccountService.getDeposits(superNode.getHash160());
         List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-        if(null==depositAccountList ||depositAccountList.size()==0){
+        if (null == depositAccountList || depositAccountList.size() == 0) {
             resp.put("retCode", "0");
             resp.put("message", "暂无普通节点参与该节点的共识");
-        }else{
+        } else {
             resp.put("retCode", "0");
-            resp.put("message", "现有"+depositAccountList.size()+"普通节点参与该节点的共识");
+            resp.put("message", "现有" + depositAccountList.size() + "普通节点参与该节点的共识");
             JSONArray dataList = new JSONArray();
-            for(int i = 0 ; i <  depositAccountList.size() ; i++){
-                JSONObject  data =  new JSONObject();
-                data.put("id",i);
-                data.put("amout",depositAccountList.get(i).getAmount().value);
+            for (int i = 0; i < depositAccountList.size(); i++) {
+                JSONObject data = new JSONObject();
+                data.put("id", i);
+                data.put("amout", depositAccountList.get(i).getAmount().value);
                 dataList.add(data);
             }
         }
-        return resp ;
+        return resp;
     }
 
     @ApiOperation(value = "查询储蓄状态", notes = "查询全部节点的储蓄状态")
     @PostMapping(value = "searchAllSuperNodeDeposite")
     JSONObject searchAllSuperNodeDeposite() {
-        JSONObject resp =  new JSONObject();
-        try{
+        JSONObject resp = new JSONObject();
+        try {
             resp.put("retCode", "0");
-            JSONArray data =transferAccountService.getAllDeposits();
-            resp.put("data",data);
-        }catch (Exception e ){
+            JSONArray data = transferAccountService.getAllDeposits();
+            resp.put("data", data);
+        } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "数据异常");
         }
@@ -142,7 +142,7 @@ public class TransferAccountsController {
 
     @ApiOperation(value = "加入共识", notes = "加入共识")
     @PostMapping(value = "joinSuperNodeDeposite")
-    JSONObject joinSuperNodeDeposite(@RequestParam String NodeAddress,@RequestParam String money ,@RequestParam String password,@RequestParam String address) {
+    JSONObject joinSuperNodeDeposite(@RequestParam String NodeAddress, @RequestParam String money, @RequestParam String password, @RequestParam String address) {
         JSONObject resp = new JSONObject();
         if (StringUtil.isNullOrEmpty(NodeAddress) || StringUtil.isNullOrEmpty(money)) {
             resp.put("retCode", "1");
@@ -150,7 +150,7 @@ public class TransferAccountsController {
             return resp;
         }
         try {
-            money  = ArithUtils.mul(money, "1", 8);
+            money = ArithUtils.mul(money, "1", 8);
         } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "金额不正确");
@@ -184,13 +184,13 @@ public class TransferAccountsController {
             }
         }
 
-        JSONObject isOk = transferAccountService.consensusJoin(NodeAddress,money,address,password);
+        JSONObject isOk = transferAccountService.consensusJoin(NodeAddress, money, address, password);
         return isOk;
     }
 
     @ApiOperation(value = "退出共识", notes = "退出共识")
     @PostMapping(value = "leaveSuperNodeDeposite")
-    JSONObject leaveSuperNodeDeposite(@RequestParam String NodeAddress ,@RequestParam String password,@RequestParam String address) {
+    JSONObject leaveSuperNodeDeposite(@RequestParam String NodeAddress, @RequestParam String password, @RequestParam String address) {
         JSONObject resp = new JSONObject();
         if (StringUtil.isNullOrEmpty(NodeAddress)) {
             resp.put("retCode", "1");
@@ -225,19 +225,19 @@ public class TransferAccountsController {
             }
         }
 
-        JSONObject isOk = transferAccountService.consensusLeave(NodeAddress,address,password);
+        JSONObject isOk = transferAccountService.consensusLeave(NodeAddress, address, password);
         return isOk;
     }
 
     @ApiOperation(value = "查询所有非挖矿交易", notes = "查询所有地址下的所有非挖矿交易记录")
     @PostMapping(value = "searchTransactionsOutOfCoinBase")
-    JSONObject searchTransactionsOutOfCoinBase(@RequestParam String address){
-        JSONObject resp =  new JSONObject();
-        try{
+    JSONObject searchTransactionsOutOfCoinBase(@RequestParam String address) {
+        JSONObject resp = new JSONObject();
+        try {
             resp.put("retCode", "0");
-            JSONObject data =transferAccountService.searchAllTransfer(address);
-            resp.put("data",data);
-        }catch (Exception e ){
+            JSONObject data = transferAccountService.searchAllTransfer(address);
+            resp.put("data", data);
+        } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "数据异常");
         }
@@ -247,13 +247,13 @@ public class TransferAccountsController {
 
     @ApiOperation(value = "查询所有挖矿交易", notes = "查询所有地址下的所有挖矿交易记录")
     @PostMapping(value = "searchTransactionsOfCoinBase")
-    JSONObject searchTransactionsOfCoinBase(@RequestParam String address ,@RequestParam String date  ){
-        JSONObject resp =  new JSONObject();
-        try{
+    JSONObject searchTransactionsOfCoinBase(@RequestParam String address, @RequestParam String date) {
+        JSONObject resp = new JSONObject();
+        try {
             resp.put("retCode", "0");
-            JSONObject data =transferAccountService.searchAllCoinBaseTransfer( address, date);
-            resp.put("data",data);
-        }catch (Exception e ){
+            JSONObject data = transferAccountService.searchAllCoinBaseTransfer(address, date);
+            resp.put("data", data);
+        } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("message", "数据异常");
         }
@@ -263,13 +263,19 @@ public class TransferAccountsController {
 
     @ApiOperation(value = "查询当前账户的共识情况", notes = "查询当前账户的共识情况")
     @PostMapping(value = "searchAddressConsensusStatus")
-    JSONObject searchAddressConsensusStatus(@RequestParam String address ){
-        JSONObject resp =  new JSONObject();
-        try{
+    JSONObject searchAddressConsensusStatus(@RequestParam String address) {
+        JSONObject resp = new JSONObject();
+        try {
             resp.put("retCode", "0");
-            JSONObject data =transferAccountService.searchAddressConsensusStatus( address);
-            resp.put("data",data);
-        }catch (Exception e ){
+            JSONObject data = transferAccountService.searchAddressConsensusStatus(address);
+            if (data.size() == 0) {
+                resp.put("data", "无数据");
+            } else {
+                resp.put("data", data);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
             resp.put("retCode", "1");
             resp.put("message", "数据异常");
         }

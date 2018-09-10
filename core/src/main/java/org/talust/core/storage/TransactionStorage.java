@@ -47,11 +47,15 @@ import org.talust.storage.BaseStoreProvider;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 //交易存储，存储于自身账户有关的交易
 @Slf4j
 public class TransactionStorage extends BaseStoreProvider {
     private static TransactionStorage instance = new TransactionStorage();
+
+    private final static Lock txLock = new ReentrantLock();
 
     private TransactionStorage() {
         this(Configure.DATA_TRANSACTION);
@@ -70,6 +74,7 @@ public class TransactionStorage extends BaseStoreProvider {
     public TransactionStorage(String dir) {
        super(dir);
     }
+
 
 
     //存放交易记录账号的key
@@ -428,9 +433,7 @@ public class TransactionStorage extends BaseStoreProvider {
     }
 
     public boolean reloadTransaction(List<byte[]> hash160s) {
-
         clean();
-
         //写入新列表
         byte[] addressesBytes = new byte[hash160s.size() * Address.LENGTH];
         for (int i = 0; i < hash160s.size(); i++) {
@@ -446,7 +449,6 @@ public class TransactionStorage extends BaseStoreProvider {
 
         for (TransactionStore txs : myTxList) {
             put(txs.getTransaction().getHash().getBytes(), txs.baseSerialize());
-
             //是否未花费的交易
             Transaction tx = txs.getTransaction();
             if(tx.isPaymentTransaction()) {

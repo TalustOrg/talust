@@ -526,7 +526,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     totalCoin = totalCoin.add(coin);
                 }
 
-                data.put("totalCoin", ArithUtils.div(totalCoin.getValue() + "", "100000000", 8));
+                data.put("totalCoin", totalCoin.getValue());
                 data.put("minCoin", ArithUtils.div(minCoin.getValue() + "", "100000000", 8));
                 data.put("maxCoin", ArithUtils.div(maxCoin.getValue() + "", "100000000", 8));
             } else {
@@ -1008,7 +1008,6 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                         joinDepos = depositAccount;
                     }
                 }
-                data.put("totalCoin",totalCoin);
                 if(joinDepos!=null){
                     int rate = 1 ;
                     for(DepositAccount depositAccount:depositAccountList){
@@ -1017,17 +1016,18 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                         }
                     }
                     data.put("rate",rate);
-                }
-                List<Sha256Hash> txHashs = joinDepos.getTxHash();
-                if(txHashs!=null){
-                    long lastTime = 0;
-                    for(Sha256Hash txHash :txHashs){
-                        TransactionStore tx = transactionStorage.getTransaction(txHash);
-                        if(lastTime==0||lastTime<tx.getTransaction().getTime()){
-                            lastTime= tx.getTransaction().getTime();
+                    List<Sha256Hash> txHashs = joinDepos.getTxHash();
+                    if(txHashs!=null){
+                        long lastTime = 0;
+                        for(Sha256Hash txHash :txHashs){
+                            TransactionStore tx = transactionStorage.getTransaction(txHash);
+                            if(lastTime==0||lastTime<tx.getTransaction().getTime()){
+                                lastTime= tx.getTransaction().getTime();
+                            }
                         }
+                        data.put("time",lastTime);
                     }
-                    data.put("time",lastTime);
+                    data.put("totalCoin",totalCoin.value);
                 }
             }
             if(data!=null&&data.size()>0){
