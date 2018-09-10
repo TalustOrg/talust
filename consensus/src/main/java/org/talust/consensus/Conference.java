@@ -59,6 +59,7 @@ public class Conference {
                     if (nm != null) {
                         byte[] content = nm.getMessage().getContent();
                         if (content != null) {//ip
+                            log.info("节点返回master节点IP为：{}"+new String(content));
                             return new String(content);
                         }
                     }
@@ -107,6 +108,7 @@ public class Conference {
                 Integer value = next.getValue();
                 if (value > needOkNumber) {
                     master = ConnectionManager.get().getSuperNodeByIp(next.getKey());
+                    log.info("当前出块节点IP 为：{}",master.getIp());
                     ConnectionManager.get().setMasterIp(master.getIp());
                     CacheManager.get().setCurrentBlockGenIp(master.getIp());
                     return master;
@@ -116,6 +118,7 @@ public class Conference {
             boolean superNode = ConnectionManager.get().superNode;
             if (superNode) {//如果当前节点是超级节点,则启动共识机制
                 master = ConnectionManager.get().getSuperNodeByIp(ConnectionManager.get().getSelfIp());
+                log.info("当前出块节点IP 为：{}",master.getIp());
                 ConnectionManager.get().setMasterIp(master.getIp());
                 CacheManager.get().setCurrentBlockGenIp(master.getIp());
                 return master;
@@ -130,7 +133,10 @@ public class Conference {
     public void changeMaster() {
         lock.writeLock().lock();
         try {
+            log.info("确认空指针位置！");
+            log.info("确认空指针位置！master ：{}",master.getIp());
             String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();
+            log.info("确认空指针位置！currentBlockGenIp ：{}",currentBlockGenIp);
             if (this.master.getIp().equals(currentBlockGenIp)) {//说明需要改变master节点
                 Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
                 List<SuperNode> sns = new ArrayList<>();

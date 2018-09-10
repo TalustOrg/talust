@@ -544,6 +544,18 @@ public class TransactionStorage extends BaseStoreProvider {
         return true;
     }
 
+    public boolean removeAddress(byte[] hash160){
+        addresses.remove(hash160);
+        //更新列表
+        byte[] addressesByte = new byte[addresses.size() * Address.LENGTH];
+        for (int i = 0; i < addresses.size(); i++) {
+            System.arraycopy(addresses.get(i), 0, addressesByte, i * Address.LENGTH, Address.LENGTH);
+        }
+        put(ADDRESSES_KEY, addressesByte);
+        return true;
+    }
+
+
     public boolean addAddress(List<Account> newAccoountList){
         for(int i=0 ; i<newAccoountList.size(); i++){
             addresses.add(newAccoountList.get(i).getAddress().getHash160());

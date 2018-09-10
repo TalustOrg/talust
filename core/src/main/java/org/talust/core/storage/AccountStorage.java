@@ -190,6 +190,45 @@ public class AccountStorage {
         }
     }
 
+    public JSONObject removeAccount(String address) {
+        JSONObject resp = new JSONObject();
+        try {
+            String accPath = Configure.DATA_ACCOUNT + File.separator + address;
+            File file = new File(accPath);
+            if (!file.exists()) {
+                resp.put("retCode", 1);
+                resp.put("msg", "账户文件异常");
+            }
+            String  content = FileUtil.fileToTxt(file);
+            //说明已经有账户信息
+            if (content != null && content.length() > 0) {
+                JSONObject fileJson = JSONObject.parseObject(content);
+                account = Account.parse(fileJson.getBytes("data"), network);
+                try {
+                    account.verify();
+                    accountList.remove(account);
+                    TransactionStorage.get().removeAddress(account.getAddress().getHash160());
+                } catch (Exception e) {
+                    log.warn("账户验证出错", account.getAddress().getBase58(), e);
+                    resp.put("retCode", 1);
+                    resp.put("msg", "账户验证出错");
+                    return resp;
+                }
+            }
+            //加载账户信息
+            List<byte[]> hash160s = getAccountHash160s();
+            //或许重新加载账户相关的交易记录
+            maybeReLoadTransaction(hash160s);
+            loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
+            boolean result = file.delete();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        resp.put("retCode", 0);
+        resp.put("msg", "账户移除成功");
+        return resp;
+    }
+
 
     public JSONObject encryptWallet(String password, String address) {
         JSONObject resp = new JSONObject();
@@ -277,7 +316,7 @@ public class AccountStorage {
             fileJson.put("isEncrypted", account.isEncrypted());
             fos.write(fileJson.toJSONString().getBytes());
             fos.flush();
-        }  catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();

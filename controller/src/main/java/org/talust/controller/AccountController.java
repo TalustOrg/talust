@@ -92,7 +92,7 @@ public class AccountController {
             }
         }
         List<Account> accountList = AccountStorage.get().getAccountList();
-        if(null!=accountList){
+        if (null != accountList) {
             for (Account account : accountList) {
                 if (AccountStorage.get().reloadCoin()) {
                     JSONObject data = new JSONObject();
@@ -105,8 +105,8 @@ public class AccountController {
                     jsonObject.put(account.getAddress().getBase58(), data);
                 }
             }
-        }else{
-            jsonObject.put("msg","无账户数据！");
+        } else {
+            jsonObject.put("msg", "无账户数据！");
         }
         return jsonObject;
     }
@@ -117,16 +117,16 @@ public class AccountController {
         JSONObject resp = new JSONObject();
         //验证文件是否存在
         if (null == path) {
-            resp.put("retCode",1);
-            resp.put("msg","文件路径为空");
+            resp.put("retCode", 1);
+            resp.put("msg", "文件路径为空");
         }
         File file = new File(path);
         if (!file.exists()) {
-            resp.put("retCode",1);
-            resp.put("msg","文件不存在");
+            resp.put("retCode", 1);
+            resp.put("msg", "文件不存在");
         }
         try {
-            String   content = FileUtil.fileToTxt(file);
+            String content = FileUtil.fileToTxt(file);
             JSONObject fileJson = JSONObject.parseObject(content);
             Account account = Account.parse(fileJson.getBytes("data"), 0, MainNetworkParams.get());
             try {
@@ -136,25 +136,25 @@ public class AccountController {
                 log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
             }
         } catch (IOException e) {
-            resp.put("retCode",1);
-            resp.put("msg","文件读写错误");
+            resp.put("retCode", 1);
+            resp.put("msg", "文件读写错误");
         }
-        resp.put("retCode",0);
-        resp.put("msg","账户文件导入成功");
+        resp.put("retCode", 0);
+        resp.put("msg", "账户文件导入成功");
         return resp;
     }
 
 
     @ApiOperation(value = "导出账户", notes = "导出账户")
     @PostMapping(value = "outPutAccountFile")
-    JSONObject outPutAccountFile(@RequestParam String path,@RequestParam String address) {
+    JSONObject outPutAccountFile(@RequestParam String path, @RequestParam String address) {
         JSONObject resp = new JSONObject();
         try {
             File file = new File(path);
             if (!file.exists()) {
                 file.createNewFile();
             }
-            String accPath = Configure.DATA_ACCOUNT + File.separator +address;
+            String accPath = Configure.DATA_ACCOUNT + File.separator + address;
             File oldFile = new File(accPath);
             String content = FileUtil.fileToTxt(oldFile);
             FileOutputStream fos = new FileOutputStream(file);
@@ -168,13 +168,24 @@ public class AccountController {
                 }
             }
         } catch (IOException e) {
-            resp.put("retCode",1);
-            resp.put("msg","文件下载异常，请重试");
+            resp.put("retCode", 1);
+            resp.put("msg", "文件下载异常，请重试");
         }
-        resp.put("retCode",0);
-        resp.put("msg","文件下载成功");
+        resp.put("retCode", 0);
+        resp.put("msg", "文件下载成功");
         return resp;
     }
 
+    @ApiOperation(value = "移除账户", notes = "移除账户")
+    @PostMapping(value = "removeAccount")
+    JSONObject removeAccount(@RequestParam String address) {
+        JSONObject resp = new JSONObject();
+        if (null == address) {
+            resp.put("retCode", 1);
+            resp.put("msg", "账户文件异常");
+        }
+        resp = AccountStorage.get().removeAccount(address);
+        return resp;
+    }
 
 }

@@ -67,7 +67,7 @@ public class BlockArrivedValidator implements MessageValidator {
         long height = block.getHeight();
         long nowHeight = MainNetworkParams.get().getBestBlockHeight();
         log.info("准备验证存储区块时间：{},区块高度：{},本地区块高度：{}",NtpTimeService.currentTimeSeconds(),height,nowHeight);
-        if((height-nowHeight)==1){
+        if((height-nowHeight)==1||height==0){
             boolean checkRepeat = CacheManager.get().checkRepeat(("block_height:" + height), Configure.BLOCK_GEN_TIME);
             if (checkRepeat) {//说明本节点接收到过同样的消息,则直接将该消息扔掉
                 log.info("区块高度：{}的区块已经被接收过，直接抛弃",height);
