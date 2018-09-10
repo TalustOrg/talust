@@ -17,6 +17,7 @@ public interface TransferAccountService {
     JSONArray getAllDeposits();
     JSONObject consensusJoin(String nodeAddress, String money, String address, String password);
     JSONObject consensusLeave(String nodeAddress, String address, String password);
-    JSONObject searchAllTransfer();
-    JSONObject searchAllCoinBaseTransfer();
+    JSONObject searchAllTransfer(String address);
+    JSONObject searchAllCoinBaseTransfer(String address,String date);
+    JSONObject searchAddressConsensusStatus(String address);
 }

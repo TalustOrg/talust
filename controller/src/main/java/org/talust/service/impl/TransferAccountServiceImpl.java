@@ -24,6 +24,7 @@
  */
 package org.talust.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
@@ -60,6 +61,8 @@ import org.talust.network.netty.ConnectionManager;
 import org.talust.service.TransferAccountService;
 import sun.applet.Main;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -732,8 +735,8 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     }
 
     @Override
-    public JSONObject searchAllTransfer() {
-        List<byte[]> hashs = AccountStorage.get().getAccountHash160s();
+    public JSONObject searchAllTransfer(String address) {
+        Address addr = Address.fromBase58(MainNetworkParams.get(), address);
         Map<byte[], List<TransactionStore>> txMaps = new HashMap<>();
         List<TransactionStore> txList = transactionStorage.getMyTxList();
         for (TransactionStore transactionStore : txList) {
@@ -743,61 +746,122 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 for (int i = 0; i < outputs.size(); i++) {
                     TransactionOutput output = outputs.get(i);
                     Script script = output.getScript();
-                    for (byte[] hash160 : hashs) {
-                        if (Arrays.equals(script.getChunks().get(2).data, hash160)) {
-                            if (txMaps.containsKey(hash160)) {
-                                txMaps.get(hash160).add(transactionStore);
-                            } else {
-                                List<TransactionStore> transactionStores = new ArrayList<>();
-                                transactionStores.add(transactionStore);
-                                txMaps.put(hash160, transactionStores);
-                            }
+                    if (Arrays.equals(script.getChunks().get(2).data, addr.getHash160())) {
+                        if (txMaps.containsKey(addr.getHash160())) {
+                            txMaps.get(addr.getHash160()).add(transactionStore);
+                        } else {
+                            List<TransactionStore> transactionStores = new ArrayList<>();
+                            transactionStores.add(transactionStore);
+                            txMaps.put(addr.getHash160(), transactionStores);
                         }
                     }
                 }
             }
         }
-        JSONObject resp = new JSONObject();
-        for (byte[] hash : hashs) {
-            List<TransactionStore> transactionStores = txMaps.get(hash);
-            Account account = AccountStorage.get().getAccountByAddress(hash);
-            List<TransactionInput> allInput = new ArrayList<>();
-            List<TransactionOutput> allOutput = new ArrayList<>();
-            for (TransactionStore transactionStore : transactionStores) {
-                List<TransactionInput> inputs = transactionStore.getTransaction().getInputs();
-                List<TransactionOutput> outputs = transactionStore.getTransaction().getOutputs();
-                allInput.addAll(BlockStorage.get().findTxInputsIsMine(inputs, hash));
-                allOutput.addAll(BlockStorage.get().findTxOutputIsMine(outputs, hash, transactionStore.getTransaction().getType()));
+        List<TransactionStore> transactionStores = txMaps.get(addr.getHash160());
+        Account account = AccountStorage.get().getAccountByAddress(addr.getHash160());
+        List<TransactionInput> allInput = new ArrayList<>();
+        List<TransactionOutput> allOutput = new ArrayList<>();
+        for (TransactionStore transactionStore : transactionStores) {
+            List<TransactionInput> inputs = transactionStore.getTransaction().getInputs();
+            List<TransactionOutput> outputs = transactionStore.getTransaction().getOutputs();
+            allInput.addAll(BlockStorage.get().findTxInputsIsMine(inputs, addr.getHash160()));
+            allOutput.addAll(BlockStorage.get().findTxOutputIsMine(outputs, addr.getHash160(), transactionStore.getTransaction().getType()));
+        }
+        List<TxMine> txMines = new ArrayList<>();
+        for (TransactionInput input : allInput) {
+            TxMine txMine = new TxMine();
+            txMine.setType("0");
+            txMine.setTime(input.getParent().getTime());
+            List<TransactionOutput> transactionOutputs = input.getFroms();
+            long all = 0;
+            for (TransactionOutput transactionOutput : transactionOutputs) {
+                all = all + transactionOutput.getValue();
             }
-            List<TxMine> txMines = new ArrayList<>();
-            for (TransactionInput input : allInput) {
-                TxMine txMine = new TxMine();
-                txMine.setInOut("in");
-                txMine.setTime(input.getParent().getTime());
-                List<TransactionOutput> transactionOutputs = input.getFroms();
-                long all = 0;
-                for (TransactionOutput transactionOutput : transactionOutputs) {
-                    all = all + transactionOutput.getValue();
+            txMine.setMoney(all / 100000000);
+            List<TransactionOutput> transactionOutputList = input.getParent().getOutputs();
+            String toAddress = null;
+            for (TransactionOutput transactionOutput : transactionOutputList) {
+                if (!Arrays.equals(transactionOutput.getScript().getChunks().get(2).data, addr.getHash160())) {
+                    toAddress = Address.fromP2PKHash(MainNetworkParams.get(), MainNetworkParams.get().getSystemAccountVersion(), transactionOutput.getScript().getChunks().get(2).data).getBase58();
                 }
-                txMine.setMoney(all / 100000000);
-                List<TransactionOutput> transactionOutputList = input.getParent().getOutputs();
-                String address = null;
-                for (TransactionOutput transactionOutput : transactionOutputList) {
-                    if (!Arrays.equals(transactionOutput.getScript().getChunks().get(2).data, hash)) {
-                        address = Address.fromP2PKHash(MainNetworkParams.get(), MainNetworkParams.get().getSystemAccountVersion(), transactionOutput.getScript().getChunks().get(2).data).getBase58();
+            }
+            txMine.setAddress(toAddress);
+            txMines.add(txMine);
+        }
+        for (TransactionOutput output : allOutput) {
+            byte[] publicKey = output.getParent().getInputs().get(0).getScriptSig().getChunks().get(1).data;
+            Address toAddress = Address.fromP2PKHash(MainNetworkParams.get(), MainNetworkParams.get().getSystemAccountVersion(), Utils.sha256hash160(publicKey));
+            TxMine txMine = new TxMine();
+            txMine.setType("1");
+            txMine.setMoney(output.getValue() / 100000000);
+            txMine.setTime(output.getParent().getTime());
+            txMine.setAddress(toAddress.getBase58());
+            txMines.add(txMine);
+        }
+        Collections.sort(txMines, new Comparator<TxMine>() {
+            @Override
+            public int compare(TxMine o1, TxMine o2) {
+                if (o1.getTime() > o2.getTime()) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            }
+        });
+        JSONObject resp = new JSONObject();
+        resp.put(account.getAddress().getBase58(), txMines);
+        return resp;
+    }
+
+    @Override
+    public JSONObject searchAllCoinBaseTransfer(String address, String date) {
+        try {
+            Address addr = Address.fromBase58(MainNetworkParams.get(), address);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date startDate = simpleDateFormat.parse(date);
+            startDate.setHours(00);
+            long start = startDate.getTime()/1000;
+            Date endDate = startDate;
+            endDate.setHours(24);
+            long end = endDate.getTime()/1000;
+            log.info("startDate :{}", start);
+            log.info("endDate :{}", end);
+            Map<byte[], List<TransactionStore>> txMaps = new HashMap<>();
+            List<TransactionStore> txList = transactionStorage.getMyTxList();
+            for (TransactionStore transactionStore : txList) {
+                Transaction tx = transactionStore.getTransaction();
+                if(start<tx.getTime() && end>tx.getTime()){
+                    if (tx.getType() == Definition.TYPE_COINBASE) {
+                        List<TransactionOutput> outputs = tx.getOutputs();
+                        for (int i = 0; i < outputs.size(); i++) {
+                            TransactionOutput output = outputs.get(i);
+                            Script script = output.getScript();
+                            if (Arrays.equals(script.getChunks().get(2).data, addr.getHash160())) {
+                                if (txMaps.containsKey(addr.getHash160())) {
+                                    txMaps.get(addr.getHash160()).add(transactionStore);
+                                } else {
+                                    List<TransactionStore> transactionStores = new ArrayList<>();
+                                    transactionStores.add(transactionStore);
+                                    txMaps.put(addr.getHash160(), transactionStores);
+                                }
+                            }
+                        }
                     }
                 }
-                txMine.setAddress(address);
-                txMines.add(txMine);
+            }
+            List<TransactionStore> transactionStores = txMaps.get(addr.getHash160());
+            List<TransactionOutput> allOutput = new ArrayList<>();
+            List<TxMine> txMines = new ArrayList<>();
+            for (TransactionStore transactionStore : transactionStores) {
+                List<TransactionOutput> outputs = transactionStore.getTransaction().getOutputs();
+                allOutput.addAll(BlockStorage.get().findTxOutputIsMine(outputs, addr.getHash160(), transactionStore.getTransaction().getType()));
             }
             for (TransactionOutput output : allOutput) {
-                byte[] publicKey =  output.getParent().getInputs().get(0).getScriptSig().getChunks().get(1).data;
-               Address address =  Address.fromP2PKHash(MainNetworkParams.get(),MainNetworkParams.get().getSystemAccountVersion(), Utils.sha256hash160(publicKey));
                 TxMine txMine = new TxMine();
-                txMine.setInOut("out");
+                txMine.setType("2");
                 txMine.setMoney(output.getValue() / 100000000);
                 txMine.setTime(output.getParent().getTime());
-                txMine.setAddress(address.getBase58());
                 txMines.add(txMine);
             }
             Collections.sort(txMines, new Comparator<TxMine>() {
@@ -810,15 +874,17 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     }
                 }
             });
-            resp.put(account.getAddress().getBase58(), txMines);
-        }
-        return resp;
-    }
+            JSONObject resp = new JSONObject();
+            resp.put(addr.getBase58(), txMines);
+            return resp;
 
-    @Override
-    public JSONObject searchAllCoinBaseTransfer() {
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         return null;
     }
+
+
 
 
     public DepositAccount checkAmtLowest(String amt, List<DepositAccount> depositAccounts) {
@@ -920,5 +986,54 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             remTx.addOutput(totalInputCoin, account.getAddress());
         }
         return remTx;
+    }
+
+
+    @Override
+    public JSONObject searchAddressConsensusStatus(String address) {
+        Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
+        Address addr =  Address.fromBase58(MainNetworkParams.get(),address);
+        JSONObject resp = new JSONObject();
+        for (SuperNode superNode : superNodes) {
+            JSONObject data = new JSONObject();
+            Address superNodeAddress = Address.fromBase58(network, superNode.getAddress());
+            Deposits deposits = getDeposits(superNodeAddress.getHash160());
+            DepositAccount joinDepos = null;
+            List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
+            if (null != depositAccountList && depositAccountList.size() > 0) {
+                Coin totalCoin  = Coin.ZERO;
+                for(DepositAccount depositAccount:depositAccountList){
+                    totalCoin.add(depositAccount.getAmount());
+                    if(Arrays.equals(depositAccount.getAddress(),addr.getHash160())){
+                        joinDepos = depositAccount;
+                    }
+                }
+                data.put("totalCoin",totalCoin);
+                if(joinDepos!=null){
+                    int rate = 1 ;
+                    for(DepositAccount depositAccount:depositAccountList){
+                        if(joinDepos.getAmount().isLessThan(depositAccount.getAmount())){
+                            rate ++;
+                        }
+                    }
+                    data.put("rate",rate);
+                }
+                List<Sha256Hash> txHashs = joinDepos.getTxHash();
+                if(txHashs!=null){
+                    long lastTime = 0;
+                    for(Sha256Hash txHash :txHashs){
+                        TransactionStore tx = transactionStorage.getTransaction(txHash);
+                        if(lastTime==0||lastTime<tx.getTransaction().getTime()){
+                            lastTime= tx.getTransaction().getTime();
+                        }
+                    }
+                    data.put("time",lastTime);
+                }
+            }
+            if(data!=null&&data.size()>0){
+                resp.put(superNode.getAddress(),data);
+            }
+        }
+        return resp;
     }
 }

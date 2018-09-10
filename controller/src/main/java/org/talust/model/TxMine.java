@@ -24,17 +24,17 @@ package org.talust.model;/*
  */
 
 public class TxMine {
-    private String inOut;
+    private String type;
     private long money;
     private long time;
     private String address;
 
-    public String getInOut() {
-        return inOut;
+    public String getType() {
+        return type;
     }
 
-    public void setInOut(String inOut) {
-        this.inOut = inOut;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public long getMoney() {

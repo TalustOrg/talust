@@ -231,11 +231,11 @@ public class TransferAccountsController {
 
     @ApiOperation(value = "查询所有非挖矿交易", notes = "查询所有地址下的所有非挖矿交易记录")
     @PostMapping(value = "searchTransactionsOutOfCoinBase")
-    JSONObject searchTransactionsOutOfCoinBase(){
+    JSONObject searchTransactionsOutOfCoinBase(@RequestParam String address){
         JSONObject resp =  new JSONObject();
         try{
             resp.put("retCode", "0");
-            JSONObject data =transferAccountService.searchAllTransfer();
+            JSONObject data =transferAccountService.searchAllTransfer(address);
             resp.put("data",data);
         }catch (Exception e ){
             resp.put("retCode", "1");
@@ -247,11 +247,27 @@ public class TransferAccountsController {
 
     @ApiOperation(value = "查询所有挖矿交易", notes = "查询所有地址下的所有挖矿交易记录")
     @PostMapping(value = "searchTransactionsOfCoinBase")
-    JSONObject searchTransactionsOfCoinBase(){
+    JSONObject searchTransactionsOfCoinBase(@RequestParam String address ,@RequestParam String date  ){
         JSONObject resp =  new JSONObject();
         try{
             resp.put("retCode", "0");
-            JSONObject data =transferAccountService.searchAllCoinBaseTransfer();
+            JSONObject data =transferAccountService.searchAllCoinBaseTransfer( address, date);
+            resp.put("data",data);
+        }catch (Exception e ){
+            resp.put("retCode", "1");
+            resp.put("message", "数据异常");
+        }
+        return resp;
+    }
+
+
+    @ApiOperation(value = "查询当前账户的共识情况", notes = "查询当前账户的共识情况")
+    @PostMapping(value = "searchAddressConsensusStatus")
+    JSONObject searchAddressConsensusStatus(@RequestParam String address ){
+        JSONObject resp =  new JSONObject();
+        try{
+            resp.put("retCode", "0");
+            JSONObject data =transferAccountService.searchAddressConsensusStatus( address);
             resp.put("data",data);
         }catch (Exception e ){
             resp.put("retCode", "1");
