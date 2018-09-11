@@ -89,29 +89,33 @@ public class ChannelContain {
             superChannel.put(remoteIp, myChannel);
         }
         allNodeIps.add(remoteIp);
-        String nodeAddress = null;
-        //同步获取其ADDRESS 以防止内网出错
-        if(isPassive){
-            try {
-                Message message = new Message();
-                message.setType(MessageType.GET_NODE_ADDRESS_REQ.getType());
-                MessageChannel messageChannel = SynRequest.get().synReq(message, remoteIp);
-                if (messageChannel != null) {
-                    nodeAddress = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), String.class);
-                    log.info("请求节点ip:{} 返回地址结果为:{}", remoteIp, nodeAddress);
-                } else {
-                    log.info("请求节点ip:{}，返回地址请求失败", remoteIp);
-                }
-            } catch (Exception e) {
-                log.info("请求节点ip:{}，返回地址请求异常", remoteIp);
+        //获取其ADDRESS 以防止内网出错
+        if (isPassive) {
+            Message message = new Message();
+            message.setType(MessageType.GET_NODE_ADDRESS_REQ.getType());
+            sendMessage(remoteIp, message);
+        }
+    }
+
+    public void modifyChannel(Channel sc,String address){
+        InetSocketAddress insocket = (InetSocketAddress) sc.remoteAddress();
+        String remoteIp = insocket.getAddress().getHostAddress();
+        List<MyChannel> myChannels = mapChannel.get(remoteIp);
+        MyChannel reChannel = null ;
+        for(MyChannel myChannel :myChannels){
+            if(myChannel.getChannel()==sc){
+                reChannel = myChannel;
+                break;
             }
-            if(null!=nodeAddress){
-                myChannels.remove(myChannel);
-                myChannel.setAddress(nodeAddress);
-                myChannels.add(myChannel);
+        }
+        if(null!=reChannel){
+            if(null!=address){
+                myChannels.remove(reChannel);
+                reChannel.setAddress(address);
+                myChannels.add(reChannel);
                 mapChannel.put(remoteIp, myChannels);
                 if (superIps.contains(remoteIp)) {
-                    superChannel.put(remoteIp, myChannel);
+                    superChannel.put(remoteIp, reChannel);
                 }
             }
         }

@@ -79,6 +79,30 @@ public class SynRequest {
         return retMsg; //返回的要么为空,要么有值
     }
 
+    /**
+     * 添加异步请求
+     *
+     * @param message 节点消息
+     * @param toIp    需要通过该通道进行发送数据
+     */
+    public MessageChannel synReq(Message message, String toIp,int second) throws Exception {
+        SyncFuture<MessageChannel> sync = new SyncFuture<>();
+        long mc = MessageCount.msgCount.addAndGet(1);
+        if (mc > 65530) {
+            MessageCount.msgCount.set(0);
+        }
+        synMap.put(mc, sync);
+        message.setMsgCount(mc);
+        MessageChannel mch = new MessageChannel();
+        mch.setMessage(message);
+        mch.setToIp(toIp);
+        mq.addMessage(mch);
+        MessageChannel retMsg = sync.get(second, TimeUnit.SECONDS);
+        synMap.remove(mc) ;
+        return retMsg; //返回的要么为空,要么有值
+    }
+
+
     //异步响应
     public void synResp(MessageChannel message) {
         SyncFuture<MessageChannel> syncFuture = synMap.remove(message.getMessage().getMsgCount());

@@ -33,6 +33,7 @@ import org.talust.common.tools.Configure;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.core.storage.AccountStorage;
 import org.talust.network.MessageHandler;
+import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.SynRequest;
 import org.talust.network.netty.queue.MessageQueue;
 
@@ -41,7 +42,20 @@ public class GetNodeAddressRespHandler implements MessageHandler {
     @Override
     public boolean handle(MessageChannel message) {
         log.info("远端ip:{} 返回本节点的地址消息", message.getFromIp());
-        SynRequest.get().synResp(message);
+        String nodeAddress = null;
+        try {
+            if (message != null) {
+                nodeAddress = SerializationUtil.deserializer(message.getMessage().getContent(), String.class);
+                log.info("请求节点ip:{} 返回地址结果为:{}", message.getFromIp(), nodeAddress);
+            } else {
+                log.info("请求节点ip:{}，返回地址请求失败", message.getFromIp());
+            }
+        } catch (Exception e) {
+            log.info("请求节点ip:{}，返回地址请求异常", message.getFromIp());
+        }
+        //TODO  数据赋予改变，给下channel id
+
+        //ChannelContain.get().modifyChannel();
         return true;
     }
 }

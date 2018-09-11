@@ -244,7 +244,8 @@ public class ConnectionManager {
      * 初始化固定超级服务器ip地址,用于当前节点的连接所用
      */
     private void initSuperIps() {
-        myIps.addAll(IpUtil.getOutIps());
+//        myIps.addAll(IpUtil.getOutIps());
+        myIps.add("192.168.0.215");
         log.info("本地外网IP抓取为：" + myIps.toString());
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
         List<String> minings = new ArrayList<>();
