@@ -29,12 +29,22 @@ package org.talust.common.model;
  * 超级节点信息
  */
 public class SuperNode {
+    //序号
+    private String id;
     //ip地址
     private String ip;
     //超级节点编号
     private int code;
     //超级节点的帐户地址
     private String address;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getIp() {
         return ip;

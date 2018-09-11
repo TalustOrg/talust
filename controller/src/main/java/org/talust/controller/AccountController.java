@@ -114,12 +114,12 @@ public class AccountController {
         JSONObject resp = new JSONObject();
         //验证文件是否存在
         if (null == path) {
-            resp.put("retCode", 1);
+            resp.put("retCode", "1");
             resp.put("msg", "文件路径为空");
         }
         File file = new File(path);
         if (!file.exists()) {
-            resp.put("retCode", 1);
+            resp.put("retCode", "1");
             resp.put("msg", "文件不存在");
         }
         try {
@@ -133,10 +133,10 @@ public class AccountController {
                 log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
             }
         } catch (IOException e) {
-            resp.put("retCode", 1);
+            resp.put("retCode", "1");
             resp.put("msg", "文件读写错误");
         }
-        resp.put("retCode", 0);
+        resp.put("retCode", "0");
         resp.put("msg", "账户文件导入成功");
         return resp;
     }
@@ -147,7 +147,7 @@ public class AccountController {
     JSONObject outPutAccountFile(@RequestParam String path, @RequestParam String address) {
         JSONObject resp = new JSONObject();
         try {
-            File file = new File(path);
+            File file = new File(path+ File.separator + address);
             if (!file.exists()) {
                 file.createNewFile();
             }
@@ -165,10 +165,10 @@ public class AccountController {
                 }
             }
         } catch (IOException e) {
-            resp.put("retCode", 1);
+            resp.put("retCode", "1");
             resp.put("msg", "文件下载异常，请重试");
         }
-        resp.put("retCode", 0);
+        resp.put("retCode", "0");
         resp.put("msg", "文件下载成功");
         return resp;
     }
@@ -178,7 +178,7 @@ public class AccountController {
     JSONObject removeAccount(@RequestParam String address) {
         JSONObject resp = new JSONObject();
         if (null == address) {
-            resp.put("retCode", 1);
+            resp.put("retCode", "1");
             resp.put("msg", "账户文件异常");
         }
         resp = AccountStorage.get().removeAccount(address);

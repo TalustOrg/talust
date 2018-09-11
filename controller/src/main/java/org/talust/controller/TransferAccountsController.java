@@ -135,7 +135,7 @@ public class TransferAccountsController {
             resp.put("data", data);
         } catch (Exception e) {
             resp.put("retCode", "1");
-            resp.put("message", "数据异常");
+            resp.put("msg", "数据异常");
         }
         return resp;
     }
@@ -146,39 +146,39 @@ public class TransferAccountsController {
         JSONObject resp = new JSONObject();
         if (StringUtil.isNullOrEmpty(NodeAddress) || StringUtil.isNullOrEmpty(money)) {
             resp.put("retCode", "1");
-            resp.put("message", "核心参数缺失");
+            resp.put("msg", "核心参数缺失");
             return resp;
         }
         try {
             money = ArithUtils.mul(money, "1", 8);
         } catch (Exception e) {
             resp.put("retCode", "1");
-            resp.put("message", "金额不正确");
+            resp.put("msg", "金额不正确");
             return resp;
         }
         Account account = transferAccountService.getAccountByAddress(address);
         if (null == account) {
             resp.put("retCode", "1");
-            resp.put("message", "出账账户不存在");
+            resp.put("msg", "出账账户不存在");
             return resp;
         }
         try {
             Base58.decodeChecked(NodeAddress);
         } catch (Exception e) {
             resp.put("retCode", "1");
-            resp.put("message", "目标账户验证失败");
+            resp.put("msg", "目标账户验证失败");
             return resp;
         }
         if (account.isEncrypted()) {
             if (StringUtil.isNullOrEmpty(password)) {
                 resp.put("retCode", "1");
-                resp.put("message", "输入钱包密码进行转账");
+                resp.put("msg", "输入钱包密码进行转账");
                 return resp;
             } else {
                 boolean pswCorrect = transferAccountService.decryptAccount(password, account);
                 if (!pswCorrect) {
                     resp.put("retCode", "1");
-                    resp.put("message", "账户密码不正确");
+                    resp.put("msg", "账户密码不正确");
                     return resp;
                 }
             }
@@ -194,32 +194,32 @@ public class TransferAccountsController {
         JSONObject resp = new JSONObject();
         if (StringUtil.isNullOrEmpty(NodeAddress)) {
             resp.put("retCode", "1");
-            resp.put("message", "核心参数缺失");
+            resp.put("msg", "核心参数缺失");
             return resp;
         }
         Account account = transferAccountService.getAccountByAddress(address);
         if (null == account) {
             resp.put("retCode", "1");
-            resp.put("message", "出账账户不存在");
+            resp.put("msg", "出账账户不存在");
             return resp;
         }
         try {
             Base58.decodeChecked(NodeAddress);
         } catch (Exception e) {
             resp.put("retCode", "1");
-            resp.put("message", "目标账户验证失败");
+            resp.put("msg", "目标账户验证失败");
             return resp;
         }
         if (account.isEncrypted()) {
             if (StringUtil.isNullOrEmpty(password)) {
                 resp.put("retCode", "1");
-                resp.put("message", "输入钱包密码进行转账");
+                resp.put("msg", "输入钱包密码进行转账");
                 return resp;
             } else {
                 boolean pswCorrect = transferAccountService.decryptAccount(password, account);
                 if (!pswCorrect) {
                     resp.put("retCode", "1");
-                    resp.put("message", "账户密码不正确");
+                    resp.put("msg", "账户密码不正确");
                     return resp;
                 }
             }
@@ -239,7 +239,7 @@ public class TransferAccountsController {
             resp.put("data", data);
         } catch (Exception e) {
             resp.put("retCode", "1");
-            resp.put("message", "数据异常");
+            resp.put("msg", "数据异常");
         }
         return resp;
     }
@@ -255,7 +255,7 @@ public class TransferAccountsController {
             resp.put("data", data);
         } catch (Exception e) {
             resp.put("retCode", "1");
-            resp.put("message", "数据异常");
+            resp.put("msg", "数据异常");
         }
         return resp;
     }
@@ -269,7 +269,7 @@ public class TransferAccountsController {
             resp.put("retCode", "0");
             JSONObject data = transferAccountService.searchAddressConsensusStatus(address);
             if (data.size() == 0) {
-                resp.put("data", "无数据");
+                resp.put("msg", "无数据");
             } else {
                 resp.put("data", data);
             }
@@ -277,7 +277,7 @@ public class TransferAccountsController {
         } catch (Exception e) {
             e.printStackTrace();
             resp.put("retCode", "1");
-            resp.put("message", "数据异常");
+            resp.put("msg", "数据异常");
         }
         return resp;
     }

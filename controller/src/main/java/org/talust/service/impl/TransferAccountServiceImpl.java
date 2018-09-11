@@ -111,7 +111,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
         if (connects.size() <= 0) {
             resp.put("retCode", "1");
-            resp.put("message", "当前网络不可用，请稍后再尝试");
+            resp.put("msg", "当前网络不可用，请稍后再尝试");
             return resp;
         }
         long height = MainNetworkParams.get().getBestBlockHeight();
@@ -119,12 +119,12 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         if (height == 0) {
             if (SynBlock.get().getSyning().get()) {
                 resp.put("retCode", "1");
-                resp.put("message", "正在同步区块中，请稍后再尝试");
+                resp.put("msg", "正在同步区块中，请稍后再尝试");
                 return resp;
             } else {
                 ConnectionManager.get().init();
                 resp.put("retCode", "1");
-                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("msg", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
@@ -132,12 +132,12 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         if (now - localbestheighttime > 6) {
             if (SynBlock.get().getSyning().get()) {
                 resp.put("retCode", "1");
-                resp.put("message", "正在同步区块中，请稍后再尝试");
+                resp.put("msg", "正在同步区块中，请稍后再尝试");
                 return resp;
             } else {
                 ConnectionManager.get().init();
                 resp.put("retCode", "1");
-                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("msg", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
@@ -145,30 +145,30 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         try {
             if (money.compareTo("0") <= 0) {
                 resp.put("retCode", "1");
-                resp.put("message", "发送的金额需大于0");
+                resp.put("msg", "发送的金额需大于0");
                 return resp;
             }
             Account account = this.getAccountByAddress(address);
             if (null == account) {
                 resp.put("retCode", "1");
-                resp.put("message", "出账账户不存在");
+                resp.put("msg", "出账账户不存在");
                 return resp;
             }
             if (account.getAddress().getBase58().equals(toAddress)) {
                 resp.put("retCode", "1");
-                resp.put("message", "不能给自己转账");
+                resp.put("msg", "不能给自己转账");
                 return resp;
             }
             if (account.isEncrypted()) {
                 if (StringUtil.isNullOrEmpty(password)) {
                     resp.put("retCode", "1");
-                    resp.put("message", "输入钱包密码进行转账");
+                    resp.put("msg", "输入钱包密码进行转账");
                     return resp;
                 } else {
                     boolean pswCorrect = this.decryptAccount(password, account);
                     if (!pswCorrect) {
                         resp.put("retCode", "1");
-                        resp.put("message", "账户密码不正确");
+                        resp.put("msg", "账户密码不正确");
                         return resp;
                     }
                 }
@@ -177,7 +177,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             long balance = account.getAddress().getBalance().value;
             if (ArithUtils.compareStr(balance + "", ArithUtils.mul(money, "100000000", 0)) < 0) {
                 resp.put("retCode", "1");
-                resp.put("message", "余额不足");
+                resp.put("msg", "余额不足");
                 return resp;
             }
             Transaction tx = new Transaction(MainNetworkParams.get());
@@ -234,7 +234,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 //广播交易
                 ConnectionManager.get().TXMessageSend(message);
                 resp.put("retCode", "0");
-                resp.put("message", "交易已上送");
+                resp.put("msg", "交易已上送");
             }
         } catch (Exception e) {
         } finally {
@@ -526,7 +526,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     totalCoin = totalCoin.add(coin);
                 }
 
-                data.put("totalCoin", totalCoin.getValue());
+                data.put("totalCoin",ArithUtils.div( totalCoin.getValue() + "", "100000000", 8));
                 data.put("minCoin", ArithUtils.div(minCoin.getValue() + "", "100000000", 8));
                 data.put("maxCoin", ArithUtils.div(maxCoin.getValue() + "", "100000000", 8));
             } else {
@@ -535,6 +535,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 data.put("minCoin", 0);
                 data.put("maxCoin", 0);
             }
+            data.put("id", superNode.getId());
             dataList.add(data);
         }
         return dataList;
@@ -547,7 +548,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
         if (connects.size() <= 0) {
             resp.put("retCode", "1");
-            resp.put("message", "当前网络不可用，请稍后再尝试");
+            resp.put("msg", "当前网络不可用，请稍后再尝试");
             return resp;
         }
         long height = MainNetworkParams.get().getBestBlockHeight();
@@ -555,12 +556,12 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         if (height == 0) {
             if (SynBlock.get().getSyning().get()) {
                 resp.put("retCode", "1");
-                resp.put("message", "正在同步区块中，请稍后再尝试");
+                resp.put("msg", "正在同步区块中，请稍后再尝试");
                 return resp;
             } else {
                 ConnectionManager.get().init();
                 resp.put("retCode", "1");
-                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("msg", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
@@ -568,12 +569,12 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         if (now - localbestheighttime > 6) {
             if (SynBlock.get().getSyning().get()) {
                 resp.put("retCode", "1");
-                resp.put("message", "正在同步区块中，请稍后再尝试");
+                resp.put("msg", "正在同步区块中，请稍后再尝试");
                 return resp;
             } else {
                 ConnectionManager.get().init();
                 resp.put("retCode", "1");
-                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("msg", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
@@ -581,25 +582,25 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         try {
             if (money.compareTo("10000") < 0) {
                 resp.put("retCode", "1");
-                resp.put("message", "发送的金额需大于10000");
+                resp.put("msg", "发送的金额需大于10000");
                 return resp;
             }
             Account account = this.getAccountByAddress(address);
             if (null == account) {
                 resp.put("retCode", "1");
-                resp.put("message", "出账账户不存在");
+                resp.put("msg", "出账账户不存在");
                 return resp;
             }
             if (account.isEncrypted()) {
                 if (StringUtil.isNullOrEmpty(password)) {
                     resp.put("retCode", "1");
-                    resp.put("message", "输入钱包密码进行交易");
+                    resp.put("msg", "输入钱包密码进行交易");
                     return resp;
                 } else {
                     boolean pswCorrect = this.decryptAccount(password, account);
                     if (!pswCorrect) {
                         resp.put("retCode", "1");
-                        resp.put("message", "账户密码不正确");
+                        resp.put("msg", "账户密码不正确");
                         return resp;
                     }
                 }
@@ -608,7 +609,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             long balance = Long.parseLong(ArithUtils.div(account.getAddress().getBalance().value + "", "100000000", 8));
             if (ArithUtils.compareStr(balance + "", money) < 0) {
                 resp.put("retCode", "1");
-                resp.put("message", "余额不足");
+                resp.put("msg", "余额不足");
                 return resp;
             }
             Address nodeAddr = Address.fromBase58(network, nodeAddress);
@@ -632,13 +633,13 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     verifyAndSendMsg(account, remTx);
                 } else {
                     resp.put("retCode", "1");
-                    resp.put("message", "当前节点共识已满，且参与共识金额小于当前最低的已参与共识金额");
+                    resp.put("msg", "当前节点共识已满，且参与共识金额小于当前最低的已参与共识金额");
                     return resp;
                 }
             }
 
             resp.put("retCode", "0");
-            resp.put("message", "交易已上送");
+            resp.put("msg", "交易已上送");
 
         } catch (Exception e) {
         } finally {
@@ -655,7 +656,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         Collection<MyChannel> connects = ChannelContain.get().getMyChannels();
         if (connects.size() <= 0) {
             resp.put("retCode", "1");
-            resp.put("message", "当前网络不可用，请稍后再尝试");
+            resp.put("msg", "当前网络不可用，请稍后再尝试");
             return resp;
         }
         long height = MainNetworkParams.get().getBestBlockHeight();
@@ -663,12 +664,12 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         if (height == 0) {
             if (SynBlock.get().getSyning().get()) {
                 resp.put("retCode", "1");
-                resp.put("message", "正在同步区块中，请稍后再尝试");
+                resp.put("msg", "正在同步区块中，请稍后再尝试");
                 return resp;
             } else {
                 ConnectionManager.get().init();
                 resp.put("retCode", "1");
-                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("msg", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
@@ -676,12 +677,12 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         if (now - localbestheighttime > 6) {
             if (SynBlock.get().getSyning().get()) {
                 resp.put("retCode", "1");
-                resp.put("message", "正在同步区块中，请稍后再尝试");
+                resp.put("msg", "正在同步区块中，请稍后再尝试");
                 return resp;
             } else {
                 ConnectionManager.get().init();
                 resp.put("retCode", "1");
-                resp.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
+                resp.put("msg", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
                 return resp;
             }
         }
@@ -690,19 +691,19 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             Account account = this.getAccountByAddress(address);
             if (null == account) {
                 resp.put("retCode", "1");
-                resp.put("message", "出账账户不存在");
+                resp.put("msg", "出账账户不存在");
                 return resp;
             }
             if (account.isEncrypted()) {
                 if (StringUtil.isNullOrEmpty(password)) {
                     resp.put("retCode", "1");
-                    resp.put("message", "输入钱包密码进行交易");
+                    resp.put("msg", "输入钱包密码进行交易");
                     return resp;
                 } else {
                     boolean pswCorrect = this.decryptAccount(password, account);
                     if (!pswCorrect) {
                         resp.put("retCode", "1");
-                        resp.put("message", "账户密码不正确");
+                        resp.put("msg", "账户密码不正确");
                         return resp;
                     }
                 }
@@ -722,7 +723,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     remTx.setData(SerializationUtil.serializer(jsonObject));
                     verifyAndSendMsg(account, remTx);
                     resp.put("retCode", "0");
-                    resp.put("message", "交易已上送");
+                    resp.put("msg", "交易已上送");
                 }
             }
 
@@ -1003,7 +1004,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             if (null != depositAccountList && depositAccountList.size() > 0) {
                 Coin totalCoin  = Coin.ZERO;
                 for(DepositAccount depositAccount:depositAccountList){
-                    totalCoin.add(depositAccount.getAmount());
+                    totalCoin=  totalCoin.add(depositAccount.getAmount());
                     if(Arrays.equals(depositAccount.getAddress(),addr.getHash160())){
                         joinDepos = depositAccount;
                     }
@@ -1027,11 +1028,12 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                         }
                         data.put("time",lastTime);
                     }
-                    data.put("totalCoin",totalCoin.value);
+                    data.put("totalCoin", ArithUtils.div(totalCoin.value+"","100000000",8) );
                 }
             }
             if(data!=null&&data.size()>0){
-                resp.put(superNode.getAddress(),data);
+                data.put("address",superNode.getAddress());
+                resp.put(superNode.getId(),data);
             }
         }
         return resp;

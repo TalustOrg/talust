@@ -307,6 +307,7 @@ public class ConnectionManager {
             snode.setCode(Integer.parseInt((String) ((Map.Entry) map).getKey()));
             snode.setIp(ip);
             snode.setAddress(ipContent.getString("address"));
+            snode.setId((String) ((Map.Entry) map).getKey());
             if (!myIps.contains(ip)) {
                 superIps.add(ip);
             } else {

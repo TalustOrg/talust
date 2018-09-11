@@ -186,7 +186,7 @@ public class AccountStorage {
             String accPath = Configure.DATA_ACCOUNT + File.separator + address;
             File file = new File(accPath);
             if (!file.exists()) {
-                resp.put("retCode", 1);
+                resp.put("retCode", "1");
                 resp.put("msg", "账户文件异常");
             }
             String  content = FileUtil.fileToTxt(file);
@@ -202,7 +202,7 @@ public class AccountStorage {
                     TransactionStorage.get().removeAddress(account.getAddress().getHash160());
                 } catch (Exception e) {
                     log.warn("账户验证出错", account.getAddress().getBase58(), e);
-                    resp.put("retCode", 1);
+                    resp.put("retCode", "1");
                     resp.put("msg", "账户验证出错");
                     return resp;
                 }
@@ -211,7 +211,7 @@ public class AccountStorage {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        resp.put("retCode", 0);
+        resp.put("retCode", "0");
         resp.put("msg", "账户移除成功");
         return resp;
     }
@@ -222,7 +222,7 @@ public class AccountStorage {
         //密码位数和难度检测
         if (!validPassword(password)) {
             log.info("输入的密码需6位或以上，且包含字母和数字");
-            resp.put("retCode", 1);
+            resp.put("retCode", "1");
             resp.put("msg", "输入的密码需6位或以上，且包含字母和数字");
             return resp;
         }
@@ -233,7 +233,7 @@ public class AccountStorage {
             account = getAccount(address);
             if (account == null) {
                 log.info("账户" + address + "不存在");
-                resp.put("retCode", 1);
+                resp.put("retCode", "1");
                 resp.put("msg", "账户" + address + "不存在");
                 return resp;
             }
@@ -243,7 +243,7 @@ public class AccountStorage {
 
         if (account.isEncrypted()) {
             log.info("账户" + address + "已经加密");
-            resp.put("retCode", 1);
+            resp.put("retCode", "1");
             resp.put("msg", "账户" + address + "已经加密");
             return resp;
         }
@@ -275,12 +275,12 @@ public class AccountStorage {
             }
         } catch (Exception e) {
             log.error("加密 {} 失败: {}", account.getAddress().getBase58(), e.getMessage(), e);
-            resp.put("retCode", 1);
+            resp.put("retCode", "1");
             resp.put("msg", "账户" + address + "加密失败");
             return resp;
         }
         String message = "成功加密" + account.getAddress().getBase58();
-        resp.put("retCode", 0);
+        resp.put("retCode", "0");
         resp.put("msg", message);
         return resp;
     }
