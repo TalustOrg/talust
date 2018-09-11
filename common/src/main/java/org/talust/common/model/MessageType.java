@@ -66,6 +66,8 @@ public enum MessageType {
     DEPOSITS_STATUS_REQ(22),
     //所有节点的储蓄状态相应
     DEPOSITS_STATUS_RESP(23),
+    GET_NODE_ADDRESS_REQ(24),
+    GET_NODE_ADDRESS_RESP(25),
     //结束,主要是为了开发时新增消息类型方便/
     END(10000)
     ;

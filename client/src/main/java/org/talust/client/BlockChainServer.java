@@ -64,7 +64,6 @@ import java.util.List;
 
 @Slf4j
 public class BlockChainServer {
-    private BlockStorage blockStorage = BlockStorage.get();
     private AccountStorage accountStorage = AccountStorage.get();
     private MessageQueueHolder queueHolder = MessageQueueHolder.get();
 
@@ -82,13 +81,14 @@ public class BlockChainServer {
         initValidators();
         initHandlers();
         MessageQueueHolder.get().start();
-
         NodeConsole nc = new NodeConsole();
         nc.start();//启动网络的收发
         if(ConnectionManager.get().superNode){
             accountStorage.superNodeLogin();
+            ConnectionManager.get().superNodeJoin();
         }else{
             accountStorage.nomorlNodeLogin();
+            ConnectionManager.get().normalNodeJoin();
         }
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
         log.info("当前节点所连接的节点数:{}", allChannel.size());
@@ -131,6 +131,8 @@ public class BlockChainServer {
         addHandler(MessageType.MASTER_RESP, new MasterRespHandler());
         addHandler(MessageType.NEW_MASTER_REQ, new NewMasterReqHandler());
         addHandler(MessageType.NEW_MASTER_RESP, new NewMasterRespHandler());
+        addHandler(MessageType.GET_NODE_ADDRESS_REQ, new GetNodeAddressReqHandler());
+        addHandler(MessageType.GET_NODE_ADDRESS_RESP, new GetNodeAddressRespHandler());
     }
 
     public void addValidator(MessageType messageType, MessageValidator validator) {

@@ -65,7 +65,7 @@ public class ConnectionManager {
     /**
      * 出块节点存储
      */
-    public String masterIp ;
+    public String masterIp;
     /**
      * 超级节点信息
      */
@@ -93,47 +93,37 @@ public class ConnectionManager {
      */
     public void init() {
         initSuperIps();
-        if (!superNode) {
-            normalNodeJoin();
-        } else {
-            superNodeJoin();
-        }
     }
 
     /**
      * 连接普通节点
      */
-    private void normalNodeJoin() {
+    public void normalNodeJoin() {
         ChannelContain cc = ChannelContain.get();
         JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
         List<String> unusedIps = new ArrayList<>();
         for (Object map : peerJ.entrySet()) {
             String trust = (String) ((Map.Entry) map).getValue();
             String peerIp = (String) ((Map.Entry) map).getKey();
-
-            if(!ChannelContain.get().validateIpIsConnected(peerIp)){
+            if (!ChannelContain.get().validateIpIsConnected(peerIp)) {
                 if (!"0".equals(trust)) {
-                    if(nodesJoinBroadcast(peerIp)){
-                        String status = connectByIp(peerIp, cc);
-                        if ("FULL".equals(status)) {
+                    String status = connectByIp(peerIp, cc);
+                    if ("FULL".equals(status)) {
+                        break;
+                    }
+                    switch (status) {
+                        case "OK":
+                            try {
+                                getPeersOnline(peerIp);
+                            } catch (Exception e) {
+                                continue;
+                            }
                             break;
-                        }
-                        switch (status) {
-                            case "OK":
-                                try {
-                                    getPeersOnline(peerIp);
-                                } catch (Exception e) {
-                                    continue;
-                                }
-                                break;
-                            case "FAIL":
-                                unusedIps.add((String) ((Map.Entry) map).getKey());
-                                break;
-                            default:
-                                break;
-                        }
-                    }else{
-                        unusedIps.add((String) ((Map.Entry) map).getKey());
+                        case "FAIL":
+                            unusedIps.add((String) ((Map.Entry) map).getKey());
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
@@ -174,13 +164,13 @@ public class ConnectionManager {
      */
     public JSONObject getPeersOnline(String peersIp) throws Exception {
         Channel channel;
-        boolean isConnected =ChannelContain.get().validateIpIsConnected(peersIp);
-        if(!isConnected){
+        boolean isConnected = ChannelContain.get().validateIpIsConnected(peersIp);
+        if (!isConnected) {
             NodeClient nc = new NodeClient();
             channel = nc.connect(peersIp, Constant.PORT);
             ChannelContain.get().addChannel(channel, false);
-        }else{
-            channel=  ChannelContain.get().getChannelByIp(peersIp);
+        } else {
+            channel = ChannelContain.get().getChannelByIp(peersIp);
         }
         JSONObject peers = new JSONObject();
         Message nm = new Message();
@@ -194,12 +184,12 @@ public class ConnectionManager {
             if (peers != null && peers.keySet().size() > 0) {
                 log.info("节点ip:{} 返回当前网络的所有节点数:{}", peersIp, peers.keySet().size());
             }
-            if(peers.containsKey(selfIp)){
+            if (peers.containsKey(selfIp)) {
                 peers.remove(selfIp);
             }
             PeersManager.get().addPeer(peers);
         }
-        if(!isConnected){
+        if (!isConnected) {
             ChannelContain.get().removeChannelNoBroad(channel);
         }
         return peers;
@@ -208,52 +198,13 @@ public class ConnectionManager {
     /**
      * 连接到超级节点
      */
-    private void superNodeJoin() {
-        List<String> snodes = new ArrayList<>(superIps.size());
-        for (String fixedIp : superIps) {
-            snodes.add(fixedIp);
-        }
-        log.info("连接网络,当前节点ip:{},全网超级节点数:{}", this.selfIp, snodes.size());
+    public void superNodeJoin() {
+        log.info("连接网络,当前节点ip:{},全网超级节点数:{}", this.selfIp, superIps.size());
         ChannelContain cc = ChannelContain.get();
-        if(snodes.size()>0){
+        if (superIps.size() > 0) {
             connectAllSuperNode(superIps, cc);
         }
     }
-
-    /**
-     * 对象节点通知本节点加入
-     */
-    public boolean nodesJoinBroadcast(String ip) {
-        Channel channel = null;
-        try {
-            NodeClient nc = new NodeClient();
-             channel = nc.connect(ip, Constant.PORT);
-            ChannelContain.get().addChannel(channel, false);
-            Message message = new Message();
-            message.setType(MessageType.NODE_JOIN.getType());
-            message.setContent(selfIp.getBytes());
-            log.info("向地址{}发送当前节点ip:{}的连接请求",ip, selfIp);
-            MessageChannel  messageChannel = SynRequest.get().synReq(message, ip);
-            if (messageChannel != null) {
-                String  nodeJoinResp = SerializationUtil.deserializer(messageChannel.getMessage().getContent(), String.class);
-                log.info("连接节点ip:{} 返回连接结果为:{}", ip, nodeJoinResp);
-                if (Boolean.parseBoolean(nodeJoinResp)) {
-                    return true;
-                }
-            }else{
-                log.info("连接节点ip:{}，请求失败", ip);
-            }
-        } catch (Exception e) {
-            log.info("连接节点ip:{}，请求失败", ip);
-            return false;
-        }finally {
-            if(channel!=null){
-                ChannelContain.get().removeChannelNoBroad(channel);
-            }
-        }
-        return false;
-    }
-
 
     /**
      * 连接所有超级节点
@@ -263,27 +214,25 @@ public class ConnectionManager {
      */
     private void connectAllSuperNode(Collection<String> nodeIps, ChannelContain cc) {
         int needConCount = 0;
-        if(isSuperNode()){
-            needConCount =  Configure.MAX_SUPER_ACTIVE_CONNECT_COUNT-cc.getActiveConnectionCount();
-        }else{
-            needConCount = Configure.MAX_ACTIVE_CONNECT_COUNT-cc.getActiveConnectionCount();
+        if (isSuperNode()) {
+            needConCount = Configure.MAX_SUPER_ACTIVE_CONNECT_COUNT - cc.getActiveConnectionCount();
+        } else {
+            needConCount = Configure.MAX_ACTIVE_CONNECT_COUNT - cc.getActiveConnectionCount();
         }
         for (String ip : nodeIps) {
             if (needConCount > 0) {
                 try {
                     if (!ChannelContain.get().validateIpIsConnected(ip)) {
-                        if (nodesJoinBroadcast(ip)) {
-                            log.info("本节点连接超级节点目标ip地址:{}", ip);
-                            NodeClient tmpnc = new NodeClient();
-                            Channel connect = tmpnc.connect(ip, Constant.PORT);
-                            cc.addChannel(connect, false);
-                            InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
-                            getPeersOnline(ip);
-                            needConCount--;
-                        }
+                        log.info("本节点连接超级节点目标ip地址:{}", ip);
+                        NodeClient tmpnc = new NodeClient();
+                        Channel connect = tmpnc.connect(ip, Constant.PORT);
+                        cc.addChannel(connect, false);
+                        InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
+                        getPeersOnline(ip);
+                        needConCount--;
                     }
                 } catch (Throwable e) {
-                    break;
+                    continue;
                 }
             } else {
                 break;
@@ -296,7 +245,7 @@ public class ConnectionManager {
      */
     private void initSuperIps() {
         myIps.addAll(IpUtil.getOutIps());
-        log.info("本地外网IP抓取为：" +myIps.toString());
+        log.info("本地外网IP抓取为：" + myIps.toString());
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
         List<String> minings = new ArrayList<>();
         for (Object map : ips.entrySet()) {
@@ -311,18 +260,18 @@ public class ConnectionManager {
             if (!myIps.contains(ip)) {
                 superIps.add(ip);
             } else {
-                log.info("当前节点IP为：{} 确认为超级节点",ip);
+                log.info("当前节点IP为：{} 确认为超级节点", ip);
                 superNode = true;
-                selfIp=ip;
+                selfIp = ip;
             }
             superNodes.put(ip, snode);
         }
         CacheManager.get().put(new String(Constant.MINING_ADDRESS), minings);
-        if(!superNode&&null == selfIp){
+        if (!superNode && null == selfIp) {
 
             myIps.addAll(IpUtil.getInIps());
             selfIp = myIps.iterator().next();
-            log.info("非超级节点变更自身IP为：{}",selfIp);
+            log.info("非超级节点变更自身IP为：{}", selfIp);
         }
         log.info("获得超级节点数为:{}", superIps.size());
     }
@@ -376,10 +325,10 @@ public class ConnectionManager {
     /**
      * 交易消息传递
      */
-    public void TXMessageSend(Message message){
-        if(isSuperNode()){
+    public void TXMessageSend(Message message) {
+        if (isSuperNode()) {
             ChannelContain.get().sendMessageToSuperNode(message);
-        }else{
+        } else {
             ChannelContain.get().sendMessageToRandomSuperNode(message);
         }
     }

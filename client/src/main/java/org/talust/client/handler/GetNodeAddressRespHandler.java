@@ -23,56 +23,25 @@
  *
  */
 
-package org.talust.network.model;
+package org.talust.client.handler;
 
-import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
+import org.talust.common.model.Message;
+import org.talust.common.model.MessageChannel;
+import org.talust.common.model.MessageType;
+import org.talust.common.tools.Configure;
+import org.talust.common.tools.SerializationUtil;
+import org.talust.core.storage.AccountStorage;
+import org.talust.network.MessageHandler;
+import org.talust.network.netty.SynRequest;
+import org.talust.network.netty.queue.MessageQueue;
 
-//对通道的封装
-public class MyChannel {
-    private Channel channel;
-    private String localIp;
-    private String remoteIp;
-    //是否被动连接,为真表示此channel为被动连接,即远端连接本节点获得的,为假则表示此channel为主动连接远端获得的
-    private boolean isPassive;
-    private String address;
-
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public void setChannel(Channel channel) {
-        this.channel = channel;
-    }
-
-    public String getLocalIp() {
-        return localIp;
-    }
-
-    public void setLocalIp(String localIp) {
-        this.localIp = localIp;
-    }
-
-    public String getRemoteIp() {
-        return remoteIp;
-    }
-
-    public void setRemoteIp(String remoteIp) {
-        this.remoteIp = remoteIp;
-    }
-
-    public boolean isPassive() {
-        return isPassive;
-    }
-
-    public void setPassive(boolean passive) {
-        isPassive = passive;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
+@Slf4j
+public class GetNodeAddressRespHandler implements MessageHandler {
+    @Override
+    public boolean handle(MessageChannel message) {
+        log.info("远端ip:{} 返回本节点的地址消息", message.getFromIp());
+        SynRequest.get().synResp(message);
+        return true;
     }
 }

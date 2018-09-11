@@ -133,10 +133,7 @@ public class Conference {
     public void changeMaster() {
         lock.writeLock().lock();
         try {
-            log.info("确认空指针位置！");
-            log.info("确认空指针位置！master ：{}",master.getIp());
             String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();
-            log.info("确认空指针位置！currentBlockGenIp ：{}",currentBlockGenIp);
             if (this.master.getIp().equals(currentBlockGenIp)) {//说明需要改变master节点
                 Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
                 List<SuperNode> sns = new ArrayList<>();

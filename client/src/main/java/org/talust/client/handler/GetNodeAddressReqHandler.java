@@ -25,62 +25,31 @@
 
 package org.talust.client.handler;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import io.netty.channel.Channel;
-import io.netty.handler.codec.json.JsonObjectDecoder;
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.model.Message;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
-import org.talust.common.tools.Configure;
-import org.talust.common.tools.Constant;
 import org.talust.common.tools.SerializationUtil;
+import org.talust.core.storage.AccountStorage;
 import org.talust.network.MessageHandler;
-import org.talust.network.netty.ChannelContain;
-import org.talust.network.netty.ConnectionManager;
-import org.talust.network.netty.PeersManager;
-import org.talust.network.netty.client.NodeClient;
 import org.talust.network.netty.queue.MessageQueue;
-import org.talust.network.netty.queue.MessageQueueHolder;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
-public class NodeJoinHandler implements MessageHandler {
-    private int maxSuperPassivityConnectCount =  Configure.MAX_SUPER_PASSIVITY_CONNECT_COUNT;
-    private int maxPassivityConnectCount =  Configure.MAX_PASSIVITY_CONNECT_COUNT;
+public class GetNodeAddressReqHandler implements MessageHandler {
     private MessageQueue mq = MessageQueue.get();
 
     @Override
     public boolean handle(MessageChannel message) {
-        String ip = new String(message.getMessage().getContent());
-        log.info("接收到节点ip:{} 请求加入本节点网络的消息...", ip);
-        String result = "false";
-        if(ConnectionManager.get().isSuperNode()){
-            if(maxSuperPassivityConnectCount-ChannelContain.get().getPassiveConnCount()>0){
-                result = "true";
-                if(!ConnectionManager.get().getSuperIps().contains(ip)){
-                    PeersManager.get().addPeer(ip);
-                }
-            }
-        }else{
-            if(maxPassivityConnectCount-ChannelContain.get().getPassiveConnCount()>0){
-                result = "true";
-                PeersManager.get().addPeer(ip);
-            }
-        }
-        log.info("接收到节点ip:{} 请求结果为：{}", ip,result);
-        byte[] serializer = SerializationUtil.serializer(result);
+        byte[] serializer = SerializationUtil.serializer(AccountStorage.get().getDefaultAccount().getAddress().getBase58());
         Message alm = new Message();
-        alm.setType(MessageType.NODE_JOIN_RESP.getType());
+        alm.setType(MessageType.GET_NODE_ADDRESS_RESP.getType());
         alm.setContent(serializer);
         alm.setMsgCount(message.getMessage().getMsgCount());
         MessageChannel mc = new MessageChannel();
         mc.setMessage(alm);
         mc.setToIp(message.getFromIp());
         mq.addMessage(mc);
+        log.info("向远端ip:{} 返回所请求的地址信息:{}", message.getFromIp(),AccountStorage.get().getDefaultAccount().getAddress().getBase58());
         return true;
     }
 }
