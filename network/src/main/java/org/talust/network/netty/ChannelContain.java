@@ -25,8 +25,6 @@
 
 package org.talust.network.netty;
 
-import com.alibaba.fastjson.JSONObject;
-import io.netty.channel.ChannelFuture;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.model.MessageType;
 
@@ -35,8 +33,6 @@ import io.netty.channel.Channel;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.tools.Constant;
-import org.talust.common.tools.SerializationUtil;
-import org.talust.common.tools.SyncFuture;
 import org.talust.network.model.MyChannel;
 import org.talust.network.netty.client.NodeClient;
 import org.talust.network.netty.queue.MessageQueue;
@@ -44,7 +40,6 @@ import org.talust.network.netty.queue.MessageQueue;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 
 @Slf4j//socket容器
@@ -89,36 +84,6 @@ public class ChannelContain {
             superChannel.put(remoteIp, myChannel);
         }
         allNodeIps.add(remoteIp);
-        //获取其ADDRESS 以防止内网出错
-        if (isPassive) {
-            Message message = new Message();
-            message.setType(MessageType.GET_NODE_ADDRESS_REQ.getType());
-            sendMessage(remoteIp, message);
-        }
-    }
-
-    public void modifyChannel(Channel sc,String address){
-        InetSocketAddress insocket = (InetSocketAddress) sc.remoteAddress();
-        String remoteIp = insocket.getAddress().getHostAddress();
-        List<MyChannel> myChannels = mapChannel.get(remoteIp);
-        MyChannel reChannel = null ;
-        for(MyChannel myChannel :myChannels){
-            if(myChannel.getChannel()==sc){
-                reChannel = myChannel;
-                break;
-            }
-        }
-        if(null!=reChannel){
-            if(null!=address){
-                myChannels.remove(reChannel);
-                reChannel.setAddress(address);
-                myChannels.add(reChannel);
-                mapChannel.put(remoteIp, myChannels);
-                if (superIps.contains(remoteIp)) {
-                    superChannel.put(remoteIp, reChannel);
-                }
-            }
-        }
     }
 
     public synchronized void removeChannel(Channel sc) {
@@ -128,7 +93,7 @@ public class ChannelContain {
             if (mapChannel.containsKey(remoteIp)) {
                 List<MyChannel> myChannels = mapChannel.get(remoteIp);
                 for (MyChannel myChannel : myChannels) {
-                    if (myChannel.getChannel() == sc) {
+                    if (myChannel.getChannel().id().asLongText().equals(sc.id().asLongText()) ) {
                         myChannels.remove(myChannel);
                         break;
                     }

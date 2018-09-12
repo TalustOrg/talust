@@ -26,25 +26,18 @@
 package org.talust.client;
 
 import lombok.extern.slf4j.Slf4j;
-import org.talust.account.MiningAddress;
 
-import org.talust.block.MakeTestNetGengsisBlock;
 import org.talust.client.handler.*;
 import org.talust.client.validator.BlockArrivedValidator;
 import org.talust.client.validator.NodeExitValidator;
-import org.talust.client.validator.NodeJoinValidator;
 import org.talust.client.validator.TransactionValidator;
 import org.talust.common.model.MessageType;
-import org.talust.common.tools.CacheManager;
-import org.talust.common.tools.Constant;
-import org.talust.common.tools.SerializationUtil;
 import org.talust.consensus.ConsensusService;
 import org.talust.consensus.handler.MasterReqHandler;
 import org.talust.consensus.handler.MasterRespHandler;
 import org.talust.consensus.handler.NewMasterReqHandler;
 import org.talust.consensus.handler.NewMasterRespHandler;
 import org.talust.core.core.SynBlock;
-import org.talust.core.model.Block;
 import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.TransactionStorage;
 import org.talust.network.MessageHandler;
@@ -56,11 +49,8 @@ import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.PeersManager;
 import org.talust.network.netty.queue.MessageQueueHolder;
 import org.talust.core.storage.AccountStorage;
-import org.talust.core.storage.BlockStorage;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 @Slf4j
 public class BlockChainServer {
@@ -97,7 +87,6 @@ public class BlockChainServer {
             SynBlock.get().setBlockArrivedHandler(new BlockArrivedHandler());
             SynBlock.get().startSynBlock();//同步区块
         }
-
         //启动共识
         ConsensusService.get().start();
 
@@ -106,7 +95,6 @@ public class BlockChainServer {
     private void initValidators() {
         addValidator(MessageType.BLOCK_ARRIVED, new BlockArrivedValidator());
         addValidator(MessageType.NODE_EXIT, new NodeExitValidator());
-        addValidator(MessageType.NODE_JOIN, new NodeJoinValidator());
         addValidator(MessageType.TRANSACTION, new TransactionValidator());
     }
 
@@ -123,16 +111,12 @@ public class BlockChainServer {
         addHandler(MessageType.BLOCK_REQ, new BlockDataReqHandler());
         addHandler(MessageType.BLOCK_RESP, new BlockDataRespHandler());
         addHandler(MessageType.ERROR_MESSAGE, new ErrorMessageHandler());
-        addHandler(MessageType.NODE_JOIN, new NodeJoinHandler());
-        addHandler(MessageType.NODE_JOIN_RESP, new NodeJoinRespHandler());
         addHandler(MessageType.NODE_EXIT, new NodeExitHandler());
         addHandler(MessageType.TRANSACTION, new TransactionHandler());
         addHandler(MessageType.MASTER_REQ, new MasterReqHandler());
         addHandler(MessageType.MASTER_RESP, new MasterRespHandler());
         addHandler(MessageType.NEW_MASTER_REQ, new NewMasterReqHandler());
         addHandler(MessageType.NEW_MASTER_RESP, new NewMasterRespHandler());
-        addHandler(MessageType.GET_NODE_ADDRESS_REQ, new GetNodeAddressReqHandler());
-        addHandler(MessageType.GET_NODE_ADDRESS_RESP, new GetNodeAddressRespHandler());
     }
 
     public void addValidator(MessageType messageType, MessageValidator validator) {

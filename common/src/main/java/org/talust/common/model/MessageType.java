@@ -44,8 +44,6 @@ public enum MessageType {
     BLOCK_REQ(9),
     //获取区块响应
     BLOCK_RESP(10),
-    //节点申请加入
-    NODE_JOIN(11),
     //节点退出
     NODE_EXIT(12),
     //错误消息处理,一般针对请求响应模型才会有,遇到此种情况,直接向异步请求端投递即可
@@ -60,14 +58,11 @@ public enum MessageType {
     NEW_MASTER_REQ(19),
     //切换新的master响应
     NEW_MASTER_RESP(20),
-    //节点加入结果
-    NODE_JOIN_RESP(21),
     //所有节点的储蓄状态请求
     DEPOSITS_STATUS_REQ(22),
     //所有节点的储蓄状态相应
     DEPOSITS_STATUS_RESP(23),
-    GET_NODE_ADDRESS_REQ(24),
-    GET_NODE_ADDRESS_RESP(25),
+
     //结束,主要是为了开发时新增消息类型方便/
     END(10000)
     ;
