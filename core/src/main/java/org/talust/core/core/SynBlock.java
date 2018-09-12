@@ -96,7 +96,7 @@ public class SynBlock {
                 Message nodeMessage = new Message();
                 nodeMessage.setType(MessageType.HEIGHT_REQ.getType());
                 log.info("向远端ip:{}请求当前网络的区块高度...", channel.getRemoteIp());
-                MessageChannel message = SynRequest.get().synReq(nodeMessage, channel.getRemoteIp());
+                MessageChannel message = SynRequest.get().synReq(nodeMessage, channel.getRemoteIp(),channel);
                 if (message != null) {
                     log.info("远端ip:{}返回当前区块高度:{}", channel.getRemoteIp(), new String(message.getMessage().getContent()));
                 } else {
@@ -141,12 +141,11 @@ public class SynBlock {
      * @param channelBlockHeight
      */
     private void downBlock(long selfBlockHeight, int maxBlockHeight, Map<String, Integer> channelBlockHeight) {
-        List<String> ac = new ArrayList<>();//用于存储每个远端ip
+        List<MyChannel> ac = new ArrayList<>();//用于存储每个远端ip
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
         for (MyChannel channel : allChannel) {
-            ac.add(channel.getRemoteIp());
+            ac.add(channel);
         }
-
         boolean haveGenesis = true;
         if (selfBlockHeight == 0) {
             haveGenesis = false;
@@ -184,27 +183,28 @@ public class SynBlock {
                     }
                     if (needGain) {
                         int selectChannel = rand.nextInt(ac.size());//所选中的块所在的channel进行获取块,选中的channel是随机选择的
-                        String scId = ac.get(selectChannel);
+                         MyChannel myChannel = ac.get(selectChannel);
                         while (true) {
-                            log.info("当前请求的通道id:{},整个通道数量情况:{}", scId, channelBlockHeight);
-                            Integer bh = channelBlockHeight.get(scId);//选中的通道拥有的块的高度
+                            log.info("当前请求的通道id:{},整个通道数量情况:{}", myChannel.getChannel().id().asShortText(), channelBlockHeight);
+                            Integer bh = channelBlockHeight.get(myChannel.getRemoteIp());//选中的通道拥有的块的高度
                             if (bh < idx) {//选中的通道拥有的块高度不满足要求所取的块高度,则将此通道从备选通道中移除
-                                ac.remove(scId);
+                                ac.remove(myChannel);
                                 selectChannel = rand.nextInt(ac.size());
-                                scId = ac.get(selectChannel);
+                                myChannel = ac.get(selectChannel);
                             } else {
                                 break;
                             }
                         }
-                        final String selectIp = scId;
+                        final String selectIp = myChannel.getRemoteIp();
                         final long selectBlockHeight = idx;
+                        final  MyChannel finalMyChannel = myChannel;
                         if (!haveGenesis) {
                             Future<MessageChannel> genesis = threadPool.submit(() -> {
                                 Message nodeMessage = new Message();
                                 nodeMessage.setType(MessageType.BLOCK_REQ.getType());
                                 nodeMessage.setContent(Long.toString(0).getBytes());//所请求的块的高度
                                 log.info("向网络节点:{} 请求区块高度为:{}的区块...", selectIp, 0);
-                                MessageChannel message = SynRequest.get().synReq(nodeMessage, selectIp);
+                                MessageChannel message = SynRequest.get().synReq(nodeMessage, selectIp, finalMyChannel);
                                 return message;
                             });
                             results.add(genesis);
@@ -215,7 +215,7 @@ public class SynBlock {
                             nodeMessage.setType(MessageType.BLOCK_REQ.getType());
                             nodeMessage.setContent(Long.toString(selectBlockHeight).getBytes());//所请求的块的高度
                             log.info("向网络节点:{} 请求区块高度为:{}的区块...", selectIp, selectBlockHeight);
-                            MessageChannel message = SynRequest.get().synReq(nodeMessage, selectIp);
+                            MessageChannel message = SynRequest.get().synReq(nodeMessage, selectIp, finalMyChannel);
                             log.info("获得向IP：{}，请求高度：{}的区块内容，{}",selectIp,selectBlockHeight,null!=message);
                             return message;
                         });

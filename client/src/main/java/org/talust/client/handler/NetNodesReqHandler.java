@@ -52,8 +52,9 @@ public class NetNodesReqHandler implements MessageHandler {
         MessageChannel mc = new MessageChannel();
         mc.setMessage(alm);
         mc.setToIp(message.getFromIp());
+        mc.setChannelId(message.getChannelId());
         mq.addMessage(mc);
-        log.info("向远端ip:{} 返回所请求的所有节点消息,当前网络节点数:{}", message.getFromIp(), peerJ.entrySet().size());
+        log.info("向远端ip:{} 返回所请求的所有节点消息,当前网络节点数:{},信道ID：{}", message.getFromIp(), peerJ.entrySet().size(),message.getChannelId());
         return true;
     }
 }

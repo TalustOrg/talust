@@ -69,6 +69,7 @@ public class MessageQueueHolder {
                 try {
                     MessageChannel message = messageQueue.takeMessage();
                     Integer type = message.getMessage().getType();
+//                    log.info("接受到一个channelId 为 ：{}的消息,来源于:{}，目标为：{},类型为：{}",message.getChannelId(),message.getFromIp(),message.getToIp(),type);
                     List<MessageHandler> messageHandler = mapHandlers.get(type);
                     if (messageHandler != null) {
                         MessageValidator validator = mapValidators.get(type);
@@ -140,6 +141,8 @@ public class MessageQueueHolder {
                 mc.setMessage(message.getMessage());
                 mc.setToIp(channel.getRemoteIp());
                 mc.setFromIp(selfIp);
+                log.info("CHANNEL ID :{}",channel.getChannel().id().asShortText());
+                mc.setChannelId(channel.getChannel().id().asShortText());
                 mq.addMessage(mc);
             }
         }

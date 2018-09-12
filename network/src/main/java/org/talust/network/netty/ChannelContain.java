@@ -72,6 +72,12 @@ public class ChannelContain {
         List<MyChannel> myChannels = mapChannel.get(remoteIp);
         if (null == myChannels || myChannels.size() == 0) {
             myChannels = new ArrayList<>();
+        }else{
+            for(MyChannel myChannel :myChannels){
+                if(myChannel.getChannel().id()==sc.id()){
+                    return;
+                }
+            }
         }
         MyChannel myChannel = new MyChannel();
         myChannel.setChannel(sc);
@@ -93,7 +99,7 @@ public class ChannelContain {
             if (mapChannel.containsKey(remoteIp)) {
                 List<MyChannel> myChannels = mapChannel.get(remoteIp);
                 for (MyChannel myChannel : myChannels) {
-                    if (myChannel.getChannel().id().asLongText().equals(sc.id().asLongText()) ) {
+                    if (myChannel.getChannel().id().asShortText().equals(sc.id().asShortText()) ) {
                         myChannels.remove(myChannel);
                         break;
                     }
@@ -176,6 +182,16 @@ public class ChannelContain {
         }
     }
 
+    public void sendMessageByChannelId(String remoteIp, Message message,String channelId){
+        List<MyChannel> myChannelList = mapChannel.get(remoteIp);
+        if (null != myChannelList && myChannelList.size() > 0) {
+            for (MyChannel myChannel : myChannelList) {
+                if(myChannel.getChannel().id().asShortText().equals(channelId)){
+                    myChannel.getChannel().writeAndFlush(message);
+                }
+            }
+        }
+    }
     /**
      * 向所有的超级节点发送消息
      */

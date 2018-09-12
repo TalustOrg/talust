@@ -32,6 +32,7 @@ import org.talust.common.model.MessageType;
 import org.talust.common.tools.CacheManager;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.network.MessageHandler;
+import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.queue.MessageQueue;
 
 @Slf4j//远端区块高度请求处理
@@ -46,6 +47,8 @@ public class BlockHeightReqHandler implements MessageHandler {
         msg.setMsgCount(message.getMessage().getMsgCount());
         mc.setToIp(message.getFromIp());
         mc.setMessage(msg);
+        log.info("CHANNEL ID :{}",message.getChannelId());
+        mc.setChannelId(message.getChannelId());
         mq.addMessage(mc);
         log.info("向远端ip:{} 返回本节点当前最新区块高度:{}", message.getFromIp(),MainNetworkParams.get().getBestHeight());
         return true;

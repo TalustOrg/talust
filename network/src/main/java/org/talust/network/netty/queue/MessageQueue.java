@@ -25,6 +25,7 @@
 
 package org.talust.network.netty.queue;
 
+import lombok.extern.slf4j.Slf4j;
 import org.talust.common.model.MessageChannel;
 import org.talust.common.tools.DateUtil;
 
@@ -33,6 +34,7 @@ import java.util.concurrent.LinkedTransferQueue;
 /**
  * 接收消息队列,即从远端发送过来的数据将存储于此
  */
+@Slf4j
 public class MessageQueue {
     private static MessageQueue instance = new MessageQueue();
 
@@ -49,6 +51,7 @@ public class MessageQueue {
         if (message.getMessage() != null) {
             message.getMessage().setTime(System.currentTimeMillis()/1000);
         }
+//        log.info("发送一个channelId为：{}，來源于：{}，发往：{}的数据",message.getChannelId(),message.getFromIp(),message.getToIp());
         this.queue.add(message);
     }
 

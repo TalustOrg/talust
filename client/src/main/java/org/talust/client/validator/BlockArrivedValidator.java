@@ -36,6 +36,7 @@ import org.talust.common.tools.Configure;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.core.core.ByteHash;
 import org.talust.core.core.Definition;
+import org.talust.core.core.SynBlock;
 import org.talust.core.model.Block;
 import org.talust.core.model.BlockHeader;
 import org.talust.core.network.MainNetworkParams;
@@ -84,7 +85,6 @@ public class BlockArrivedValidator implements MessageValidator {
             }else if(block.getHeight()==0){
                 return true;
             }
-
             if (result) {//继续校验区块里面的每一条数据
                 block.verify();
                 block.verifyScript();
@@ -106,6 +106,7 @@ public class BlockArrivedValidator implements MessageValidator {
             }
         }else{
             log.info("接受到的区块高度不一致！");
+            SynBlock.get().startSynBlock();
             return false;
         }
         return result;

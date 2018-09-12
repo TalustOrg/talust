@@ -74,6 +74,7 @@ public class NodeServerRespHandler extends SimpleChannelInboundHandler<Message> 
             MessageChannel mc = new MessageChannel();
             mc.setMessage(msg);
             mc.setFromIp(remoteIp);
+            mc.setChannelId(ctx.channel().id().asShortText());
             mq.addMessage(mc);
         }
     }

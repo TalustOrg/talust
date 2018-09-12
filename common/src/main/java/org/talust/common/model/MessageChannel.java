@@ -36,6 +36,8 @@ public class MessageChannel {
     //准备发往哪一个channel,只在本地队列流转时有用,平时一般不使用
     private String toIp;
 
+    private String channelId;
+
     public Message getMessage() {
         return message;
     }
@@ -58,5 +60,13 @@ public class MessageChannel {
 
     public void setToIp(String toIp) {
         this.toIp = toIp;
+    }
+
+    public String getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(String channelId) {
+        this.channelId = channelId;
     }
 }
