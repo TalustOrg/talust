@@ -47,7 +47,6 @@ public class BlockHeightReqHandler implements MessageHandler {
         msg.setMsgCount(message.getMessage().getMsgCount());
         mc.setToIp(message.getFromIp());
         mc.setMessage(msg);
-        log.info("CHANNEL ID :{}",message.getChannelId());
         mc.setChannelId(message.getChannelId());
         mq.addMessage(mc);
         log.info("向远端ip:{} 返回本节点当前最新区块高度:{}", message.getFromIp(),MainNetworkParams.get().getBestHeight());

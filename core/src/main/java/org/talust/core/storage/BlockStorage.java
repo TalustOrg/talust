@@ -124,8 +124,7 @@ public class BlockStorage extends BaseStoreProvider {
                 //要保存的块和最新块能连接上，通过
             } else {
                 log.error("区块错误，交易回滚！上一个区块HASH值与本次区块的HASH值比对结果为：{}，本次区块高度{}，本地最新区块高度{}",bestBlockHeader.getBlockHeader().getHash().equals(preHash),  bestBlockHeader.getBlockHeader().getHeight(),block.getHeight());
-                this.revokedBlock(block);
-                throw new VerificationException("错误的区块，保存失败,区块回滚");
+                return network.getBestHeight();
             }
 
             if (blockStore.getNextHash() == null) {

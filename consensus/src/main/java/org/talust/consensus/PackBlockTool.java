@@ -17,9 +17,12 @@ import org.talust.core.model.*;
 import org.talust.common.model.DepositAccount;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.ScriptBuilder;
+import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.*;
 import org.talust.core.transaction.Transaction;
 import org.talust.core.transaction.TransactionInput;
+import org.talust.network.MessageHandler;
+import org.talust.network.MessageValidator;
 import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.queue.MessageQueue;
 
@@ -34,7 +37,8 @@ public class PackBlockTool {
     private DataContainer dataContainer = DataContainer.get();
     private BlockStorage blockStorage = BlockStorage.get();
     private NetworkParams networkParams = MainNetworkParams.get();
-
+    private MessageHandler blockArrivedHandler;//区块到来处理器
+    private MessageValidator blockArrivedValidator;//区块到来校验器
 
     //打包
     public void  pack(long packageTime) {
@@ -82,6 +86,10 @@ public class PackBlockTool {
             mc.setMessage(message);
             mc.setFromIp(ConnectionManager.get().selfIp);
             MessageQueue.get().addMessage(mc);
+            if (blockArrivedValidator.check(mc)) {
+                log.info("产生区块后准备存储区块时间：{},区块高度：{}", NtpTimeService.currentTimeSeconds(), block.getBlockHeader().getHeight());
+                blockArrivedHandler.handle(mc);
+            }
         } catch (Throwable e) {
             e.printStackTrace();
         }

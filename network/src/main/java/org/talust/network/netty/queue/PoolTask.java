@@ -30,6 +30,7 @@ import org.talust.common.model.MessageChannel;
 import org.talust.network.MessageHandler;
 import org.talust.network.MessageValidator;
 import org.talust.network.netty.ChannelContain;
+import org.talust.network.netty.ConnectionManager;
 
 import java.io.Serializable;
 import java.util.List;
@@ -63,14 +64,17 @@ public class PoolTask implements Runnable, Serializable {
                     //说明接收到的消息是要求往toChannel这个通道发送数据,此种业务逻辑目前暂不进行验证合理性,直接发即可
                     ChannelContain.get().sendMessage(toIP, message.getMessage());
                 }
-            } else {//明确要求自身节点进行处理的消息
-                boolean check = true;//
-                if (validator != null) {
-                    check = validator.check(message);
-                }
-                if (check) {//校验正确
-                    for (MessageHandler handler : handlers) {
-                        handler.handle(message);
+            } else {
+                //明确要求自身节点进行处理的消息，并且不是自身发送出来的消息
+                if(!message.getFromIp().equals(ConnectionManager.get().selfIp)){
+                    boolean check = true;//
+                    if (validator != null) {
+                        check = validator.check(message);
+                    }
+                    if (check) {//校验正确
+                        for (MessageHandler handler : handlers) {
+                            handler.handle(message);
+                        }
                     }
                 }
             }

@@ -141,7 +141,6 @@ public class MessageQueueHolder {
                 mc.setMessage(message.getMessage());
                 mc.setToIp(channel.getRemoteIp());
                 mc.setFromIp(selfIp);
-                log.info("CHANNEL ID :{}",channel.getChannel().id().asShortText());
                 mc.setChannelId(channel.getChannel().id().asShortText());
                 mq.addMessage(mc);
             }

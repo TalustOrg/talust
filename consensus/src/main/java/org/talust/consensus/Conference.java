@@ -43,86 +43,90 @@ public class Conference {
      * @return
      */
     public SuperNode reqNetMaster() {
-        Collection<MyChannel> superChannels = ChannelContain.get().getSuperChannels();
-        int superSize = superChannels.size();
-        if (superSize > 0) {//说明当前超级节点网络有多个
-            int needOkNumber = superSize / 2;//需要回应的数量
-            //向每一个超级节点请求加入结果
-            log.info("当前节点ip:{} 向各个超级节点请求当前master节点,其他超级节点数量为:{}", ConnectionManager.get().getSelfIp(), superSize);
+        try {
+            Collection<MyChannel> superChannels = ChannelContain.get().getSuperChannels();
+            int superSize = superChannels.size();
+            if (superSize > 0) {//说明当前超级节点网络有多个
+                int needOkNumber = superSize / 2;//需要回应的数量
+                //向每一个超级节点请求加入结果
+                log.info("当前节点ip:{} 向各个超级节点请求当前master节点,其他超级节点数量为:{}", ConnectionManager.get().getSelfIp(), superSize);
 
-            List<Future<String>> results = new ArrayList<>();
-            for (final MyChannel superChannel : superChannels) {
-                Future<String> submit = threadPool.submit(() -> {
-                    Message nodeMessage = new Message();
-                    nodeMessage.setType(MessageType.MASTER_REQ.getType());//master请求
-                    MessageChannel nm = SynRequest.get().synReq(nodeMessage, superChannel.getRemoteIp());
-                    if (nm != null) {
-                        byte[] content = nm.getMessage().getContent();
-                        if (content != null) {//ip
-                            log.info("节点返回master节点IP为：{}"+new String(content));
-                            return new String(content);
+                List<Future<String>> results = new ArrayList<>();
+                for (final MyChannel superChannel : superChannels) {
+                    Future<String> submit = threadPool.submit(() -> {
+                        Message nodeMessage = new Message();
+                        nodeMessage.setType(MessageType.MASTER_REQ.getType());//master请求
+                        MessageChannel nm = SynRequest.get().synReq(nodeMessage, superChannel.getRemoteIp());
+                        if (nm != null) {
+                            byte[] content = nm.getMessage().getContent();
+                            if (content != null) {//ip
+                                log.info("节点返回master节点IP为：{},来源于", new String(content), nm.getFromIp());
+                                return new String(content);
+                            }
+                        }
+                        return null;
+                    });
+                    results.add(submit);
+                }
+
+                Map<String, Integer> rc = new HashMap<>();
+                while (true) {
+                    boolean isOk = false;
+                    for (Future<String> result : results) {
+                        try {
+                            boolean done = result.isDone();
+                            if (done) {
+                                String conferenceMemeber = result.get();
+                                Integer number = rc.get(conferenceMemeber);
+                                if (number == null) {
+                                    number = 0;
+                                }
+                                number++;
+                                rc.put(conferenceMemeber, number);
+                                if (number > needOkNumber) {
+                                    isOk = true;
+                                }
+                                results.remove(result);
+                                break;
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
-                    return null;
-                });
-                results.add(submit);
-            }
-
-            Map<String, Integer> rc = new HashMap<>();
-            while (true) {
-                boolean isOk = false;
-                for (Future<String> result : results) {
+                    if (isOk) {
+                        break;
+                    }
                     try {
-                        boolean done = result.isDone();
-                        if (done) {
-                            String conferenceMemeber = result.get();
-                            Integer number = rc.get(conferenceMemeber);
-                            if (number == null) {
-                                number = 0;
-                            }
-                            number++;
-                            rc.put(conferenceMemeber, number);
-                            if (number > needOkNumber) {
-                                isOk = true;
-                            }
-                            results.remove(result);
-                            break;
-                        }
-                    } catch (Exception e) {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-                if (isOk) {
-                    break;
-                }
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
 
-            Iterator<Map.Entry<String, Integer>> it = rc.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<String, Integer> next = it.next();
-                Integer value = next.getValue();
-                if (value > needOkNumber) {
-                    master = ConnectionManager.get().getSuperNodeByIp(next.getKey());
-                    log.info("当前出块节点IP 为：{}",master.getIp());
+                Iterator<Map.Entry<String, Integer>> it = rc.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, Integer> next = it.next();
+                    Integer value = next.getValue();
+                    if (value > needOkNumber) {
+                        master = ConnectionManager.get().getSuperNodeByIp(next.getKey());
+                        log.info("当前出块节点IP 为：{}", master.getIp());
+                        ConnectionManager.get().setMasterIp(master.getIp());
+                        CacheManager.get().setCurrentBlockGenIp(master.getIp());
+                        return master;
+                    }
+                }
+            } else {
+                boolean superNode = ConnectionManager.get().superNode;
+                if (superNode) {//如果当前节点是超级节点,则启动共识机制
+                    master = ConnectionManager.get().getSuperNodeByIp(ConnectionManager.get().getSelfIp());
+                    log.info("当前出块节点IP 为：{}", master.getIp());
                     ConnectionManager.get().setMasterIp(master.getIp());
                     CacheManager.get().setCurrentBlockGenIp(master.getIp());
                     return master;
                 }
             }
-        } else {
-            boolean superNode = ConnectionManager.get().superNode;
-            if (superNode) {//如果当前节点是超级节点,则启动共识机制
-                master = ConnectionManager.get().getSuperNodeByIp(ConnectionManager.get().getSelfIp());
-                log.info("当前出块节点IP 为：{}",master.getIp());
-                ConnectionManager.get().setMasterIp(master.getIp());
-                CacheManager.get().setCurrentBlockGenIp(master.getIp());
-                return master;
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -134,32 +138,35 @@ public class Conference {
         lock.writeLock().lock();
         try {
             String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();
-            if (this.master.getIp().equals(currentBlockGenIp)) {//说明需要改变master节点
-                Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
-                List<SuperNode> sns = new ArrayList<>();
-                for (SuperNode superNode : superNodes) {
-                    sns.add(superNode);
-                }
-                Collections.sort(sns, Comparator.comparing(SuperNode::getIp));
-
-                boolean selOk = false;
-                SuperNode nextMaster = sns.get(0);
-                for (SuperNode superNode : sns) {
-                    if (selOk) {
-                        nextMaster = superNode;
-                        break;
+            if(null!=master){
+                if (this.master.getIp().equals(currentBlockGenIp)) {//说明需要改变master节点
+                    Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
+                    List<SuperNode> sns = new ArrayList<>();
+                    for (SuperNode superNode : superNodes) {
+                        sns.add(superNode);
                     }
-                    if (superNode.getIp().equals(currentBlockGenIp)) {
-                        selOk = true;
+                    Collections.sort(sns, Comparator.comparing(SuperNode::getIp));
+
+                    boolean selOk = false;
+                    SuperNode nextMaster = sns.get(0);
+                    for (SuperNode superNode : sns) {
+                        if (selOk) {
+                            nextMaster = superNode;
+                            break;
+                        }
+                        if (superNode.getIp().equals(currentBlockGenIp)) {
+                            selOk = true;
+                        }
+                    }
+                    this.master = nextMaster;
+                    ConnectionManager.get().setMasterIp(master.getIp());
+                    if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
+                        ConsensusService.get().startGenBlock();
                     }
                 }
-                this.master = nextMaster;
-                ConnectionManager.get().setMasterIp(master.getIp());
-                if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
-                    ConsensusService.get().startGenBlock();
-                }
-            } else {//说明已经改变完成
-
+            }else{
+                //说明暂时无法更新master节点,需要强制更新自身缓存
+                reqNetMaster();
             }
         } finally {
             lock.writeLock().unlock();
@@ -220,8 +227,6 @@ public class Conference {
         }
         return false;
     }
-
-
 
 
     public SuperNode getMaster() {

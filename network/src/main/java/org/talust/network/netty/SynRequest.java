@@ -74,7 +74,6 @@ public class SynRequest {
         MessageChannel mch = new MessageChannel();
         mch.setMessage(message);
         mch.setToIp(toIp);
-        log.info("CHANNEL ID :{}",ChannelContain.get().getChannelByIp(toIp).id().asShortText());
         mch.setChannelId(ChannelContain.get().getChannelByIp(toIp).id().asShortText());
         mq.addMessage(mch);
         MessageChannel retMsg = sync.get(3, TimeUnit.SECONDS);
