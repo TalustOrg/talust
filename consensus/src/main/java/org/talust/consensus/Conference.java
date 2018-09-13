@@ -32,7 +32,6 @@ public class Conference {
     private SuperNode master;
     //构造一个线程池
     private ThreadPoolExecutor threadPool = ThreadPool.get().threadPool;
-
     private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     private int voteState = VoteStatus.NOT_NEED.getType();
