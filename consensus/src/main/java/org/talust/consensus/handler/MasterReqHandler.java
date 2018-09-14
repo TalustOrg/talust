@@ -22,12 +22,12 @@ public class MasterReqHandler implements MessageHandler {
         String fromChannel = message.getFromIp();
         mc.setToIp(fromChannel);
         SuperNode master = Conference.get().getMaster();
-        log.info("接收到请求当前共识网络的master的请求,当前master的ip为:{}", master.getIp());
         if (master != null) {
+            log.info("接收到请求当前共识网络的master的请求,当前master的ip为:{}", master.getIp());
             sendMessage.setContent(master.getIp().getBytes());
         } else {
             sendMessage.setType(MessageType.ERROR_MESSAGE.getType());
-            sendMessage.setContent("未找到当前会议的master".getBytes());
+            sendMessage.setContent("NO_MASTER".getBytes());
         }
         MessageQueue.get().addMessage(mc);
         return true;

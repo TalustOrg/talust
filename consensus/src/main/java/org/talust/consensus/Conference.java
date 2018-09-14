@@ -59,7 +59,7 @@ public class Conference {
                         if (nm != null) {
                             byte[] content = nm.getMessage().getContent();
                             if (content != null) {//ip
-                                log.info("节点返回master节点IP为：{},来源于", new String(content), nm.getFromIp());
+                                log.info("reqNetMaster 节点返回master节点IP为：{},来源于", new String(content), nm.getFromIp());
                                 return new String(content);
                             }
                         }
@@ -76,17 +76,17 @@ public class Conference {
                             boolean done = result.isDone();
                             if (done) {
                                 String conferenceMemeber = result.get();
-                                Integer number = rc.get(conferenceMemeber);
-                                if (number == null) {
-                                    number = 0;
-                                }
-                                number++;
-                                rc.put(conferenceMemeber, number);
-                                if (number > needOkNumber) {
-                                    isOk = true;
-                                }
-                                results.remove(result);
-                                break;
+                                    Integer number = rc.get(conferenceMemeber);
+                                    if (number == null) {
+                                        number = 0;
+                                    }
+                                    number++;
+                                    rc.put(conferenceMemeber, number);
+                                    if (number > needOkNumber) {
+                                        isOk = true;
+                                    }
+                                    results.remove(result);
+                                    break;
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -106,11 +106,20 @@ public class Conference {
                 while (it.hasNext()) {
                     Map.Entry<String, Integer> next = it.next();
                     Integer value = next.getValue();
+                    if("NO_MASTER".equals(next.getKey())){
+                       continue;
+                    }
                     if (value > needOkNumber) {
+                        log.info("reqNetMaster 认定节点IP为：{}",next.getKey());
                         master = ConnectionManager.get().getSuperNodeByIp(next.getKey());
-                        log.info("当前出块节点IP 为：{}", master.getIp());
+                        log.info("reqNetMaster 当前出块节点IP 为：{}", master.getIp());
                         ConnectionManager.get().setMasterIp(master.getIp());
                         CacheManager.get().setCurrentBlockGenIp(master.getIp());
+                        if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
+                            ConsensusService.get().startGenBlock();
+                        }else{
+                            ConsensusService.get().stopGenBlock();
+                        }
                         return master;
                     }
                 }
@@ -118,9 +127,14 @@ public class Conference {
                 boolean superNode = ConnectionManager.get().superNode;
                 if (superNode) {//如果当前节点是超级节点,则启动共识机制
                     master = ConnectionManager.get().getSuperNodeByIp(ConnectionManager.get().getSelfIp());
-                    log.info("当前出块节点IP 为：{}", master.getIp());
+                    log.info("reqNetMaster 当前出块节点IP 为：{}", master.getIp());
                     ConnectionManager.get().setMasterIp(master.getIp());
                     CacheManager.get().setCurrentBlockGenIp(master.getIp());
+                    if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
+                        ConsensusService.get().startGenBlock();
+                    }else{
+                        ConsensusService.get().stopGenBlock();
+                    }
                     return master;
                 }
             }
@@ -158,9 +172,12 @@ public class Conference {
                         }
                     }
                     this.master = nextMaster;
+                    log.info("changeMaster  改变当前master节点,当前出块节点IP 为：{}", master.getIp());
                     ConnectionManager.get().setMasterIp(master.getIp());
                     if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
                         ConsensusService.get().startGenBlock();
+                    }else{
+                        ConsensusService.get().stopGenBlock();
                     }
                 }
             }else{
@@ -213,13 +230,25 @@ public class Conference {
                     }
                 }
                 if (nextMaster.equals(newMasterIp)) {//说明当前节点认同此更新
+                    log.info("checkNewMaster 改变当前master节点,当前出块节点IP 为：{}", master.getIp());
                     ConnectionManager.get().setMasterIp(newMasterIp);
+                    if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
+                        ConsensusService.get().startGenBlock();
+                    }else{
+                        ConsensusService.get().stopGenBlock();
+                    }
                     return true;
                 }
             } else {
                 changeMaster();
                 if (newMasterIp.equals(master)) {
+                    log.info("checkNewMaster 改变当前master节点,当前出块节点IP 为：{}", master.getIp());
                     ConnectionManager.get().setMasterIp(newMasterIp);
+                    if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
+                        ConsensusService.get().startGenBlock();
+                    }else{
+                        ConsensusService.get().stopGenBlock();
+                    }
                     return true;
                 }
             }

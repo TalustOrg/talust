@@ -57,16 +57,15 @@ public class PoolTask implements Runnable, Serializable {
         try {
             String toIP = message.getToIp();
             if (toIP != null && toIP.length() > 0) {
-                if(null!=message.getChannelId()){
-//                    log.info("向channelId :{} ， ip :{} 的节点发送消息.",message.getChannelId(),toIP);
-                    ChannelContain.get().sendMessageByChannelId(toIP, message.getMessage(),message.getChannelId());
-                }else{
+                if (null != message.getChannelId()) {
+                    ChannelContain.get().sendMessageByChannelId(toIP, message.getMessage(), message.getChannelId());
+                } else {
                     //说明接收到的消息是要求往toChannel这个通道发送数据,此种业务逻辑目前暂不进行验证合理性,直接发即可
                     ChannelContain.get().sendMessage(toIP, message.getMessage());
                 }
             } else {
                 //明确要求自身节点进行处理的消息，并且不是自身发送出来的消息
-                if(!message.getFromIp().equals(ConnectionManager.get().selfIp)){
+                try {
                     boolean check = true;//
                     if (validator != null) {
                         check = validator.check(message);
@@ -76,6 +75,8 @@ public class PoolTask implements Runnable, Serializable {
                             handler.handle(message);
                         }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         } catch (Throwable e) {

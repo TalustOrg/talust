@@ -37,8 +37,6 @@ public class PackBlockTool {
     private DataContainer dataContainer = DataContainer.get();
     private BlockStorage blockStorage = BlockStorage.get();
     private NetworkParams networkParams = MainNetworkParams.get();
-    private MessageHandler blockArrivedHandler ;//区块到来处理器
-    private MessageValidator blockArrivedValidator;//区块到来校验器
 
     //打包
     public void  pack(long packageTime) {
@@ -86,8 +84,6 @@ public class PackBlockTool {
             mc.setMessage(message);
             mc.setFromIp(ConnectionManager.get().selfIp);
             MessageQueue.get().addMessage(mc);
-            log.info("产生区块后准备存储区块时间：{},区块高度：{}", NtpTimeService.currentTimeSeconds(), block.getBlockHeader().getHeight());
-            BlockStorage.get().saveBlock(blockStore);
         } catch (Throwable e) {
             e.printStackTrace();
         }
@@ -146,23 +142,5 @@ public class PackBlockTool {
             total = total.add(deposit.getAmount());
         }
         return total;
-    }
-
-
-
-    public MessageHandler getBlockArrivedHandler() {
-        return blockArrivedHandler;
-    }
-
-    public void setBlockArrivedHandler(MessageHandler blockArrivedHandler) {
-        this.blockArrivedHandler = blockArrivedHandler;
-    }
-
-    public MessageValidator getBlockArrivedValidator() {
-        return blockArrivedValidator;
-    }
-
-    public void setBlockArrivedValidator(MessageValidator blockArrivedValidator) {
-        this.blockArrivedValidator = blockArrivedValidator;
     }
 }

@@ -80,6 +80,8 @@ public class BlockChainServer {
             accountStorage.nomorlNodeLogin();
             ConnectionManager.get().normalNodeJoin();
         }
+        log.info("开启网络检查");
+        ConnectionManager.get().startNetCheck();
         Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
         log.info("当前节点所连接的节点数:{}", allChannel.size());
         if (allChannel != null && allChannel.size() > 0) {//说明有其他的节点

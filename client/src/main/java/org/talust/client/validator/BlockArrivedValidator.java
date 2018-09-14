@@ -48,6 +48,7 @@ import org.talust.core.transaction.TransactionInput;
 import org.talust.core.transaction.TransactionOutput;
 import org.talust.network.MessageValidator;
 import org.talust.core.storage.BlockStorage;
+import org.talust.network.netty.ConnectionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,11 +68,11 @@ public class BlockArrivedValidator implements MessageValidator {
         Block block = blockStore.getBlock();
         long height = block.getHeight();
         long nowHeight = MainNetworkParams.get().getBestBlockHeight();
-        log.info("准备验证存储区块时间：{},区块高度：{},本地区块高度：{}",NtpTimeService.currentTimeSeconds(),height,nowHeight);
-        if((height-nowHeight)==1||height==0){
+        log.info("准备验证存储区块时间：{},区块高度：{},本地区块高度：{}", NtpTimeService.currentTimeSeconds(), height, nowHeight);
+        if ((height - nowHeight) == 1 || height == 0) {
             boolean checkRepeat = CacheManager.get().checkRepeat(("block_height:" + height), Configure.BLOCK_GEN_TIME);
             if (checkRepeat) {//说明本节点接收到过同样的消息,则直接将该消息扔掉
-                log.info("区块高度：{}的区块已经被接收过，直接抛弃",height);
+                log.info("区块高度：{}的区块已经被接收过，直接抛弃", height);
                 return false;
             }
             Sha256Hash prevBlock = block.getPreHash();//前一区块hash
@@ -82,8 +83,11 @@ public class BlockArrivedValidator implements MessageValidator {
                 if ((height - preHeight) == 1) {
                     result = true;
                 }
-            }else if(block.getHeight()==0){
+            } else if (block.getHeight() == 0) {
                 return true;
+            } else {
+                log.info("获取上一个区块的内容失败，且区块高度不为0!,需要重新同步！");
+
             }
             if (result) {//继续校验区块里面的每一条数据
                 block.verify();
@@ -104,10 +108,12 @@ public class BlockArrivedValidator implements MessageValidator {
                     }
                 }
             }
-        }else{
+        } else if((height - nowHeight) > 1 ) {
             log.info("接受到的区块高度不一致！");
             SynBlock.get().startSynBlock();
             return false;
+        }else{
+            log.info("接受到的区块,已存储过！");
         }
         return result;
     }

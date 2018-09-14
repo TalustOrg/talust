@@ -39,6 +39,10 @@ import org.talust.network.netty.client.NodeClient;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 连接管理者,用于实现底层的连接,上层应用中不需要关心本层次的连接问题
@@ -70,6 +74,10 @@ public class ConnectionManager {
      * 超级节点信息
      */
     private Map<String, SuperNode> superNodes = new HashMap<>();
+
+
+    private ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
+    private AtomicBoolean genRunning = new AtomicBoolean(false);
     /**
      * 当前节点是否是超级节点
      */
@@ -93,6 +101,69 @@ public class ConnectionManager {
      */
     public void init() {
         initSuperIps();
+    }
+    /**
+     * 初始化固定超级服务器ip地址,用于当前节点的连接所用
+     */
+    private void initSuperIps() {
+        myIps.addAll(IpUtil.getOutIps());
+        log.info("本地外网IP抓取为：" + myIps.toString());
+        JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
+        List<String> minings = new ArrayList<>();
+        for (Object map : ips.entrySet()) {
+            JSONObject ipContent = (JSONObject) ((Map.Entry) map).getValue();
+            String ip = ipContent.getString("ip");
+            minings.add(ipContent.getString("address"));
+            SuperNode snode = new SuperNode();
+            snode.setCode(Integer.parseInt((String) ((Map.Entry) map).getKey()));
+            snode.setIp(ip);
+            snode.setAddress(ipContent.getString("address"));
+            snode.setId((String) ((Map.Entry) map).getKey());
+            if (!myIps.contains(ip)) {
+                superIps.add(ip);
+            } else {
+                log.info("当前节点IP为：{} 确认为超级节点", ip);
+                superNode = true;
+                selfIp = ip;
+            }
+            superNodes.put(ip, snode);
+        }
+        CacheManager.get().put(new String(Constant.MINING_ADDRESS), minings);
+        if (!superNode && null == selfIp) {
+
+            myIps.addAll(IpUtil.getInIps());
+            selfIp = myIps.iterator().next();
+            log.info("非超级节点变更自身IP为：{}", selfIp);
+        }
+        log.info("获得超级节点数为:{}", superIps.size());
+
+        long delay = 0;
+        service.scheduleAtFixedRate(() -> {
+            if (genRunning.get()) {
+                int activeSize = ChannelContain.get().getActiveConnectionCount();
+                int passiveSize = ChannelContain.get().getPassiveConnCount();
+                log.info("网络检查，获取当前网络连接状态:主动连接：{},被动连接：{}", activeSize,passiveSize);
+                if(superNode){
+                    if(activeSize<Configure.MAX_SUPER_ACTIVE_CONNECT_COUNT){
+                        superNodeJoin();
+                    }
+                }else{
+                    if(activeSize<Configure.MAX_ACTIVE_CONNECT_COUNT){
+                        normalNodeJoin();
+                    }
+                }
+            }
+        }, delay, Configure.NET_CHECK_TIME, TimeUnit.SECONDS);
+        log.info("启动定时任务检查网络,延时:{}...", delay);
+    }
+
+
+
+    /**
+     * 开始网络监察
+     */
+    public void startNetCheck() {
+        genRunning.set(true);
     }
 
     /**
@@ -240,41 +311,7 @@ public class ConnectionManager {
         }
     }
 
-    /**
-     * 初始化固定超级服务器ip地址,用于当前节点的连接所用
-     */
-    private void initSuperIps() {
-        myIps.addAll(IpUtil.getOutIps());
-        log.info("本地外网IP抓取为：" + myIps.toString());
-        JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
-        List<String> minings = new ArrayList<>();
-        for (Object map : ips.entrySet()) {
-            JSONObject ipContent = (JSONObject) ((Map.Entry) map).getValue();
-            String ip = ipContent.getString("ip");
-            minings.add(ipContent.getString("address"));
-            SuperNode snode = new SuperNode();
-            snode.setCode(Integer.parseInt((String) ((Map.Entry) map).getKey()));
-            snode.setIp(ip);
-            snode.setAddress(ipContent.getString("address"));
-            snode.setId((String) ((Map.Entry) map).getKey());
-            if (!myIps.contains(ip)) {
-                superIps.add(ip);
-            } else {
-                log.info("当前节点IP为：{} 确认为超级节点", ip);
-                superNode = true;
-                selfIp = ip;
-            }
-            superNodes.put(ip, snode);
-        }
-        CacheManager.get().put(new String(Constant.MINING_ADDRESS), minings);
-        if (!superNode && null == selfIp) {
 
-            myIps.addAll(IpUtil.getInIps());
-            selfIp = myIps.iterator().next();
-            log.info("非超级节点变更自身IP为：{}", selfIp);
-        }
-        log.info("获得超级节点数为:{}", superIps.size());
-    }
 
     public JSONObject getJsonFile(String filePath) {
         JSONObject jsonObject = null;

@@ -256,6 +256,8 @@ public class SynBlock {
                             blockArrivedHandler.handle(messageChannel);
                         }else{
                             log.info("区块验证失败,重新同步");
+                            BlockStorage.get().revokedNewestBlock();
+                            CacheManager.get().clearAll();
                             synBlock();
                         }
                     } catch (Exception e) {

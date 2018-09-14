@@ -5,8 +5,10 @@ import org.talust.common.model.SuperNode;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.DateUtil;
+import org.talust.core.core.SynBlock;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.server.NtpTimeService;
+import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.ConnectionManager;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,8 +27,8 @@ public class ConsensusService {
         return instance;
     }
     private Conference conference = Conference.get();
-    private ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
     private PackBlockTool packBlockTool = new PackBlockTool();
+    private ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
     private AtomicBoolean genRunning = new AtomicBoolean(false);
     private int checkSecond;//检测区块是否正常的时长
 
@@ -61,7 +63,7 @@ public class ConsensusService {
 
         service.scheduleAtFixedRate(() -> {
             if (genRunning.get()) {
-                log.info("打包ip:{}", ConnectionManager.get().selfIp);
+                log.info("打包ip:{}", ConnectionManager.get().masterIp);
                 long packageTime =  NtpTimeService.currentTimeSeconds();
                 packBlockTool.pack(packageTime);//打包
             }
@@ -70,22 +72,27 @@ public class ConsensusService {
 
 
         new Thread(() -> {
+            //TODO 区块同步完成后再进行检测,并且验证是否有连接存在
             while (true) {
-                try {
-                    TimeUnit.SECONDS.sleep(checkSecond);
-                } catch (InterruptedException e) {
-                }
-                try {
-                    //检测master是否正常,通过块判断
-                    int nowSecond = DateUtil.getTimeSecond();
-                    long ct = MainNetworkParams.get().getBestBlockHeader().getTime();
-                    if (ct > 0) {
-                        if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {//未收到区块响应
-                            conference.changeMaster();
+                if(ChannelContain.get().getMyChannels().size()>0){
+                    if(!SynBlock.get().getSyning().get()){
+                        try {
+                            TimeUnit.SECONDS.sleep(checkSecond);
+                        } catch (InterruptedException e) {
+                        }
+                        try {
+                            //检测master是否正常,通过块判断
+                            int nowSecond = DateUtil.getTimeSecond();
+                            long ct = MainNetworkParams.get().getBestBlockHeader().getTime();
+                            if (ct > 0) {
+                                if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {//未收到区块响应
+                                    conference.changeMaster();
+                                }
+                            }
+                        } catch (Throwable e) {
+                            log.error("error:", e);
                         }
                     }
-                } catch (Throwable e) {
-                    log.error("error:", e);
                 }
             }
         }).start();

@@ -103,6 +103,10 @@ public final class Configure {
      * 区块生成间隔时间，单位秒
      */
     public static int BLOCK_GEN_TIME = 6;
+    /**
+     * 网络检查间隔时间，单位秒
+     */
+    public static int NET_CHECK_TIME = 20;
 
     public static byte[] CONSENSUS_ACCOUNT_KEYS =Sha256Hash.hashTwice("consensus_keys".getBytes());
     public static String VOLUNTARILY_EXIT = "VOLUNTARILY_EXIT";
