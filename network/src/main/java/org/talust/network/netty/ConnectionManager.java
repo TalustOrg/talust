@@ -102,6 +102,7 @@ public class ConnectionManager {
     public void init() {
         initSuperIps();
     }
+
     /**
      * 初始化固定超级服务器ip地址,用于当前节点的连接所用
      */
@@ -142,13 +143,11 @@ public class ConnectionManager {
             if (genRunning.get()) {
                 int activeSize = ChannelContain.get().getActiveConnectionCount();
                 int passiveSize = ChannelContain.get().getPassiveConnCount();
-                log.info("网络检查，获取当前网络连接状态:主动连接：{},被动连接：{}", activeSize,passiveSize);
-                if(superNode){
-                    if(activeSize<Configure.MAX_SUPER_ACTIVE_CONNECT_COUNT){
+                log.info("网络检查，获取当前网络连接状态:主动连接：{},被动连接：{}", activeSize, passiveSize);
+                if (activeSize == 0 && passiveSize == 0) {
+                    if (superNode) {
                         superNodeJoin();
-                    }
-                }else{
-                    if(activeSize<Configure.MAX_ACTIVE_CONNECT_COUNT){
+                    } else {
                         normalNodeJoin();
                     }
                 }
@@ -156,7 +155,6 @@ public class ConnectionManager {
         }, delay, Configure.NET_CHECK_TIME, TimeUnit.SECONDS);
         log.info("启动定时任务检查网络,延时:{}...", delay);
     }
-
 
 
     /**
@@ -310,7 +308,6 @@ public class ConnectionManager {
             }
         }
     }
-
 
 
     public JSONObject getJsonFile(String filePath) {

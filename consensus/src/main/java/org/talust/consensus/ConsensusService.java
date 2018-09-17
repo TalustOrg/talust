@@ -26,9 +26,11 @@ public class ConsensusService {
     public static ConsensusService get() {
         return instance;
     }
+
     private Conference conference = Conference.get();
     private PackBlockTool packBlockTool = new PackBlockTool();
     private ScheduledExecutorService service = new ScheduledThreadPoolExecutor(1);
+    private ScheduledExecutorService blockService = new ScheduledThreadPoolExecutor(1);
     private AtomicBoolean genRunning = new AtomicBoolean(false);
     private int checkSecond;//检测区块是否正常的时长
 
@@ -64,37 +66,41 @@ public class ConsensusService {
         service.scheduleAtFixedRate(() -> {
             if (genRunning.get()) {
                 log.info("打包ip:{}", ConnectionManager.get().masterIp);
-                long packageTime =  NtpTimeService.currentTimeSeconds();
+                long packageTime = NtpTimeService.currentTimeSeconds();
                 packBlockTool.pack(packageTime);//打包
             }
         }, delay, Configure.BLOCK_GEN_TIME, TimeUnit.SECONDS);
         log.info("启动定时任务生成区块,延时:{}...", delay);
 
-
-        new Thread(() -> {
-            //TODO 区块同步完成后再进行检测,并且验证是否有连接存在
-            while (true) {
-                if(ChannelContain.get().getMyChannels().size()>0){
-                    if(!SynBlock.get().getSyning().get()){
-                        try {
-                            TimeUnit.SECONDS.sleep(checkSecond);
-                        } catch (InterruptedException e) {
-                        }
-                        try {
-                            //检测master是否正常,通过块判断
-                            int nowSecond = DateUtil.getTimeSecond();
-                            long ct = MainNetworkParams.get().getBestBlockHeader().getTime();
-                            if (ct > 0) {
-                                if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {//未收到区块响应
-                                    conference.changeMaster();
-                                }
+        blockService.scheduleAtFixedRate(() -> {
+            log.info("出块节点检查，当前连接节点数：{}，同步状态：{}", ChannelContain.get().getMyChannels().size(), SynBlock.get().getSyning().get());
+            if (ChannelContain.get().getMyChannels().size() > 0) {
+                if (!SynBlock.get().getSyning().get()) {
+                    try {
+                        TimeUnit.SECONDS.sleep(checkSecond);
+                    } catch (InterruptedException e) {
+                    }
+                    try {
+                        //检测master是否正常,通过块判断
+                        int nowSecond = DateUtil.getTimeSecond();
+                        long ct = MainNetworkParams.get().getBestBlockHeader().getTime();
+                        log.info("出块节点检查，最新块时间：{}，当前时间：{}", ct, nowSecond);
+                        if (ct > 0) {
+                            if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {//未收到区块响应
+                                conference.changeMaster();
                             }
-                        } catch (Throwable e) {
-                            log.error("error:", e);
                         }
+                    } catch (Throwable e) {
+                        log.error("error:", e);
                     }
                 }
             }
+        }, delay, Configure.BLOCK_GEN_TIME, TimeUnit.SECONDS);
+        log.info("启动定时任务检查出块节点区块,延时:{}...", delay);
+
+
+        new Thread(() -> {
+
         }).start();
     }
 
@@ -111,8 +117,6 @@ public class ConsensusService {
     public void stopGenBlock() {
         genRunning.set(false);
     }
-
-
 
 
 }

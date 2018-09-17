@@ -148,6 +148,7 @@ public class Conference {
      * 改变当前master节点
      */
     public void changeMaster() {
+        log.info("变更master节点启动！");
         lock.writeLock().lock();
         try {
             String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();

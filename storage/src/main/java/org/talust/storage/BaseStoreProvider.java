@@ -25,9 +25,8 @@ public abstract class BaseStoreProvider implements StoreProvider {
             .setCreateIfMissing(true)
             .setWriteBufferSize(8 * SizeUnit.KB)
             .setMaxWriteBufferNumber(3)
-            .setMaxOpenFiles(10000)
+            .setMaxOpenFiles(-1)
             .setMaxBackgroundCompactions(10);
-
 
     static {
         try {
