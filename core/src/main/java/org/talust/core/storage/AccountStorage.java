@@ -228,7 +228,6 @@ public class AccountStorage {
         }
 
         int successCount = 0; //成功个数
-        Account account = null;
         if (address != null) {
             account = getAccount(address);
             if (account == null) {
@@ -247,18 +246,16 @@ public class AccountStorage {
             resp.put("msg", "账户" + address + "已经加密");
             return resp;
         }
+
         ECKey eckey = account.getEcKey();
         try {
             ECKey newKey = eckey.encrypt(password);
             account.setEcKey(newKey);
             account.setPriSeed(newKey.getEncryptedPrivateKey().getEncryptedBytes());
-
             //重新签名
             account.signAccount(eckey, null);
-
             //回写到钱包文件
             File accountFile = new File(Configure.DATA_ACCOUNT, account.getAddress().getBase58());
-
             FileOutputStream fos = new FileOutputStream(accountFile);
             try {
                 byte[] data = account.serialize();
@@ -280,6 +277,8 @@ public class AccountStorage {
             return resp;
         }
         String message = "成功加密" + account.getAddress().getBase58();
+        accountMap.remove(address);
+        accountMap.put(address,account);
         resp.put("retCode", "0");
         resp.put("msg", message);
         return resp;
@@ -325,6 +324,14 @@ public class AccountStorage {
             }
         }
         return null;
+    }
+
+    public void removeCacheAccount(String address){
+        for (Account account : accountMap.values()) {
+            if (account.getAddress().getBase58().equals(address)) {
+                accountMap.remove(address);
+            }
+        }
     }
 
     /**
@@ -403,7 +410,6 @@ public class AccountStorage {
         for (Account account : accountMap.values()) {
             Address address = account.getAddress();
             byte[] hash160 = address.getHash160();
-
             hash160s.add(hash160);
         }
         return hash160s;

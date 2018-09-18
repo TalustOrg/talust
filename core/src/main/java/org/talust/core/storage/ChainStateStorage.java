@@ -115,22 +115,22 @@ public class ChainStateStorage extends BaseStoreProvider {
                 List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
                 Coin hadDeposCoin = Coin.ZERO;
                 DepositAccount realAcccount = null;
-                if(null!=depositAccountList){
-                    String hashString =Base58.encode( hash160);
+                if (null != depositAccountList) {
+                    String hashString = Base58.encode(hash160);
                     for (DepositAccount depositAccount : depositAccountList) {
-                        String test =Base58.encode(depositAccount.getAddress()) ;
+                        String test = Base58.encode(depositAccount.getAddress());
                         boolean is = hashString.equals(test);
                         if (is) {
                             hadDeposCoin = depositAccount.getAmount();
-                            realAcccount= depositAccount;
+                            realAcccount = depositAccount;
                             depositAccountList.remove(depositAccount);
                             break;
                         }
                     }
-                }else{
+                } else {
                     depositAccountList = new ArrayList<>();
                 }
-                if (null!=realAcccount) {
+                if (null != realAcccount) {
                     realAcccount.getTxHash().add(txHash);
                     realAcccount.setAmount(realAcccount.getAmount().add(coin));
                     depositAccountList.add(realAcccount);
@@ -168,6 +168,7 @@ public class ChainStateStorage extends BaseStoreProvider {
 
     /**
      * 回滚过程中的共识重新加入
+     *
      * @param tx
      */
     public void revokedConsensus(Transaction tx) {
@@ -176,10 +177,10 @@ public class ChainStateStorage extends BaseStoreProvider {
         //验证当前交易是否已经存在于列表中
         DepositAccount depositAccount = getDepositAccountByTx(tx);
         //注册共识的交易
-        if(null!=depositAccount){
+        if (null != depositAccount) {
             Sha256Hash txhash = tx.getInput(0).getFroms().get(0).getParent().getHash();
             TransactionStore regTxStore = BlockStorage.get().getTransaction(txhash.getBytes());
-            if(regTxStore == null) {
+            if (regTxStore == null) {
                 return;
             }
             Transaction regTx = regTxStore.getTransaction();
@@ -188,28 +189,24 @@ public class ChainStateStorage extends BaseStoreProvider {
     }
 
 
-
-
-    public DepositAccount getDepositAccountByTx(Transaction tx){
+    public DepositAccount getDepositAccountByTx(Transaction tx) {
         Sha256Hash txHash = tx.getHash();
         List<TransactionOutput> outputs = tx.getOutputs();
         for (TransactionOutput output : outputs) {
-            if(output.getLockTime()== Definition.LOCKTIME_THRESHOLD-1){
+            if (output.getLockTime() == Definition.LOCKTIME_THRESHOLD - 1) {
                 String hash160 = Base58.encode(output.getScript().getChunks().get(2).data);
-                Deposits deposits = getDeposits(tx.getData());
-                for(DepositAccount depositAccount: deposits.getDepositAccounts()){
-                    if(Base58.encode(depositAccount.getAddress()).equals(hash160)){
-                        if(depositAccount.getTxHash().contains(txHash)){
-                                return  depositAccount;
+                Deposits deposits = getDeposits(tx.getInputs().get(0).getScriptSig().getChunks().get(2).data);
+                for (DepositAccount depositAccount : deposits.getDepositAccounts()) {
+                    if (Base58.encode(depositAccount.getAddress()).equals(hash160)) {
+                        if (depositAccount.getTxHash().contains(txHash)) {
+                            return depositAccount;
                         }
                     }
                 }
             }
         }
-        return  null;
+        return null;
     }
-
-
 
 
     public byte[] getDepositSearchKey(byte[] miningAddress) {
@@ -226,9 +223,9 @@ public class ChainStateStorage extends BaseStoreProvider {
             if (null != deps) {
                 Deposits deposits = SerializationUtil.deserializer(deps, Deposits.class);
                 List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-                String hashString =Base58.encode( hash160);
+                String hashString = Base58.encode(hash160);
                 for (DepositAccount depositAccount : depositAccountList) {
-                    String test =Base58.encode(depositAccount.getAddress()) ;
+                    String test = Base58.encode(depositAccount.getAddress());
                     boolean is = hashString.equals(test);
                     if (is) {
                         depositAccountList.remove(depositAccount);
@@ -254,10 +251,10 @@ public class ChainStateStorage extends BaseStoreProvider {
             Sha256Hash txHash = tx.getHash();
             List<TransactionOutput> outputs = tx.getOutputs();
             for (TransactionOutput output : outputs) {
-                if(output.getLockTime()== Definition.LOCKTIME_THRESHOLD-1){
+                if (output.getLockTime() == Definition.LOCKTIME_THRESHOLD - 1) {
                     byte[] hash160 = output.getScript().getChunks().get(2).data;
                     long value = output.getValue();
-                    addDeposits(hash160, Coin.valueOf(value), tx.getData(), txHash);
+                    addDeposits(hash160, Coin.valueOf(value), tx.getInputs().get(0).getScriptSig().getChunks().get(2).data, txHash);
                 }
             }
         } catch (Exception e) {
@@ -277,35 +274,9 @@ public class ChainStateStorage extends BaseStoreProvider {
      * @param tx
      */
     public void removeConsensus(Transaction tx) throws Exception {
-        JSONObject data = SerializationUtil.deserializer(tx.getData(), JSONObject.class);
-        String isActive = data.getString("isActive");
-        byte[] nodeAddress = data.getBytes("nodeAddress");
+        byte[] nodeAddress = tx.getInputs().get(0).getScriptSig().getChunks().get(2).data;
         TransactionOutput transactionOutput = tx.getInput(0).getFroms().get(0);
         byte[] hash160 = transactionOutput.getScript().getChunks().get(2).data;
-        Sha256Hash oldtxHash = transactionOutput.getParent().getHash();
-        if (isActive.equals(Configure.VOLUNTARILY_EXIT)) {
-            //主动退出共识
-            //从集合中删除共识节点
-            this.removeDeposit(nodeAddress,hash160);
-        } else {
-            //被动提出共识
-            //验证原共识金额 与现已加入的共识金额
-            Deposits deposits = getDeposits(nodeAddress);
-            List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
-            if (depositAccountList.size() == 100) {
-                for (DepositAccount depositAccount : depositAccountList) {
-                    if (depositAccount.getAmount().value < transactionOutput.getValue()) {
-                        //交易异常
-                        throw new Exception();
-                    } else {
-                        //从集合中删除共识节点
-                        this.removeDeposit(nodeAddress, hash160);
-                    }
-                }
-            } else {
-                //交易异常
-                throw new Exception();
-            }
-        }
+        this.removeDeposit(nodeAddress, hash160);
     }
 }

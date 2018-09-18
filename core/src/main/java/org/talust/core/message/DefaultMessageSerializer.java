@@ -198,7 +198,6 @@ public class DefaultMessageSerializer extends MessageSerializer {
     public Transaction makeTransaction(byte[] payloadBytes, int offset) throws ProtocolException {
         //根据交易类型来创建交易
         int type = payloadBytes[offset] & 0XFF;
-
         try {
             Class<?> clazz = Definition.TRANSACTION_RELATION.get(type);
             Constructor<?> constructor = clazz.getDeclaredConstructor(NetworkParams.class, byte[].class, int.class);

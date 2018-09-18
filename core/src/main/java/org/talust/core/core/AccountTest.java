@@ -42,7 +42,7 @@ public class AccountTest {
     NetworkParams networkParams = MainNetworkParams.get();
     public static void main(String[] args) {
         //解封下面一段代码进行 按需要的账户生成
-        makeAccountFile(2);
+//        makeAccountFile(2);
 
 //        解封下面两段代码进行root talust 账号生成
 //       AccountTest at = new AccountTest();
@@ -78,6 +78,7 @@ public class AccountTest {
         ECKey newKey = rootKey.encrypt(trPw);
         rootAccount.setEcKey(newKey);
         rootAccount.setPriSeed(newKey.getEncryptedPrivateKey().getEncryptedBytes());
+        rootAccount.decryptionTr(trPw);
         try {
             rootAccount.signAccount(rootKey, null);
             System.out.println("address rootAccount haxString:"+Base58.encode(rootAddr.getHash160()));

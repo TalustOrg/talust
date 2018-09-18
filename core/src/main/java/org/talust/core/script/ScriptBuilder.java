@@ -280,6 +280,13 @@ public class ScriptBuilder {
         return script;
     }
 
+    public static Script createInputScript(TransactionSignature signature, ECKey pubKey,byte[] nodeMessage) {
+        byte[] pubkeyBytes = pubKey.getPubKey();
+        byte[] sigBytes = signature != null ? signature.encode() : new byte[]{};
+        Script script = new ScriptBuilder().data(sigBytes).data(pubkeyBytes).data(nodeMessage).build();
+        return script;
+    }
+
     /**
      * Creates a scriptSig that can redeem a pay-to-pubkey output.
      * If given signature is null, incomplete scriptSig will be created with OP_0 instead of signature

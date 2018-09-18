@@ -91,9 +91,13 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             return false;
         }
         try {
-            AESEncrypt.decrypt(account.getPriSeed(), password);
+            ECKey keys = account.getEcKey();
+            keys = keys.decrypt(password);
+            if(null==keys){
+                return false;
+            }
         } catch (KeyCrypterException e) {
-            e.printStackTrace();
+            return false;
         }
         return true;
     }
@@ -616,20 +620,16 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             Deposits deposits = getDeposits(nodeAddr.getHash160());
             List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
             if (null == depositAccountList || depositAccountList.size() < 100) {
-                Transaction tx = createRegConsensus(money, account, address, nodeAddr.getHash160());
+                Transaction tx = createRegConsensus(money, account, nodeAddr.getHash160());
                 verifyAndSendMsg(account, tx);
             } else {
                 DepositAccount depositAccount = checkAmtLowest(money, depositAccountList);
                 if (null != depositAccount) {
                     //TODO 验证当前输入金额是否大于集合内的最小金额
                     //大于最低的账户的金额则
-                    Transaction regTx = createRegConsensus(money, account, address, nodeAddr.getHash160());
+                    Transaction regTx = createRegConsensus(money, account, nodeAddr.getHash160());
                     verifyAndSendMsg(account, regTx);
-                    Transaction remTx = createRemConsensus(depositAccount, null);
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("isActive", Configure.PASSIVE_EXIT);
-                    jsonObject.put("nodeAddress", nodeAddr.getHash160());
-                    remTx.setData(SerializationUtil.serializer(jsonObject));
+                    Transaction remTx = createRemConsensus(depositAccount, null,nodeAddr.getHash160());
                     verifyAndSendMsg(account, remTx);
                 } else {
                     resp.put("retCode", "1");
@@ -716,11 +716,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 String test = Base58.encode(depositAccount.getAddress());
                 boolean is = hash160.equals(test);
                 if (is) {
-                    Transaction remTx = createRemConsensus(depositAccount, account);
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("isActive", Configure.VOLUNTARILY_EXIT);
-                    jsonObject.put("nodeAddress", nodeAddr.getHash160());
-                    remTx.setData(SerializationUtil.serializer(jsonObject));
+                    Transaction remTx = createRemConsensus(depositAccount, account,nodeAddr.getHash160());
                     verifyAndSendMsg(account, remTx);
                     resp.put("retCode", "0");
                     resp.put("msg", "交易已上送");
@@ -728,6 +724,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             locker.unlock();
         }
@@ -745,6 +742,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         for (TransactionStore transactionStore : txList) {
             Transaction tx = transactionStore.getTransaction();
             if (tx.getType() != Definition.TYPE_COINBASE) {
+                log.info("跟我有关的交易类型为:{}",tx.getType());
                 List<TransactionInput> inputs = tx.getInputs();
                 List<TransactionOutput> outputs = tx.getOutputs();
                 allInput.addAll(BlockStorage.get().findTxInputsIsMine(inputs, addr.getHash160()));
@@ -762,6 +760,13 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     txMine.setTime(input.getParent().getTime());
                     txMine.setMoney(transactionOutput.getValue() / 100000000);
                     txMine.setAddress(toAddress);
+                    txMines.add(txMine);
+                }else if(input.getParent().getType()==Definition.TYPE_REG_CONSENSUS||input.getParent().getType()==Definition.TYPE_REM_CONSENSUS){
+                    TxMine txMine = new TxMine();
+                    txMine.setType("0");
+                    txMine.setTime(input.getParent().getTime());
+                    txMine.setMoney(transactionOutput.getValue() / 100000000);
+                    txMine.setAddress(address);
                     txMines.add(txMine);
                 }
             }
@@ -882,7 +887,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         ConnectionManager.get().TXMessageSend(message);
     }
 
-    public Transaction createRegConsensus(String money, Account account, String address, byte[] nodeHash160) {
+    public Transaction createRegConsensus(String money, Account account, byte[] nodeHash160) {
         //根据交易金额获取当前交易地址下所有的未花费交易
 
         Transaction tx = new Transaction(MainNetworkParams.get());
@@ -899,7 +904,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         //创建一个输入的空签名
         if (account.getAccountType() == network.getSystemAccountVersion()) {
             //普通账户的签名
-            input.setScriptSig(ScriptBuilder.createInputScript(null, account.getEcKey()));
+            input.setScriptSig(ScriptBuilder.createInputScript(null, account.getEcKey(),nodeHash160));
         } else {
             //认证账户的签名
             input.setScriptSig(ScriptBuilder.createCertAccountInputScript(null, account.getAccountTransaction().getHash().getBytes(), account.getAddress().getHash160()));
@@ -907,7 +912,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         tx.addInput(input);
 
         //交易输出
-        tx.addOutput(pay, Definition.LOCKTIME_THRESHOLD - 1, Address.fromBase58(network, address));
+        tx.addOutput(pay, Definition.LOCKTIME_THRESHOLD - 1, account.getAddress());
         //是否找零(
         if (totalInputCoin.compareTo(pay) > 0) {
             tx.addOutput(totalInputCoin.subtract(pay), account.getAddress());
@@ -922,12 +927,11 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-        tx.setData(nodeHash160);
         return tx;
     }
 
 
-    public Transaction createRemConsensus(DepositAccount depositAccount, Account account) {
+    public Transaction createRemConsensus(DepositAccount depositAccount, Account account, byte[] nodeMessage) {
         Transaction remTx = new Transaction(MainNetworkParams.get());
         remTx.setVersion(Definition.VERSION);
         remTx.setType(Definition.TYPE_REM_CONSENSUS);
@@ -940,7 +944,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             input.addFrom(tx.getOutput(0));
             totalInputCoin = totalInputCoin.add(Coin.valueOf(tx.getOutput(0).getValue()));
         }
-        input.setScriptBytes(new byte[0]);
+        input.setScriptSig(ScriptBuilder.createInputScript(null, account.getEcKey(),nodeMessage));
         remTx.addInput(input);
         if (null == account) {
             Address address = new Address(MainNetworkParams.get(), depositAccount.getAddress());

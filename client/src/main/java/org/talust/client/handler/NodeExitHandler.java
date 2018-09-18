@@ -51,16 +51,6 @@ public class NodeExitHandler implements MessageHandler {
             MessageQueueHolder.get().broadMessage(message);
         }
         PeersManager.get().removePeer(ip);
-        int connectCount ;
-        if(ConnectionManager.get().isSuperNode()){
-            connectCount=maxSuperActiveConnectCount;
-        }else{
-            connectCount=maxActiveConnectCount;
-        }
-        if(ChannelContain.get().getActiveConnectionCount()<connectCount){
-            //如果主动节点下线则重新进行连接。保证自身处于连接状态尽量最大
-            ConnectionManager.get().init();
-        }
         return true;
     }
 }

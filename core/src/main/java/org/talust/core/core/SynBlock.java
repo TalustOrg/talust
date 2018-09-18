@@ -262,7 +262,6 @@ public class SynBlock {
                         }
                     } catch (Exception e) {
                         log.info("区块高度{}的区块数据异常 :{}", block.getBlock().getBlockHeader().getHeight(), e.getMessage());
-                        synBlock();
                     }
                 } else {
                     log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());

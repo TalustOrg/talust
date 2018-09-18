@@ -71,8 +71,6 @@ public class Transaction extends Message {
 	protected long version;
 	//交易类型
 	protected int type;
-	//业务数据
-	protected byte[] data ;
 
 	/**
 	 * 签名类型
@@ -513,11 +511,4 @@ public class Transaction extends Message {
 		this.type = type;
 	}
 
-	public byte[] getData() {
-		return data;
-	}
-
-	public void setData(byte[] data) {
-		this.data = data;
-	}
 }
