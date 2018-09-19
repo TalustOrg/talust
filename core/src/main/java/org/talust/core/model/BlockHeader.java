@@ -25,6 +25,7 @@
 package org.talust.core.model;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.talust.core.core.ECKey;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
@@ -47,6 +48,7 @@ import static org.spongycastle.crypto.tls.TlsUtils.readUint32;
 /**
  * 区块头信息
  */
+@Slf4j
 public class BlockHeader extends Message {
 
     //区块版本
@@ -191,7 +193,6 @@ public class BlockHeader extends Message {
         }
         //普通账户
         ECKey key = account.getEcKey();
-
         ECKey.ECDSASignature ecSign = key.sign(headerHash);
         byte[] sign = ecSign.encodeToDER();
 

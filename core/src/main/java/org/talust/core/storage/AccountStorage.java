@@ -174,7 +174,8 @@ public class AccountStorage {
                 JSONObject fileJson = JSONObject.parseObject(content);
                 account = Account.parse(fileJson.getBytes("data"), 0, network);
                 try {
-//                    account.verify();
+                    account.resetKey();
+                    account.verify();
                     accountMap.put(account.getAddress().getBase58(),account);
                     TransactionStorage.get().addAddress(account.getAddress().getHash160());
                 } catch (Exception e) {
