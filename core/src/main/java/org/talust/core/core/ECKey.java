@@ -462,6 +462,7 @@ public class ECKey {
         EncryptedData encryptedPrivateKey = AESEncrypt.encrypt(privKeyBytes, iv, new KeyParameter(Sha256Hash.hash(password.getBytes())));
 
         ECKey result = ECKey.fromEncrypted(encryptedPrivateKey, getPubKey());
+        log.info("加密时,公钥:{}",getPubKey());
         result.setCreationTimeSeconds(NtpTimeService.currentTimeMillis());
 
         return result;
@@ -476,11 +477,10 @@ public class ECKey {
     public ECKey decrypt(String password) throws KeyCrypterException {
 
         Utils.checkNotNull(password);
-
         byte[] unencryptedPrivateKey = AESEncrypt.decrypt(encryptedPrivateKey, new KeyParameter(Sha256Hash.hash(password.getBytes())));
         BigInteger newPriv = new BigInteger(1, unencryptedPrivateKey);
+        log.info("加密后解密时私钥为：{},公钥:{}",newPriv,getPubKey());
         ECKey key = ECKey.fromPrivate(newPriv);
-
         if (!Arrays.equals(key.getPubKey(), getPubKey()))
             throw new KeyCrypterException("密码错误");
         key.setCreationTimeSeconds(NtpTimeService.currentTimeMillis());

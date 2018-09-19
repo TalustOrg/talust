@@ -171,33 +171,37 @@ public class ConnectionManager {
         ChannelContain cc = ChannelContain.get();
         JSONObject peerJ = JSONObject.parseObject(PeersManager.get().peerCont);
         List<String> unusedIps = new ArrayList<>();
-        for (Object map : peerJ.entrySet()) {
-            String trust = (String) ((Map.Entry) map).getValue();
-            String peerIp = (String) ((Map.Entry) map).getKey();
-            if (!ChannelContain.get().validateIpIsConnected(peerIp)) {
-                if (!"0".equals(trust)) {
-                    String status = connectByIp(peerIp, cc);
-                    if ("FULL".equals(status)) {
-                        break;
-                    }
-                    switch (status) {
-                        case "OK":
-                            try {
-                                getPeersOnline(peerIp);
-                            } catch (Exception e) {
-                                continue;
-                            }
+        if (null != peerJ) {
+            for (Object map : peerJ.entrySet()) {
+                String trust = (String) ((Map.Entry) map).getValue();
+                String peerIp = (String) ((Map.Entry) map).getKey();
+                if (!ChannelContain.get().validateIpIsConnected(peerIp)) {
+                    if (!"0".equals(trust)) {
+                        String status = connectByIp(peerIp, cc);
+                        if ("FULL".equals(status)) {
                             break;
-                        case "FAIL":
-                            unusedIps.add((String) ((Map.Entry) map).getKey());
-                            break;
-                        default:
-                            break;
+                        }
+                        switch (status) {
+                            case "OK":
+                                try {
+                                    getPeersOnline(peerIp);
+                                } catch (Exception e) {
+                                    continue;
+                                }
+                                break;
+                            case "FAIL":
+                                unusedIps.add((String) ((Map.Entry) map).getKey());
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
             }
         }
-        PeersManager.get().removePeerList(unusedIps);
+        if(null!=unusedIps&&unusedIps.size()>0){
+            PeersManager.get().removePeerList(unusedIps);
+        }
         if (cc.getActiveConnectionCount() < Configure.MAX_ACTIVE_CONNECT_COUNT) {
             superNodeJoin();
         }
@@ -256,7 +260,10 @@ public class ConnectionManager {
             if (peers.containsKey(selfIp)) {
                 peers.remove(selfIp);
             }
-            PeersManager.get().addPeer(peers);
+            if(null!=peers){
+                PeersManager.get().addPeer(peers);
+            }
+
         }
         if (!isConnected) {
             ChannelContain.get().removeChannelNoBroad(channel);

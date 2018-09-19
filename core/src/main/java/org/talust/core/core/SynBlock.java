@@ -99,8 +99,6 @@ public class SynBlock {
                 MessageChannel message = SynRequest.get().synReq(nodeMessage, channel.getRemoteIp(),channel);
                 if (message != null) {
                     log.info("远端ip:{}返回当前区块高度:{}", channel.getRemoteIp(), new String(message.getMessage().getContent()));
-                } else {
-                    log.info("-------------------------------------------");
                 }
                 return message;
             });

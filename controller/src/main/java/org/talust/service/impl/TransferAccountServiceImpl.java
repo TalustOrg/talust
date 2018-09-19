@@ -35,10 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.talust.client.validator.TransactionValidator;
-import org.talust.common.crypto.AESEncrypt;
-import org.talust.common.crypto.Base58;
-import org.talust.common.crypto.Sha256Hash;
-import org.talust.common.crypto.Utils;
+import org.talust.common.crypto.*;
 import org.talust.common.exception.KeyCrypterException;
 import org.talust.common.model.*;
 import org.talust.common.tools.*;
@@ -92,6 +89,10 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         }
         try {
             ECKey keys = account.getEcKey();
+            if(keys.getEncryptedPrivateKey()==null){
+                EncryptedData encryptedData = new EncryptedData(account.getPriSeed());
+                keys.setEncryptedPrivateKey(encryptedData);
+            }
             keys = keys.decrypt(password);
             if(null==keys){
                 return false;
@@ -652,6 +653,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             resp.put("msg", "交易已上送");
 
         } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             locker.unlock();
         }
@@ -887,10 +889,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         boolean success = TransactionCache.getInstace().add(tx);
         Message message = new Message();
         byte[] data = SerializationUtil.serializer(tx);
-        byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
         message.setContent(data);
-        message.setSigner(account.getEcKey().getPubKey());
-        message.setSignContent(sign);
         message.setType(MessageType.TRANSACTION.getType());
         message.setTime(NtpTimeService.currentTimeSeconds());
         //广播交易

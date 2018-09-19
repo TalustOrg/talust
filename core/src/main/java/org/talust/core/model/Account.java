@@ -222,7 +222,7 @@ public class Account extends  Message{
             account.setSigns(new byte[][] {sign1});
 
             //eckey
-            account.resetKey();
+//            account.resetKey();
         } else if(type == network.getCertAccountVersion()) {
             byte[] supervisor = readBytes(cursor, 20, datas);
             account.setSupervisor(supervisor);

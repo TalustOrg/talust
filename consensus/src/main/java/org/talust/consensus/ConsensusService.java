@@ -2,7 +2,6 @@ package org.talust.consensus;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.model.SuperNode;
-import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.DateUtil;
 import org.talust.core.core.SynBlock;
@@ -84,9 +83,10 @@ public class ConsensusService {
                         //检测master是否正常,通过块判断
                         int nowSecond = DateUtil.getTimeSecond();
                         long ct = MainNetworkParams.get().getBestBlockHeader().getTime();
-                        log.info("出块节点检查，最新块时间：{}，当前时间：{}", ct, nowSecond);
+                        log.info("出块节点检查，最新块时间：{}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
                         if (ct > 0) {
-                            if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {//未收到区块响应
+                            if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME*2 + checkSecond+NtpTimeService.getTimeOffset()/1000)) {//未收到区块响应
+                                log.info("因出块检查失败，变更出块节点。");
                                 conference.changeMaster();
                             }
                         }

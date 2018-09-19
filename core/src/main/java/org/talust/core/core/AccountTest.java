@@ -26,6 +26,7 @@ package org.talust.core.core;
 
 import org.talust.account.AccountType;
 import org.talust.common.crypto.Base58;
+import org.talust.common.crypto.SM2Utils;
 import org.talust.common.crypto.Utils;
 import org.talust.common.model.Coin;
 import org.talust.core.model.Account;
@@ -45,8 +46,8 @@ public class AccountTest {
 //        makeAccountFile(2);
 
 //        解封下面两段代码进行root talust 账号生成
-//       AccountTest at = new AccountTest();
-//        at.gen();
+       AccountTest at = new AccountTest();
+        at.gen();
 
 
     }
@@ -60,62 +61,72 @@ public class AccountTest {
 
         return xor;
     }
+
     //部分参数名称需要自己改动
     private void  gen(){
         //non Root account create Test
-        ECKey rootKey = new ECKey();
-        Address rootAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(rootKey.getPubKey(false)));
-        rootAddr.setBalance(Coin.ZERO);
-        rootAddr.setUnconfirmedBalance(Coin.ZERO);
-        byte[] prikeySeedRoot = rootKey.getPubKey(false);
-        Account rootAccount = new Account(networkParams);
-        rootAccount.setPriSeed(prikeySeedRoot);
-        rootAccount.setAccountType(rootAddr.getVersion());
-        rootAccount.setAddress(rootAddr);
-        rootAccount.setSupervisor(rootAccount.getAddress().getHash160() );
-        rootAccount.setlevel(AccountType.ROOT.getType());
+//        ECKey rootKey = new ECKey();
+//        Address rootAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(rootKey.getPubKey(false)));
+//        rootAddr.setBalance(Coin.ZERO);
+//        rootAddr.setUnconfirmedBalance(Coin.ZERO);
+//        byte[] prikeySeedRoot = rootKey.getPubKey(false);
+//        Account rootAccount = new Account(networkParams);
+//        rootAccount.setPriSeed(prikeySeedRoot);
+//        rootAccount.setAccountType(rootAddr.getVersion());
+//        rootAccount.setAddress(rootAddr);
+//        rootAccount.setSupervisor(rootAccount.getAddress().getHash160() );
+//        rootAccount.setlevel(AccountType.ROOT.getType());
         String trPw="TALUST";//交易密码
-        ECKey newKey = rootKey.encrypt(trPw);
-        rootAccount.setEcKey(newKey);
-        rootAccount.setPriSeed(newKey.getEncryptedPrivateKey().getEncryptedBytes());
-        rootAccount.decryptionTr(trPw);
+//        ECKey newKey = rootKey.encrypt(trPw);
+//        rootAccount.setEcKey(newKey);
+//        rootAccount.setPriSeed(newKey.getEncryptedPrivateKey().getEncryptedBytes());
+//        rootAccount.decryptionTr(trPw);
+//        try {
+//            rootAccount.signAccount(rootKey, null);
+//            System.out.println("address rootAccount haxString:"+Base58.encode(rootAddr.getHash160()));
+//            System.out.println("address rootAccount privateKey:"+rootKey.getPrivKey());
+//            System.out.println("data rootAccount: "+Base58.encode(rootAccount.serialize()));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        //root account create Test
+//        ECKey talustKey = new ECKey();
+//        Address talustAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(talustKey.getPubKey(false)));
+//        talustAddr.setBalance(Coin.ZERO);
+//        talustAddr.setUnconfirmedBalance(Coin.ZERO);
+//        byte[] prikeySeedTalust = talustKey.getPubKey(false);
+//        Account talustAccount = new Account(networkParams);
+//        talustAccount.setPriSeed(prikeySeedTalust);
+//        talustAccount.setAccountType(talustAddr.getVersion());
+//        talustAccount.setAddress(talustAddr);
+//        talustAccount.setSupervisor(rootAccount.getAddress().getHash160() );
+//        talustAccount.setlevel(AccountType.TALUST.getType());
+//        String trPwT="TALUST";//交易密码
+//        ECKey newTalustKey = talustKey.encrypt(trPwT);
+//        talustAccount.setEcKey(newTalustKey);
+//        talustAccount.setPriSeed(newTalustKey.getEncryptedPrivateKey().getEncryptedBytes());
+//        try {
+//            talustAccount.signAccount(talustKey, null);
+//            System.out.println("address talustAccount haxString:"+talustAddr.getHashAsHex());
+//            System.out.println("address talustAccount privateKey:"+talustKey.getPrivKey());
+//            System.out.println("data talustAccount: "+Base58.encode(talustAccount.serialize()));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        try {
+//            Account accountTest = Account.parse(rootAccount.serialize(),networkParams);
+//            Account accountTest2 = Account.parse(talustAccount.serialize(),networkParams);
+//            accountTest.verify();
+//            accountTest2.verify();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+
         try {
-            rootAccount.signAccount(rootKey, null);
-            System.out.println("address rootAccount haxString:"+Base58.encode(rootAddr.getHash160()));
-            System.out.println("address rootAccount privateKey:"+rootKey.getPrivKey());
-            System.out.println("data rootAccount: "+Base58.encode(rootAccount.serialize()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        //root account create Test
-        ECKey talustKey = new ECKey();
-        Address talustAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(talustKey.getPubKey(false)));
-        talustAddr.setBalance(Coin.ZERO);
-        talustAddr.setUnconfirmedBalance(Coin.ZERO);
-        byte[] prikeySeedTalust = talustKey.getPubKey(false);
-        Account talustAccount = new Account(networkParams);
-        talustAccount.setPriSeed(prikeySeedTalust);
-        talustAccount.setAccountType(talustAddr.getVersion());
-        talustAccount.setAddress(talustAddr);
-        talustAccount.setSupervisor(rootAccount.getAddress().getHash160() );
-        talustAccount.setlevel(AccountType.TALUST.getType());
-        String trPwT="TALUST";//交易密码
-        ECKey newTalustKey = talustKey.encrypt(trPwT);
-        talustAccount.setEcKey(newTalustKey);
-        talustAccount.setPriSeed(newTalustKey.getEncryptedPrivateKey().getEncryptedBytes());
-        try {
-            talustAccount.signAccount(talustKey, null);
-            System.out.println("address talustAccount haxString:"+talustAddr.getHashAsHex());
-            System.out.println("address talustAccount privateKey:"+talustKey.getPrivKey());
-            System.out.println("data talustAccount: "+Base58.encode(talustAccount.serialize()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            Account accountTest = Account.parse(rootAccount.serialize(),networkParams);
-            Account accountTest2 = Account.parse(talustAccount.serialize(),networkParams);
-            accountTest.verify();
-            accountTest2.verify();
+            ECKey eckey = new ECKey();
+            byte[] encrypt = SM2Utils.encrypt(eckey.getPubKey(),trPw.getBytes());
+            byte[] decrypt = SM2Utils.decrypt(encrypt,trPw.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }

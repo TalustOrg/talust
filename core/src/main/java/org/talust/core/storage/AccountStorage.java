@@ -139,7 +139,13 @@ public class AccountStorage {
                             JSONObject fileJson = JSONObject.parseObject(content);
                             account = Account.parse(fileJson.getBytes("data"),0, network);
                             try {
-                                account.verify();
+                                if(fileJson.getBoolean("isEncrypted")){
+                                    EncryptedData encryptedData =new EncryptedData(fileJson.getBytes("vector"),fileJson.getBytes("privateKey"));
+                                    ECKey ecKey = ECKey.fromEncrypted(encryptedData,fileJson.getBytes("publicKey"));
+                                    account.setEcKey(ecKey);
+                                }else{
+                                    account.resetKey();
+                                }
                                 accountMap.put(account.getAddress().getBase58(),account);
                                 TransactionStorage.get().addAddress(account.getAddress().getHash160());
                             } catch (Exception e) {
@@ -168,7 +174,7 @@ public class AccountStorage {
                 JSONObject fileJson = JSONObject.parseObject(content);
                 account = Account.parse(fileJson.getBytes("data"), 0, network);
                 try {
-                    account.verify();
+//                    account.verify();
                     accountMap.put(account.getAddress().getBase58(),account);
                     TransactionStorage.get().addAddress(account.getAddress().getHash160());
                 } catch (Exception e) {
@@ -195,7 +201,7 @@ public class AccountStorage {
                 JSONObject fileJson = JSONObject.parseObject(content);
                 account = Account.parse(fileJson.getBytes("data"),0, network);
                 try {
-                    account.verify();
+//                    account.verify();
                     log.info("移除账户前有{}个账户",accountMap.size());
                     accountMap.remove(account.getAddress().getBase58());
                     log.info("移除账户后有{}个账户",accountMap.size());
@@ -249,6 +255,9 @@ public class AccountStorage {
 
         ECKey eckey = account.getEcKey();
         try {
+            if(eckey==null){
+                eckey= new ECKey();
+            }
             ECKey newKey = eckey.encrypt(password);
             account.setEcKey(newKey);
             account.setPriSeed(newKey.getEncryptedPrivateKey().getEncryptedBytes());
@@ -262,7 +271,10 @@ public class AccountStorage {
                 JSONObject fileJson = new JSONObject();
                 fileJson.put("data", data);
                 fileJson.put("address", account.getAddress().getBase58());
-                fileJson.put("privateKey", account.getPriSeed());
+                fileJson.put("privateKey", newKey.getEncryptedPrivateKey().getEncryptedBytes());
+                fileJson.put("vector", newKey.getEncryptedPrivateKey().getInitialisationVector());
+                log.info("加密后存储时公钥为:{}",eckey.getPubKey());
+                fileJson.put("publicKey", eckey.getPubKey());
                 fileJson.put("isEncrypted", account.isEncrypted());
                 fos.write(fileJson.toJSONString().getBytes());
                 fos.flush();

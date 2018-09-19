@@ -28,6 +28,7 @@ import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.talust.common.crypto.Base58;
@@ -48,6 +49,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/transfer")
 @Api("转账相关API")
+@Slf4j
 public class TransferAccountsController {
     @Autowired
     private TransferAccountService transferAccountService;

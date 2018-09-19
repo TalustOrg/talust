@@ -41,7 +41,6 @@ import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.AccountStorage;
 import org.talust.core.storage.BlockStorage;
 import org.talust.core.storage.TransactionStorage;
-import org.talust.network.netty.ConnectionManager;
 
 import java.io.*;
 import java.util.Collection;
@@ -79,25 +78,22 @@ public class AccountController {
         JSONObject jsonObject = new JSONObject();
         long localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
         long now = NtpTimeService.currentTimeSeconds();
+        boolean syncheck =  true ;
         if (now - localbestheighttime > Configure.BLOCK_GEN_TIME) {
-            if (SynBlock.get().getSyning().get()) {
-                jsonObject.put("retCode", "1");
-                jsonObject.put("message", "正在同步区块中，请稍后再尝试");
-                return jsonObject;
-            } else {
-                ConnectionManager.get().init();
-                jsonObject.put("retCode", "1");
-                jsonObject.put("message", "当前网络不可用，正在重试网络和数据修复，请稍后再尝试");
-                return jsonObject;
-            }
+            syncheck =false;
         }
         Collection<Account> accountList =  AccountStorage.get().getAccountMap().values();
         if (null != accountList) {
             for (Account account : accountList) {
                 JSONObject data = new JSONObject();
-                if (AccountStorage.get().reloadCoin()) {
-                    data.put("value", ArithUtils.div(account.getAddress().getBalance() + "", "100000000", 8));
-                    data.put("lockValue", ArithUtils.div(account.getAddress().getUnconfirmedBalance() + "", "100000000", 8));
+                if(syncheck){
+                    if (AccountStorage.get().reloadCoin()) {
+                        data.put("value", ArithUtils.div(account.getAddress().getBalance() + "", "100000000", 8));
+                        data.put("lockValue", ArithUtils.div(account.getAddress().getUnconfirmedBalance() + "", "100000000", 8));
+                    }
+                }else{
+                    data.put("value", "0");
+                    data.put("lockValue", "0");
                 }
                 jsonObject.put(account.getAddress().getBase58(), data);
             }
@@ -186,8 +182,12 @@ public class AccountController {
 
     @ApiOperation(value = "查询同步状态", notes = "查询同步状态")
     @PostMapping(value = "searchSyncStatus")
-    boolean searchSyncStatus(){
+    JSONObject searchSyncStatus(){
         boolean isSync =  SynBlock.get().getSyning().get();
-        return isSync;
+        long nowHeight = MainNetworkParams.get().getBestHeight();
+        JSONObject resp =  new JSONObject();
+        resp.put("syncStatus",isSync);
+        resp.put("nowHeight",nowHeight);
+        return resp;
     }
 }
