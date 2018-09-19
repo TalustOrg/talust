@@ -38,8 +38,6 @@ import org.talust.network.netty.queue.MessageQueueHolder;
 
 @Slf4j //节点退出网络
 public class NodeExitHandler implements MessageHandler {
-    private int maxSuperActiveConnectCount =  Configure.MAX_SUPER_ACTIVE_CONNECT_COUNT;
-    private int maxActiveConnectCount =  Configure.MAX_ACTIVE_CONNECT_COUNT;
     @Override
     public boolean handle(MessageChannel message) {
         String ip = new String(message.getMessage().getContent());

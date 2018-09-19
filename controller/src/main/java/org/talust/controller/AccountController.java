@@ -30,7 +30,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import org.talust.common.model.Coin;
 import org.talust.common.tools.ArithUtils;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
@@ -46,7 +45,6 @@ import org.talust.network.netty.ConnectionManager;
 
 import java.io.*;
 import java.util.Collection;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -67,6 +65,7 @@ public class AccountController {
         }
         return jsonObject;
     }
+
 
     @ApiOperation(value = "账户加密", notes = "账户加密")
     @PostMapping(value = "encryptWallet")
@@ -95,12 +94,12 @@ public class AccountController {
         Collection<Account> accountList =  AccountStorage.get().getAccountMap().values();
         if (null != accountList) {
             for (Account account : accountList) {
+                JSONObject data = new JSONObject();
                 if (AccountStorage.get().reloadCoin()) {
-                    JSONObject data = new JSONObject();
                     data.put("value", ArithUtils.div(account.getAddress().getBalance() + "", "100000000", 8));
                     data.put("lockValue", ArithUtils.div(account.getAddress().getUnconfirmedBalance() + "", "100000000", 8));
-                    jsonObject.put(account.getAddress().getBase58(), data);
                 }
+                jsonObject.put(account.getAddress().getBase58(), data);
             }
         } else {
             jsonObject.put("msg", "无账户数据！");
@@ -185,4 +184,10 @@ public class AccountController {
         return resp;
     }
 
+    @ApiOperation(value = "查询同步状态", notes = "查询同步状态")
+    @PostMapping(value = "searchSyncStatus")
+    boolean searchSyncStatus(){
+        boolean isSync =  SynBlock.get().getSyning().get();
+        return isSync;
+    }
 }

@@ -29,6 +29,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import net.bytebuddy.implementation.bind.annotation.Super;
 import org.spongycastle.crypto.tls.MACAlgorithm;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -59,7 +60,6 @@ import org.talust.network.model.MyChannel;
 import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.ConnectionManager;
 import org.talust.service.TransferAccountService;
-import sun.applet.Main;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -507,8 +507,18 @@ public class TransferAccountServiceImpl implements TransferAccountService {
     @Override
     public JSONArray getAllDeposits() {
         Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
+        List<SuperNode> superNodeList = new ArrayList<>();
+        superNodeList.addAll(superNodes);
+        Collections.sort(superNodeList, new Comparator<SuperNode>() {
+            @Override
+            public int compare(SuperNode o1, SuperNode o2) {
+                int o1Id =Integer.parseInt( o1.getId());
+                int o2Id = Integer.parseInt( o2.getId());
+                return o1Id-o2Id;
+            }
+        });
         JSONArray dataList = new JSONArray();
-        for (SuperNode superNode : superNodes) {
+        for (SuperNode superNode : superNodeList) {
             JSONObject data = new JSONObject();
             data.put("address", superNode.getAddress());
             Address address = Address.fromBase58(network, superNode.getAddress());
