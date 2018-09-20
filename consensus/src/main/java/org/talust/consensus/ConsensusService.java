@@ -72,7 +72,7 @@ public class ConsensusService {
         log.info("启动定时任务生成区块,延时:{}...", delay);
 
         blockService.scheduleAtFixedRate(() -> {
-            log.info("出块节点检查，当前连接节点数：{}，同步状态：{}", ChannelContain.get().getMyChannels().size(), SynBlock.get().getSyning().get());
+            log.info("出块节点检查，当前连接节点数：{}，同步状态：{}", ChannelContain.get().getSuperChannels().size(), SynBlock.get().getSyning().get());
             if (ChannelContain.get().getMyChannels().size() > 0) {
                 if (!SynBlock.get().getSyning().get()) {
                     try {

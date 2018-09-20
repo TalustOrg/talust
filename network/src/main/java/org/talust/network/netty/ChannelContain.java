@@ -72,9 +72,9 @@ public class ChannelContain {
         List<MyChannel> myChannels = mapChannel.get(remoteIp);
         if (null == myChannels || myChannels.size() == 0) {
             myChannels = new ArrayList<>();
-        } else {
-            for (MyChannel myChannel : myChannels) {
-                if (myChannel.getChannel().id() == sc.id()) {
+        }else{
+            for(MyChannel myChannel :myChannels){
+                if(myChannel.getChannel().id()==sc.id()){
                     return;
                 }
             }
@@ -99,7 +99,7 @@ public class ChannelContain {
             if (mapChannel.containsKey(remoteIp)) {
                 List<MyChannel> myChannels = mapChannel.get(remoteIp);
                 for (MyChannel myChannel : myChannels) {
-                    if (myChannel.getChannel().id().asShortText().equals(sc.id().asShortText())) {
+                    if (myChannel.getChannel().id().asShortText().equals(sc.id().asShortText()) ) {
                         myChannels.remove(myChannel);
                         break;
                     }
@@ -182,23 +182,28 @@ public class ChannelContain {
         }
     }
 
-    public void sendMessageByChannelId(String remoteIp, Message message, String channelId) {
+    public void sendMessageByChannelId(String remoteIp, Message message,String channelId){
         List<MyChannel> myChannelList = mapChannel.get(remoteIp);
         if (null != myChannelList && myChannelList.size() > 0) {
             for (MyChannel myChannel : myChannelList) {
-                if (myChannel.getChannel().id().asShortText().equals(channelId)) {
+                if(myChannel.getChannel().id().asShortText().equals(channelId)){
                     myChannel.getChannel().writeAndFlush(message);
                 }
             }
         }
     }
-
     /**
      * 向所有的超级节点发送消息
      */
     public void sendMessageToSuperNode(Message message) {
-        log.info("向出块的超级节点扩散消息");
-        sendMessage(ConnectionManager.get().getMasterIp(), message);
+        log.info("向所有包含自己的超级节点扩散消息");
+        if (null != superIps && superIps.size() > 0) {
+            for (String ip : superIps) {
+                if(!ip.equals(ConnectionManager.get().getSelfIp())){
+                    sendMessage(ip, message);
+                }
+            }
+        }
     }
 
     /**

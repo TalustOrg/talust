@@ -28,6 +28,8 @@ package org.talust.client.handler;
 import lombok.extern.slf4j.Slf4j;
 
 import org.talust.common.model.MessageChannel;
+import org.talust.common.tools.CacheManager;
+import org.talust.common.tools.Configure;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.consensus.Conference;
 import org.talust.core.core.Definition;
@@ -49,15 +51,17 @@ public class TransactionHandler implements MessageHandler {
     @Override
     public boolean handle(MessageChannel message) {
         Transaction transaction = SerializationUtil.deserializer(message.getMessage().getContent(), Transaction.class);
-        log.info("接收到节点IP：{}的交易传输，交易类型{}",message.getFromIp(),transaction.getType());
-        boolean result = DataContainer.get().checkRecord(transaction);
-        if(!result){
-            if(!ConnectionManager.get().getMasterIp().equals(ConnectionManager.get().getSelfIp())){
+        log.info("接收到节点IP：{}的漫游交易传输，交易类型{}", message.getFromIp(), transaction.getType());
+        boolean checkRepeat = CacheManager.get().checkRepeat(("tx_hash:" + transaction.getHash().toString()), Configure.BLOCK_GEN_TIME);
+        if (!checkRepeat) {
+            if (!ConnectionManager.get().getMasterIp().equals(ConnectionManager.get().getSelfIp())) {
                 ConnectionManager.get().TXMessageSend(message.getMessage());
             }
             DataContainer.get().addRecord(transaction);
+        }else{
+            log.info("接收到节点IP：{}的漫游交易传输已经接收过。", message.getFromIp());
         }
-        return result;
+        return checkRepeat;
     }
 
 }

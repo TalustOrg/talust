@@ -824,8 +824,6 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             Date endDate = startDate;
             endDate.setHours(24);
             long end = endDate.getTime() / 1000;
-            log.info("startDate :{}", start);
-            log.info("endDate :{}", end);
             Map<byte[], List<TransactionStore>> txMaps = new HashMap<>();
             List<TransactionStore> txList = transactionStorage.getMyTxList();
             List<TransactionOutput> allOutput = new ArrayList<>();
