@@ -765,6 +765,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     String toAddress = Address.fromP2PKHash(MainNetworkParams.get(), MainNetworkParams.get().getSystemAccountVersion(), transactionOutput.getScript().getChunks().get(2).data).getBase58();
                     TxMine txMine = new TxMine();
                     txMine.setType(input.getParent().getType());
+                    txMine.setAsCode(1);
                     txMine.setTime(input.getParent().getTime());
                     txMine.setMoney(transactionOutput.getValue() / 100000000);
                     txMine.setAddress(toAddress);
@@ -772,6 +773,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 }else if(input.getParent().getType()==Definition.TYPE_REG_CONSENSUS||input.getParent().getType()==Definition.TYPE_REM_CONSENSUS){
                     TxMine txMine = new TxMine();
                     txMine.setType(input.getParent().getType());
+                    txMine.setAsCode(1);
                     txMine.setTime(input.getParent().getTime());
                     txMine.setMoney(transactionOutput.getValue() / 100000000);
                     txMine.setAddress(address);
@@ -788,6 +790,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     String toAddress = Address.fromP2PKHash(MainNetworkParams.get(), MainNetworkParams.get().getSystemAccountVersion(), script.getChunks().get(2).data).getBase58();
                     TxMine txMine = new TxMine();
                     txMine.setType(output.getParent().getType());
+                    txMine.setAsCode(0);
                     txMine.setMoney(output.getValue() / 100000000);
                     txMine.setTime(output.getParent().getTime());
                     txMine.setAddress(toAddress);
@@ -836,6 +839,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             for (TransactionOutput output : allOutput) {
                 TxMine txMine = new TxMine();
                 txMine.setType(Definition.TYPE_COINBASE);
+                txMine.setAsCode(0);
                 txMine.setMoney(output.getValue() / 100000000);
                 txMine.setTime(output.getParent().getTime());
                 txMines.add(txMine);

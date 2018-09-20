@@ -25,6 +25,7 @@ package org.talust.model;/*
 
 public class TxMine {
     private int type;
+    private int asCode;
     private long money;
     private long time;
     private String address;
@@ -60,5 +61,13 @@ public class TxMine {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public int getAsCode() {
+        return asCode;
+    }
+
+    public void setAsCode(int asCode) {
+        this.asCode = asCode;
     }
 }
