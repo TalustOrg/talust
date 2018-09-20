@@ -800,7 +800,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         Collections.sort(txMines, new Comparator<TxMine>() {
             @Override
             public int compare(TxMine o1, TxMine o2) {
-                if (o1.getTime() > o2.getTime()) {
+                if (o1.getTime() < o2.getTime()) {
                     return 1;
                 } else {
                     return -1;
@@ -847,7 +847,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             Collections.sort(txMines, new Comparator<TxMine>() {
                 @Override
                 public int compare(TxMine o1, TxMine o2) {
-                    if (o1.getTime() > o2.getTime()) {
+                    if (o1.getTime() < o2.getTime()) {
                         return 1;
                     } else {
                         return -1;
