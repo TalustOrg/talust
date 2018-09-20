@@ -307,9 +307,14 @@ public class AccountStorage {
             String accPath = Configure.DATA_ACCOUNT + File.separator + account.getAddress().getBase58();
             File accountFile = new File(accPath);
             FileOutputStream fos = new FileOutputStream(accountFile);
-            byte[] data = account.serialize();
             fos.write(fileJson.toJSONString().getBytes());
             fos.flush();
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                }
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
