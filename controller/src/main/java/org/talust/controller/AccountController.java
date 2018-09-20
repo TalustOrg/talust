@@ -25,14 +25,17 @@
 
 package org.talust.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.talust.common.crypto.EncryptedData;
 import org.talust.common.tools.ArithUtils;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.FileUtil;
+import org.talust.core.core.ECKey;
 import org.talust.core.core.SynBlock;
 import org.talust.core.model.Account;
 import org.talust.core.model.Address;
@@ -84,6 +87,7 @@ public class AccountController {
         }
         Collection<Account> accountList =  AccountStorage.get().getAccountMap().values();
         if (null != accountList) {
+            JSONArray accounts = new JSONArray();
             for (Account account : accountList) {
                 JSONObject data = new JSONObject();
                 if(syncheck){
@@ -95,8 +99,10 @@ public class AccountController {
                     data.put("value", "0");
                     data.put("lockValue", "0");
                 }
-                jsonObject.put(account.getAddress().getBase58(), data);
+                data.put("address",account.getAddress().getBase58());
+                accounts.add(data);
             }
+            jsonObject.put("data",accounts);
         } else {
             jsonObject.put("msg", "无账户数据！");
         }
@@ -122,8 +128,14 @@ public class AccountController {
             JSONObject fileJson = JSONObject.parseObject(content);
             Account account = Account.parse(fileJson.getBytes("data"), 0, MainNetworkParams.get());
             try {
-                account.verify();
-                AccountStorage.get().importAccountFile(account);
+                if(fileJson.getBoolean("isEncrypted")){
+                    EncryptedData encryptedData =new EncryptedData(fileJson.getBytes("vector"),fileJson.getBytes("privateKey"));
+                    ECKey ecKey = ECKey.fromEncrypted(encryptedData,fileJson.getBytes("publicKey"));
+                    account.setEcKey(ecKey);
+                }else{
+                    account.resetKey();
+                }
+                AccountStorage.get().importAccountFile(account,fileJson);
             } catch (Exception e) {
                 log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
             }
@@ -183,11 +195,16 @@ public class AccountController {
     @ApiOperation(value = "查询同步状态", notes = "查询同步状态")
     @PostMapping(value = "searchSyncStatus")
     JSONObject searchSyncStatus(){
-        boolean isSync =  SynBlock.get().getSyning().get();
+        boolean isSync =  SynBlock.get().isSync();
+        long maxHeight = SynBlock.get().getMaxHeight();
         long nowHeight = MainNetworkParams.get().getBestHeight();
         JSONObject resp =  new JSONObject();
         resp.put("syncStatus",isSync);
         resp.put("nowHeight",nowHeight);
+        if(maxHeight<nowHeight){
+            maxHeight = nowHeight;
+        }
+        resp.put("maxHeight",maxHeight);
         return resp;
     }
 }

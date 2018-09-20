@@ -230,10 +230,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 boolean success = TransactionCache.getInstace().add(tx);
                 Message message = new Message();
                 byte[] data = SerializationUtil.serializer(tx);
-                byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
                 message.setContent(data);
-                message.setSigner(account.getEcKey().getPubKey());
-                message.setSignContent(sign);
                 message.setType(MessageType.TRANSACTION.getType());
                 message.setTime(NtpTimeService.currentTimeSeconds());
                 //广播交易
@@ -754,7 +751,6 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         for (TransactionStore transactionStore : txList) {
             Transaction tx = transactionStore.getTransaction();
             if (tx.getType() != Definition.TYPE_COINBASE) {
-                log.info("跟我有关的交易类型为:{}",tx.getType());
                 List<TransactionInput> inputs = tx.getInputs();
                 List<TransactionOutput> outputs = tx.getOutputs();
                 allInput.addAll(BlockStorage.get().findTxInputsIsMine(inputs, addr.getHash160()));
@@ -768,14 +764,14 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 if (!Arrays.equals(transactionOutput.getScript().getChunks().get(2).data, addr.getHash160())) {
                     String toAddress = Address.fromP2PKHash(MainNetworkParams.get(), MainNetworkParams.get().getSystemAccountVersion(), transactionOutput.getScript().getChunks().get(2).data).getBase58();
                     TxMine txMine = new TxMine();
-                    txMine.setType("0");
+                    txMine.setType(input.getParent().getType());
                     txMine.setTime(input.getParent().getTime());
                     txMine.setMoney(transactionOutput.getValue() / 100000000);
                     txMine.setAddress(toAddress);
                     txMines.add(txMine);
                 }else if(input.getParent().getType()==Definition.TYPE_REG_CONSENSUS||input.getParent().getType()==Definition.TYPE_REM_CONSENSUS){
                     TxMine txMine = new TxMine();
-                    txMine.setType("0");
+                    txMine.setType(input.getParent().getType());
                     txMine.setTime(input.getParent().getTime());
                     txMine.setMoney(transactionOutput.getValue() / 100000000);
                     txMine.setAddress(address);
@@ -791,7 +787,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     Script script = txStore.getTransaction().getOutput(0).getScript();
                     String toAddress = Address.fromP2PKHash(MainNetworkParams.get(), MainNetworkParams.get().getSystemAccountVersion(), script.getChunks().get(2).data).getBase58();
                     TxMine txMine = new TxMine();
-                    txMine.setType("1");
+                    txMine.setType(output.getParent().getType());
                     txMine.setMoney(output.getValue() / 100000000);
                     txMine.setTime(output.getParent().getTime());
                     txMine.setAddress(toAddress);
@@ -839,7 +835,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             List<TxMine> txMines = new ArrayList<>();
             for (TransactionOutput output : allOutput) {
                 TxMine txMine = new TxMine();
-                txMine.setType("2");
+                txMine.setType(Definition.TYPE_COINBASE);
                 txMine.setMoney(output.getValue() / 100000000);
                 txMine.setTime(output.getParent().getTime());
                 txMines.add(txMine);

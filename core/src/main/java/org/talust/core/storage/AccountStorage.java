@@ -300,7 +300,7 @@ public class AccountStorage {
     /**
      * 文件导入账户
      */
-    public boolean importAccountFile(Account account) {
+    public boolean importAccountFile(Account account,JSONObject fileJson) {
         accountMap.put(account.getAddress().getBase58(),account);
         //回写到钱包文件
         try {
@@ -308,11 +308,6 @@ public class AccountStorage {
             File accountFile = new File(accPath);
             FileOutputStream fos = new FileOutputStream(accountFile);
             byte[] data = account.serialize();
-            JSONObject fileJson = new JSONObject();
-            fileJson.put("data", data);
-            fileJson.put("address", account.getAddress().getBase58());
-            fileJson.put("privateKey", account.getPriSeed());
-            fileJson.put("isEncrypted", account.isEncrypted());
             fos.write(fileJson.toJSONString().getBytes());
             fos.flush();
         } catch (FileNotFoundException e) {
@@ -320,7 +315,7 @@ public class AccountStorage {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        TransactionStorage.get().addAddress(account.getAddress().getHash160());
+        reloadCoin();
         return true;
     }
 

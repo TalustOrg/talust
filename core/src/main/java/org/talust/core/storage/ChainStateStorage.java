@@ -275,7 +275,8 @@ public class ChainStateStorage extends BaseStoreProvider {
      */
     public void removeConsensus(Transaction tx) throws Exception {
         byte[] nodeAddress = tx.getInputs().get(0).getScriptSig().getChunks().get(2).data;
-        TransactionOutput transactionOutput = tx.getInput(0).getFroms().get(0);
+        TransactionStore oldTx =   TransactionStorage.get().getTransaction(tx.getInput(0).getFroms().get(0).getParent().getHash());
+        TransactionOutput transactionOutput = oldTx.getTransaction().getOutputs().get(0);
         byte[] hash160 = transactionOutput.getScript().getChunks().get(2).data;
         this.removeDeposit(nodeAddress, hash160);
     }

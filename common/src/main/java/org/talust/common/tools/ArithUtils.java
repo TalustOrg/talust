@@ -108,9 +108,27 @@ public class ArithUtils
         return b1.multiply(b2).setScale(scale,BigDecimal.ROUND_HALF_UP).toString();
     }
 
+    public static String mul(long v1 , long v2 , int scale){
+        if(scale < 0)
+            throw new IllegalArgumentException("The   scale   must   be   a   positive   integer   or   zero");
+        if(v2 == 0.0D)
+        {
+            return "0";
+        } else
+        {
+            BigDecimal b1 = new BigDecimal(Double.valueOf(v1).toString());
+            BigDecimal b2 = new BigDecimal(Double.valueOf(v2).toString());
+            return b1.multiply(b2).setScale(scale,BigDecimal.ROUND_HALF_UP).toString();
+        }
+    }
+
     public static String div(String v1, String v2)
     {
         return div(v1, v2, 10);
+    }
+
+    public static String div (String v1 , long v2 , int scale){
+        return div(v1, Double.valueOf(v2).toString(), scale);
     }
 
     public static String div(String v1, String v2, int scale)
@@ -128,6 +146,8 @@ public class ArithUtils
             return b1.divide(b2,scale,4).stripTrailingZeros().toPlainString();//保留小数点后n位，不用科学计数法
         }
     }
+
+
 
     public static String div(double v1, double v2, int scale)
     {

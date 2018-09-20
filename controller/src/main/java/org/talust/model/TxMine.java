@@ -24,16 +24,17 @@ package org.talust.model;/*
  */
 
 public class TxMine {
-    private String type;
+    private int type;
     private long money;
     private long time;
     private String address;
 
-    public String getType() {
+
+    public int getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(int type) {
         this.type = type;
     }
 

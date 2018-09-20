@@ -123,11 +123,12 @@ public class PackBlockTool {
         //当前没有储蓄帐户,则挖出来的币直接奖励给矿机
         if (null==deposits||deposits.size() == 0) {
             coinBase.addOutput(consensusRreward,new Address(networkParams,sn));
-            log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", mingAddr.getBase58(), height,ArithUtils.div( consensusRreward.value+"","100000000",8));
+            log.info("挖矿奖励给矿机地址:{},高度:{},金额:{}", mingAddr.getBase58(), height,ArithUtils.div( consensusRreward.value+"","100000000",8));
         } else {//有储蓄者
             Coin totalAmount = calTotalAmount(deposits);
+            log.info("储蓄金额总和为：{}",totalAmount.value);
             for (DepositAccount deposit : deposits) {
-                Coin per =consensusRreward.multiply(deposit.getAmount().divide(totalAmount));
+                Coin per =  Coin.parseCoin(caculatPer(consensusRreward.value,deposit.getAmount().value,totalAmount.value));
                 coinBase.addOutput(per,new Address(networkParams,deposit.getAddress()));
                 log.info("挖矿奖励给储蓄地址:{},高度:{},金额:{}", Base58.encode(deposit.getAddress()),height, ArithUtils.div(per.value+"","100000000",8));
             }
@@ -142,5 +143,12 @@ public class PackBlockTool {
             total = total.add(deposit.getAmount());
         }
         return total;
+    }
+
+    private String caculatPer(long reAll , long have , long total){
+        String mul = ArithUtils.mul(reAll,have,0);
+        mul = ArithUtils.div(mul,"100000000",8);
+        String res = ArithUtils.div(mul,total,0);
+        return res;
     }
 }

@@ -266,6 +266,11 @@ public class TransferAccountsController {
     JSONObject searchAddressConsensusStatus(@RequestParam String address) {
         JSONObject resp = new JSONObject();
         try {
+            if(address==null||address.equals("undefind")||address.equals("")){
+                resp.put("retCode", "1");
+                resp.put("msg", "地址错误");
+                return resp;
+            }
             JSONObject data = transferAccountService.searchAddressConsensusStatus(address);
             if (data.size() == 0) {
                 resp.put("retCode", "1");

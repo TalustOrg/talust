@@ -68,6 +68,8 @@ public class SynBlock {
     private MessageHandler blockArrivedHandler;//区块到来处理器
     private MessageValidator blockArrivedValidator;//区块到来校验器
     private AtomicBoolean syning = new AtomicBoolean(false);//是否正在同步
+    private boolean isSync = true;
+    private long maxHeight = 0 ;
 
     //开始进行数据块的同步
     public void startSynBlock() {
@@ -81,6 +83,7 @@ public class SynBlock {
             e.printStackTrace();
         }
         syning.set(false);
+        isSync = false;
 
     }
 
@@ -118,6 +121,7 @@ public class SynBlock {
                     channelBlockHeight.put(toChannel, bh);
                     if (bh > maxBlockHeight) {
                         maxBlockHeight = bh;
+                        maxHeight= bh;
                     }
                 }
             } catch (Exception e) {
@@ -292,5 +296,13 @@ public class SynBlock {
 
     public void setSyning(AtomicBoolean syning) {
         this.syning = syning;
+    }
+
+    public long getMaxHeight() {
+        return maxHeight;
+    }
+
+    public boolean isSync() {
+        return isSync;
     }
 }
