@@ -213,7 +213,7 @@ public class TransferAccountsController {
         if (account.isEncrypted()) {
             if (StringUtil.isNullOrEmpty(password)) {
                 resp.put("retCode", "1");
-                resp.put("msg", "输入钱包密码进行转账");
+                resp.put("msg", "输入钱包密码进行交易");
                 return resp;
             } else {
                 boolean pswCorrect = transferAccountService.decryptAccount(password, account);

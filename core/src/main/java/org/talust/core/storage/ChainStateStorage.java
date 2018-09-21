@@ -35,13 +35,13 @@ import org.talust.common.model.DepositAccount;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.core.core.Definition;
 import org.talust.core.model.Address;
+import org.talust.core.model.TxValidator;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.transaction.Transaction;
 import org.talust.core.transaction.TransactionOutput;
 import org.talust.storage.BaseStoreProvider;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -107,6 +107,7 @@ public class ChainStateStorage extends BaseStoreProvider {
 
 
     public void addDeposits(byte[] hash160, Coin coin, byte[] miningAddress, Sha256Hash txHash) {
+        consensusLocker.lock();
         try {
             byte[] key = getDepositSearchKey(miningAddress);
             byte[] deps = db.get(key);
@@ -154,17 +155,9 @@ public class ChainStateStorage extends BaseStoreProvider {
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
+        consensusLocker.unlock();
     }
 
-    public void forceUpdateDeposits(String base58Address, Deposits deposits) {
-        Address address = Address.fromBase58(MainNetworkParams.get(), base58Address);
-        byte[] key = getDepositSearchKey(address.getHash160());
-        try {
-            db.put(key, SerializationUtil.serializer(deposits));
-        } catch (RocksDBException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * 回滚过程中的共识重新加入
@@ -264,9 +257,102 @@ public class ChainStateStorage extends BaseStoreProvider {
         }
     }
 
-    /**
-     * 节点共识增加共识金
-     */
+    public List<TxValidator> checkConsensus(List<Transaction> txList){
+        consensusLocker.lock();
+        List<TxValidator> needRemove = new ArrayList<>();
+        try{
+            Map<byte[],List<TxValidator>> checkList =  new HashMap<>();
+            for(Transaction transaction :txList) {
+                byte[] miningAddress = transaction.getInputs().get(0).getScriptSig().getChunks().get(2).data;
+                List<TxValidator> txValidators = new ArrayList<>();
+                if(transaction.getType()==Definition.TYPE_REG_CONSENSUS){
+                    long value = 0l;
+                    byte[] hash160 =null;
+                    for (TransactionOutput output : transaction.getOutputs()) {
+                        if (output.getLockTime() == Definition.LOCKTIME_THRESHOLD - 1) {
+                             hash160 = output.getScript().getChunks().get(2).data;
+                             value = output.getValue();
+                        }
+                    }
+                    TxValidator txValidator = new TxValidator(value,hash160,miningAddress,transaction);
+                    txValidators.add(txValidator);
+                }
+                checkList.remove(miningAddress);
+                checkList.put(miningAddress,txValidators);
+            }
+            Set<byte[]> miningAddrs = checkList.keySet();
+            for(byte[] addr : miningAddrs){
+                byte[] key = getDepositSearchKey(addr);
+                byte[] deps = db.get(key);
+                if (null != deps) {
+                    Deposits deposits = SerializationUtil.deserializer(deps, Deposits.class);
+                    List<DepositAccount> depositAccountList = deposits.getDepositAccounts();
+                    List<TxValidator> txValidators =checkList.get(addr);
+                    for(DepositAccount depositAccount:depositAccountList){
+                        TxValidator txValidator =  new TxValidator(depositAccount.getAmount().value,depositAccount.getAddress(),addr,depositAccount);
+                        txValidators.add(txValidator);
+                    }
+                    checkList.remove(addr);
+                    checkList.put(addr,txValidators);
+                }
+            }
+            //移除账户进行迭代查询，若没有key则不处理，存在key则验证是否有相同hash与value，有的话进行移除处理
+            for(Transaction transaction :txList) {
+                byte[] miningAddress = transaction.getInputs().get(0).getScriptSig().getChunks().get(2).data;
+                if(checkList.containsKey(miningAddress)){
+                    List<TxValidator> txValidators =checkList.get(miningAddress);
+                    if(transaction.getType()==Definition.TYPE_REM_CONSENSUS){
+                        byte[] nodeAddress = transaction.getInputs().get(0).getScriptSig().getChunks().get(2).data;
+                        TransactionStore oldTx =   TransactionStorage.get().getTransaction(transaction.getInput(0).getFroms().get(0).getParent().getHash());
+                        TransactionOutput transactionOutput = oldTx.getTransaction().getOutputs().get(0);
+                        byte[] hash160 = transactionOutput.getScript().getChunks().get(2).data;
+                        TxValidator txValidator = new TxValidator(transaction.getOutput(0).getValue(),hash160,nodeAddress,transaction);
+                        //存在key则验证是否有相同hash与value，有的话进行移除处理
+                        txValidators = checkHashAndValue(txValidators,txValidator);
+                    }
+                    checkList.remove(miningAddress);
+                    checkList.put(miningAddress,txValidators);
+                }else{
+                    continue;
+                }
+            }
+            //账户hash值去重，value相加，而后排序。
+            Collection<List<TxValidator>> lists = checkList.values();
+            for(List<TxValidator> txValidators : lists ){
+                if(txValidators.size()>100){
+                    //倒序排序
+                    txValidators.sort(new Comparator<TxValidator>() {
+                        @Override
+                        public int compare(TxValidator o1, TxValidator o2) {
+                            return Long.compare(o2.getValue(),o1.getValue());
+                        }
+                    });
+                    needRemove.addAll(txValidators.subList(99,txValidators.size()));
+                }else{
+                    continue;
+                }
+            }
+        }catch (Exception e){
+        }finally {
+            consensusLocker.unlock();
+        }
+        return needRemove;
+    }
+
+    public List<TxValidator> checkHashAndValue(List<TxValidator> txValidators ,TxValidator txValidator){
+        List<TxValidator> resp = txValidators;
+        for(TxValidator txv:resp){
+            if(txValidator.getValue()==txv.getValue()){
+                String txAddr = Base58.encode(txValidator.getAddress());
+                String txvAddr = Base58.encode(txv.getAddress());
+                if (txvAddr.equals(txAddr)){
+                    resp.remove(txv);
+                    break;
+                }
+            }
+        }
+        return resp;
+    }
 
     /**
      * 退出共识

@@ -125,5 +125,25 @@ public class DataContainer {
         }
     }
 
+    /**
+     * 获取本次打包需要验证的数据集合
+     */
+    public List<Transaction> getValidatorRecord(){
+        try {
+            lock.writeLock().lock();
+            if (datas.size() < max_record_count) {
+                List<Transaction> tmp = datas;
+                return tmp;
+            } else {
+                List<Transaction> sub = new ArrayList<>(max_record_count);
+                for (int idx = 0; idx < max_record_count; idx++) {
+                    sub.add(datas.get(idx));
+                }
+                return sub;
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
 
 }

@@ -20,6 +20,7 @@ import org.talust.core.script.ScriptBuilder;
 import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.*;
 import org.talust.core.transaction.Transaction;
+import org.talust.core.transaction.TransactionCreator;
 import org.talust.core.transaction.TransactionInput;
 import org.talust.network.MessageHandler;
 import org.talust.network.MessageValidator;
@@ -37,7 +38,7 @@ public class PackBlockTool {
     private DataContainer dataContainer = DataContainer.get();
     private BlockStorage blockStorage = BlockStorage.get();
     private NetworkParams networkParams = MainNetworkParams.get();
-
+    private  TransactionCreator transactionCreator = new TransactionCreator();
     //打包
     public void  pack(long packageTime) {
         try {
@@ -51,6 +52,30 @@ public class PackBlockTool {
             if (coinBase != null) {
                 //加入挖矿奖励,挖矿交易生成
                 transactionList.add(coinBase);
+            }
+
+            //TODO  针对所有的交易进行验证， 中心验证共识交易是否出现极限情况。
+            /**
+             * 迭代缓存交易，取出所有的共识交易，按节点形成LIST，而后根据节点地址进行判定，是否满足全部放入的情况，
+             * 如果剩余位置满足则不对交易数据进行操作，如果剩余位置不满足则根据加入金额大小进行判定
+             * 整体list中踢出加入金额最小的那个。
+             */
+            List<Transaction> consensusTx = new ArrayList<>();
+            for(Transaction transaction : dataContainer.getValidatorRecord()){
+                if(transaction.getType()==Definition.TYPE_REG_CONSENSUS||transaction.getType()==Definition.TYPE_REM_CONSENSUS){
+                    consensusTx.add(transaction);
+                }
+            }
+            List<TxValidator> txValidators = ChainStateStorage.get().checkConsensus(consensusTx);
+            if(null!=txValidators){
+                for(TxValidator txValidator :txValidators){
+                    if(null!=txValidator.getTransaction()){
+                        dataContainer.removeRecord(txValidator.getTransaction());
+                    }else if(null!=txValidator.getDepositAccount()){
+                        Transaction transaction =transactionCreator.createRemConsensus(txValidator.getDepositAccount(),null,txValidator.getNodeAddress());
+                        dataContainer.addRecord(transaction);
+                    }
+                }
             }
             transactionList.addAll( dataContainer.getBatchRecord());
             //本地最新区块
@@ -71,7 +96,6 @@ public class PackBlockTool {
             BlockStore blockStore = new BlockStore(networkParams , block);
             byte[] data = SerializationUtil.serializer(blockStore);
             byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
-
             Message message = new Message();
             message.setTime(packageTime);
             //对于接收方来说,是区块到来,因为此消息有明确的接收方

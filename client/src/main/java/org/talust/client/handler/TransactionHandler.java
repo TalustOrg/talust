@@ -56,8 +56,9 @@ public class TransactionHandler implements MessageHandler {
         if (!checkRepeat) {
             if (!ConnectionManager.get().getMasterIp().equals(ConnectionManager.get().getSelfIp())) {
                 ConnectionManager.get().TXMessageSend(message.getMessage());
+            }else{
+                DataContainer.get().addRecord(transaction);
             }
-            DataContainer.get().addRecord(transaction);
         }else{
             log.info("接收到节点IP：{}的漫游交易传输已经接收过。", message.getFromIp());
         }
