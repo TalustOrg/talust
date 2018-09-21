@@ -1,10 +1,7 @@
 package org.talust.consensus;
 
-import io.protostuff.GraphIOUtil;
-import io.protostuff.ProtostuffIOUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.talust.common.crypto.Base58;
-import org.talust.common.crypto.Hex;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.model.*;
 import org.talust.common.model.Message;
@@ -22,8 +19,6 @@ import org.talust.core.storage.*;
 import org.talust.core.transaction.Transaction;
 import org.talust.core.transaction.TransactionCreator;
 import org.talust.core.transaction.TransactionInput;
-import org.talust.network.MessageHandler;
-import org.talust.network.MessageValidator;
 import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.queue.MessageQueue;
 
@@ -60,6 +55,7 @@ public class PackBlockTool {
              * 如果剩余位置满足则不对交易数据进行操作，如果剩余位置不满足则根据加入金额大小进行判定
              * 整体list中踢出加入金额最小的那个。
              */
+            log.info("共识交易验证开始：{}",NtpTimeService.currentTimeMillis());
             List<Transaction> consensusTx = new ArrayList<>();
             for(Transaction transaction : dataContainer.getValidatorRecord()){
                 if(transaction.getType()==Definition.TYPE_REG_CONSENSUS||transaction.getType()==Definition.TYPE_REM_CONSENSUS){
@@ -77,6 +73,7 @@ public class PackBlockTool {
                     }
                 }
             }
+            log.info("共识交易验证结束：{}",NtpTimeService.currentTimeMillis());
             transactionList.addAll( dataContainer.getBatchRecord());
             //本地最新区块
             BlockHeader BlockHeader = blockStorage.getBestBlockHeader().getBlockHeader();
