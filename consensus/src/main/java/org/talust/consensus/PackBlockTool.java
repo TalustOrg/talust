@@ -23,6 +23,7 @@ import org.talust.network.netty.ConnectionManager;
 import org.talust.network.netty.queue.MessageQueue;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -74,7 +75,14 @@ public class PackBlockTool {
                 }
             }
             log.info("共识交易验证结束：{}",NtpTimeService.currentTimeMillis());
-            transactionList.addAll( dataContainer.getBatchRecord());
+            List<Transaction> dataContain = dataContainer.getBatchRecord();
+            dataContain.sort(new Comparator<Transaction>() {
+                @Override
+                public int compare(Transaction o1, Transaction o2) {
+                    return o2.getType()-o1.getType();
+                }
+            });
+            transactionList.addAll(dataContain );
             //本地最新区块
             BlockHeader BlockHeader = blockStorage.getBestBlockHeader().getBlockHeader();
             //获取我的时段开始时间
