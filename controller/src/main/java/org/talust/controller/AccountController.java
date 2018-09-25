@@ -104,7 +104,7 @@ public class AccountController {
             }
             jsonObject.put("data",accounts);
         } else {
-            jsonObject.put("msg", "无账户数据！");
+            jsonObject.put("msgCode", "E00001");
         }
         return jsonObject;
     }
@@ -116,12 +116,12 @@ public class AccountController {
         //验证文件是否存在
         if (null == path) {
             resp.put("retCode", "1");
-            resp.put("msg", "文件路径为空");
+            resp.put("msgCode", "E00002");
         }
         File file = new File(path);
         if (!file.exists()) {
             resp.put("retCode", "1");
-            resp.put("msg", "文件不存在");
+            resp.put("msgCode", "E00003");
         }
         try {
             String content = FileUtil.fileToTxt(file);
@@ -137,14 +137,16 @@ public class AccountController {
                 }
                 AccountStorage.get().importAccountFile(account,fileJson);
             } catch (Exception e) {
-                log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
+                log.warn("导入{}时出错", account.getAddress().getBase58(), e);
+                resp.put("retCode", "1");
+                resp.put("msgCode", "E00005");
             }
         } catch (IOException e) {
             resp.put("retCode", "1");
-            resp.put("msg", "文件读写错误");
+            resp.put("msgCode", "E00004");
         }
         resp.put("retCode", "0");
-        resp.put("msg", "账户文件导入成功");
+        resp.put("msgCode", "S00005");
         return resp;
     }
 
@@ -173,10 +175,10 @@ public class AccountController {
             }
         } catch (IOException e) {
             resp.put("retCode", "1");
-            resp.put("msg", "文件下载异常，请重试");
+            resp.put("msgCode", "E00006");
         }
         resp.put("retCode", "0");
-        resp.put("msg", "文件下载成功");
+        resp.put("msgCode", "S00006");
         return resp;
     }
 
@@ -186,7 +188,7 @@ public class AccountController {
         JSONObject resp = new JSONObject();
         if (null == address) {
             resp.put("retCode", "1");
-            resp.put("msg", "账户文件异常");
+            resp.put("msgCode", "E00007");
         }
         resp = AccountStorage.get().removeAccount(address);
         return resp;

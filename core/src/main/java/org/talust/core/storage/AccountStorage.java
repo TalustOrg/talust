@@ -48,7 +48,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class AccountStorage {
 
     private Account account;
-    private Map<String ,Account> accountMap = new HashMap<>();
+    private Map<String, Account> accountMap = new HashMap<>();
     private MainNetworkParams network = MainNetworkParams.get();
     private static AccountStorage instance = new AccountStorage();
 
@@ -111,7 +111,7 @@ public class AccountStorage {
             }
         }
         account.setEcKey(key);
-        accountMap.put(account.getAddress().getBase58(),account);
+        accountMap.put(account.getAddress().getBase58(), account);
         return address;
     }
 
@@ -137,16 +137,16 @@ public class AccountStorage {
                         //说明已经有账户信息
                         if (content != null && content.length() > 0) {
                             JSONObject fileJson = JSONObject.parseObject(content);
-                            account = Account.parse(fileJson.getBytes("data"),0, network);
+                            account = Account.parse(fileJson.getBytes("data"), 0, network);
                             try {
-                                if(fileJson.getBoolean("isEncrypted")){
-                                    EncryptedData encryptedData =new EncryptedData(fileJson.getBytes("vector"),fileJson.getBytes("privateKey"));
-                                    ECKey ecKey = ECKey.fromEncrypted(encryptedData,fileJson.getBytes("publicKey"));
+                                if (fileJson.getBoolean("isEncrypted")) {
+                                    EncryptedData encryptedData = new EncryptedData(fileJson.getBytes("vector"), fileJson.getBytes("privateKey"));
+                                    ECKey ecKey = ECKey.fromEncrypted(encryptedData, fileJson.getBytes("publicKey"));
                                     account.setEcKey(ecKey);
-                                }else{
+                                } else {
                                     account.resetKey();
                                 }
-                                accountMap.put(account.getAddress().getBase58(),account);
+                                accountMap.put(account.getAddress().getBase58(), account);
                                 TransactionStorage.get().addAddress(account.getAddress().getHash160());
                             } catch (Exception e) {
                                 log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
@@ -176,7 +176,7 @@ public class AccountStorage {
                 try {
                     account.resetKey();
                     account.verify();
-                    accountMap.put(account.getAddress().getBase58(),account);
+                    accountMap.put(account.getAddress().getBase58(), account);
                     TransactionStorage.get().addAddress(account.getAddress().getHash160());
                 } catch (Exception e) {
                     log.warn("默认登陆{}时出错", account.getAddress().getBase58(), e);
@@ -194,32 +194,24 @@ public class AccountStorage {
             File file = new File(accPath);
             if (!file.exists()) {
                 resp.put("retCode", "1");
-                resp.put("msg", "账户文件异常");
+                resp.put("msgCode", "E00007");
             }
-            String  content = FileUtil.fileToTxt(file);
+            String content = FileUtil.fileToTxt(file);
             //说明已经有账户信息
             if (content != null && content.length() > 0) {
                 JSONObject fileJson = JSONObject.parseObject(content);
-                account = Account.parse(fileJson.getBytes("data"),0, network);
-                try {
-//                    account.verify();
-                    log.info("移除账户前有{}个账户",accountMap.size());
-                    accountMap.remove(account.getAddress().getBase58());
-                    log.info("移除账户后有{}个账户",accountMap.size());
-                    TransactionStorage.get().removeAddress(account.getAddress().getHash160());
-                } catch (Exception e) {
-                    log.warn("账户验证出错", account.getAddress().getBase58(), e);
-                    resp.put("retCode", "1");
-                    resp.put("msg", "账户验证出错");
-                    return resp;
-                }
+                account = Account.parse(fileJson.getBytes("data"), 0, network);
+                log.info("移除账户前有{}个账户", accountMap.size());
+                accountMap.remove(account.getAddress().getBase58());
+                log.info("移除账户后有{}个账户", accountMap.size());
+                TransactionStorage.get().removeAddress(account.getAddress().getHash160());
             }
             boolean result = file.delete();
         } catch (IOException e) {
             e.printStackTrace();
         }
         resp.put("retCode", "0");
-        resp.put("msg", "账户移除成功");
+        resp.put("msgCode", "S00002");
         return resp;
     }
 
@@ -230,7 +222,7 @@ public class AccountStorage {
         if (!validPassword(password)) {
             log.info("输入的密码需6位或以上，且包含字母和数字");
             resp.put("retCode", "1");
-            resp.put("msg", "输入的密码需6位或以上，且包含字母和数字");
+            resp.put("msgCode", "E00017");
             return resp;
         }
 
@@ -240,7 +232,7 @@ public class AccountStorage {
             if (account == null) {
                 log.info("账户" + address + "不存在");
                 resp.put("retCode", "1");
-                resp.put("msg", "账户" + address + "不存在");
+                resp.put("msgCode", "E00018");
                 return resp;
             }
         } else {
@@ -250,14 +242,14 @@ public class AccountStorage {
         if (account.isEncrypted()) {
             log.info("账户" + address + "已经加密");
             resp.put("retCode", "1");
-            resp.put("msg", "账户" + address + "已经加密");
+            resp.put("msgCode", "E00019");
             return resp;
         }
 
         ECKey eckey = account.getEcKey();
         try {
-            if(eckey==null){
-                eckey= new ECKey();
+            if (eckey == null) {
+                eckey = new ECKey();
             }
             ECKey newKey = eckey.encrypt(password);
             account.setEcKey(newKey);
@@ -274,7 +266,7 @@ public class AccountStorage {
                 fileJson.put("address", account.getAddress().getBase58());
                 fileJson.put("privateKey", newKey.getEncryptedPrivateKey().getEncryptedBytes());
                 fileJson.put("vector", newKey.getEncryptedPrivateKey().getInitialisationVector());
-                log.info("加密后存储时公钥为:{}",eckey.getPubKey());
+                log.info("加密后存储时公钥为:{}", eckey.getPubKey());
                 fileJson.put("publicKey", eckey.getPubKey());
                 fileJson.put("isEncrypted", account.isEncrypted());
                 fos.write(fileJson.toJSONString().getBytes());
@@ -286,22 +278,21 @@ public class AccountStorage {
         } catch (Exception e) {
             log.error("加密 {} 失败: {}", account.getAddress().getBase58(), e.getMessage(), e);
             resp.put("retCode", "1");
-            resp.put("msg", "账户" + address + "加密失败");
+            resp.put("msgCode", "E00020");
             return resp;
         }
-        String message = "成功加密" + account.getAddress().getBase58();
         accountMap.remove(address);
-        accountMap.put(address,account);
+        accountMap.put(address, account);
         resp.put("retCode", "0");
-        resp.put("msg", message);
+        resp.put("msgCode", "S00003");
         return resp;
     }
 
     /**
      * 文件导入账户
      */
-    public boolean importAccountFile(Account account,JSONObject fileJson) {
-        accountMap.put(account.getAddress().getBase58(),account);
+    public boolean importAccountFile(Account account, JSONObject fileJson) {
+        accountMap.put(account.getAddress().getBase58(), account);
         //回写到钱包文件
         try {
             String accPath = Configure.DATA_ACCOUNT + File.separator + account.getAddress().getBase58();
@@ -339,7 +330,7 @@ public class AccountStorage {
         return null;
     }
 
-    public void removeCacheAccount(String address){
+    public void removeCacheAccount(String address) {
         for (Account account : accountMap.values()) {
             if (account.getAddress().getBase58().equals(address)) {
                 accountMap.remove(address);
@@ -414,7 +405,7 @@ public class AccountStorage {
                 return true;
             }
         }
-       return  TransactionStorage.get().reloadTransaction(hash160s);
+        return TransactionStorage.get().reloadTransaction(hash160s);
     }
 
     //获取账户对应的has160
@@ -506,7 +497,7 @@ public class AccountStorage {
 
     public Account getAccountByAddress(byte[] address) {
         for (Account account : accountMap.values()) {
-            if (  Arrays.equals( account.getAddress().getHash160(),address)) {
+            if (Arrays.equals(account.getAddress().getHash160(), address)) {
                 return account;
             }
         }
