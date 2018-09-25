@@ -28,7 +28,7 @@ package org.talust.common.tools;
  * 一些常量的定义
  */
 public interface Constant {
-    int PORT = 9998;//节点端口
+    int PORT = 7412;//节点端口
 
     long START_HEIGHT =1;
 
