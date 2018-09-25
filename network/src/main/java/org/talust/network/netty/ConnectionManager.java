@@ -302,10 +302,13 @@ public class ConnectionManager {
                         log.info("本节点连接超级节点目标ip地址:{}", ip);
                         NodeClient tmpnc = new NodeClient();
                         Channel connect = tmpnc.connect(ip, Constant.PORT);
-                        cc.addChannel(connect, false);
-                        InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
-                        getPeersOnline(ip);
-                        needConCount--;
+                        if(connect.isActive()){
+                            log.info("连接超级节点目标ip地址:{}情况为：{}", ip,connect.isActive());
+                            cc.addChannel(connect, false);
+                            InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
+                            getPeersOnline(ip);
+                            needConCount--;
+                        }
                     }
                 } catch (Throwable e) {
                     continue;

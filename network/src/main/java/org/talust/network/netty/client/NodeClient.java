@@ -42,15 +42,16 @@ import java.util.concurrent.TimeUnit;
 public class NodeClient {
     public Channel connect(String host, int port) throws Exception {
         EventLoopGroup group = new NioEventLoopGroup();
+        Bootstrap b = new Bootstrap();
         try {
-            Bootstrap b = new Bootstrap();
             b.group(group)
                     .channel(NioSocketChannel.class)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
                     .handler(new ChildChannelHandler());
-            Channel channel = b.connect(host, port).sync().channel();
+            Channel  channel = b.connect(host, port).sync().channel();
             return channel;
         } catch (Exception e) {
+            group.shutdownGracefully(10,15,TimeUnit.SECONDS);
             throw new Exception("网络连接失败...");
         }
     }
