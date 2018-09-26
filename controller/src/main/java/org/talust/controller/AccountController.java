@@ -117,11 +117,13 @@ public class AccountController {
         if (null == path) {
             resp.put("retCode", "1");
             resp.put("msgCode", "E00002");
+            return resp;
         }
         File file = new File(path);
         if (!file.exists()) {
             resp.put("retCode", "1");
             resp.put("msgCode", "E00003");
+            return resp;
         }
         try {
             String content = FileUtil.fileToTxt(file);
@@ -140,10 +142,12 @@ public class AccountController {
                 log.warn("导入{}时出错", account.getAddress().getBase58(), e);
                 resp.put("retCode", "1");
                 resp.put("msgCode", "E00005");
+                return resp;
             }
         } catch (IOException e) {
             resp.put("retCode", "1");
             resp.put("msgCode", "E00004");
+            return resp;
         }
         resp.put("retCode", "0");
         resp.put("msgCode", "S00005");

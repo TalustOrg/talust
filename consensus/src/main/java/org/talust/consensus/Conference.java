@@ -107,6 +107,7 @@ public class Conference {
                     Map.Entry<String, Integer> next = it.next();
                     Integer value = next.getValue();
                     if("NO_MASTER".equals(next.getKey())){
+                        needOkNumber = (superSize-value) / 2;
                        continue;
                     }
                     if (value > needOkNumber) {
