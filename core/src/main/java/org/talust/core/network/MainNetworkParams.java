@@ -70,7 +70,7 @@ public class MainNetworkParams extends NetworkParams {
 
 	private void init() {
 		this.packetMagic =  63943990L;
-		this.acceptableAddressCodes = new int[] {getSystemAccountVersion(), getCertAccountVersion()};
+		this.acceptableAddressCodes = new int[] {getSystemAccountVersion(), getCertAccountVersion(),getMainAccountVersion()};
 	}
 
 	@Override
@@ -122,7 +122,7 @@ public class MainNetworkParams extends NetworkParams {
 	 */
 	@Override
 	public int getCertAccountVersion() {
-		return 77;
+		return 86;
 	}
 
 

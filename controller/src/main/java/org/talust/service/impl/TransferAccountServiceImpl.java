@@ -197,7 +197,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 totalInputCoin = totalInputCoin.add(Coin.valueOf(output.getValue()));
             }
             //创建一个输入的空签名
-            if (account.getAccountType() == network.getSystemAccountVersion()) {
+            if (account.getAccountType() == network.getSystemAccountVersion()||account.getAccountType() == network.getMainAccountVersion()) {
                 //普通账户的签名
                 input.setScriptSig(ScriptBuilder.createInputScript(null, account.getEcKey()));
             } else {
@@ -216,7 +216,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             //签名交易
             final LocalTransactionSigner signer = new LocalTransactionSigner();
             try {
-                if (account.getAccountType() == network.getSystemAccountVersion()) {
+                if (account.getAccountType() == network.getSystemAccountVersion()||account.getAccountType() == network.getMainAccountVersion()) {
                     //普通账户的签名
                     signer.signInputs(tx, account.getEcKey());
                 }

@@ -44,7 +44,7 @@ import java.util.Arrays;
 
 //用户账号信息
 @Slf4j
-public class Account extends  Message{
+public class Account extends Message {
     private NetworkParams network;
 
     //账户类型
@@ -100,51 +100,48 @@ public class Account extends  Message{
 
     /**
      * 序列化帐户信息
+     *
      * @return byte[]
      * @throws IOException
      */
-    public final byte[] serialize() throws IOException  {
+    public final byte[] serialize() throws IOException {
         ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(size());
         try {
             bos.write(status);//状态，待激活
             bos.write(address.getVersion());//类型
             bos.write(address.getHash160());
-            if(address.getVersion() == network.getCertAccountVersion() ) {
-                bos.write(supervisor);
-                bos.write(level);
-            }
 
-            if(priSeed !=null) {
+            if (priSeed != null) {
                 bos.write(priSeed.length);
                 bos.write(priSeed);
-            }else{
+            } else {
                 bos.write(0);
             }
 
 
-            if(mgPubkeys != null) {
+            if (mgPubkeys != null) {
                 for (byte[] mgPubkey : mgPubkeys) {
                     bos.write(mgPubkey.length);
                     bos.write(mgPubkey);
                 }
             }
 
-            if(trPubkeys != null) {
+            if (trPubkeys != null) {
                 for (byte[] trPubkey : trPubkeys) {
                     bos.write(trPubkey.length);
                     bos.write(trPubkey);
                 }
             }
             //帐户主体
-            if(body != null) {
+            if (body != null) {
                 byte[] bodyContent = body.serialize();
                 Utils.uint32ToByteStreamLE(bodyContent.length, bos);
                 bos.write(bodyContent);
             } else {
                 Utils.uint32ToByteStreamLE(0l, bos);
             }
-            if(signs != null) {
-                for (byte[] sign  : signs) {
+            if (signs != null) {
+                for (byte[] sign : signs) {
                     //签名
                     bos.write(sign.length);
                     bos.write(sign);
@@ -158,6 +155,7 @@ public class Account extends  Message{
 
     /**
      * 反序列化
+     *
      * @param datas
      * @return Account
      */
@@ -167,6 +165,7 @@ public class Account extends  Message{
 
     /**
      * 反序列化
+     *
      * @param datas
      * @param offset
      * @return Account
@@ -180,11 +179,11 @@ public class Account extends  Message{
         int cursor = offset;
         //状态
         account.setStatus(datas[cursor]);
-        cursor ++;
+        cursor++;
         //帐户类型
         int type = datas[cursor] & 0xff;
         account.setAccountType(type);
-        cursor ++;
+        cursor++;
 
         //hash 160
         byte[] hash160 = readBytes(cursor, 20, datas);
@@ -192,113 +191,42 @@ public class Account extends  Message{
         account.setAddress(address);
         cursor += 20;
 
-        if(type == network.getSystemAccountVersion()) {
-            //私匙
-            int length = datas[cursor] & 0xff;
-            cursor ++;
-            if(length>0) {
-                account.setPriSeed(readBytes(cursor, length, datas));
-                cursor += length;
-            }else {
-                account.setPriSeed(new byte[0]);
-            }
-
-            //公匙
-            length = datas[cursor] & 0xff;
-            cursor ++;
-            byte[] pubkey = readBytes(cursor, length, datas);
+        //私匙
+        int length = datas[cursor] & 0xff;
+        cursor++;
+        if (length > 0) {
+            account.setPriSeed(readBytes(cursor, length, datas));
             cursor += length;
-            account.setMgPubkeys(new byte[][] {pubkey});
-
-            //主体
-            cursor += 4;
-
-            //签名
-            length = datas[cursor] & 0xff;
-            cursor ++;
-            byte[] sign1 = readBytes(cursor, length, datas);
-            cursor += length;
-
-            account.setSigns(new byte[][] {sign1});
-
-            //eckey
-//            account.resetKey();
-        } else if(type == network.getCertAccountVersion()) {
-            byte[] supervisor = readBytes(cursor, 20, datas);
-            account.setSupervisor(supervisor);
-            cursor += 20;
-
-            int level = datas[cursor] & 0xff;
-            account.setlevel(level);
-            cursor++;
-            //私匙种子
-            int length = datas[cursor] & 0xff;
-            cursor ++;
-            if(length>0) {
-                account.setPriSeed(readBytes(cursor, length, datas));
-                cursor += length;
-            }else {
-                account.setPriSeed(new byte[0]);
-            }
-
-            //帐户管理公匙
-            length = datas[cursor] & 0xff;
-            cursor ++;
-            byte[] mgPubkey1 = readBytes(cursor, length, datas);
-            cursor += length;
-
-            length = datas[cursor] & 0xff;
-            cursor ++;
-            byte[] mgPubkey2 = readBytes(cursor, length, datas);
-
-            account.setMgPubkeys(new byte[][] {mgPubkey1, mgPubkey2});
-            cursor += length;
-
-            //交易公匙
-            length = datas[cursor] & 0xff;
-            cursor ++;
-            byte[] trPubkey1 = readBytes(cursor, length, datas);
-            cursor += length;
-            account.setTrPubkeys(new byte[][] {trPubkey1});
-			/*
-			length = datas[cursor] & 0xff;
-			cursor ++;
-			byte[] trPubkey2 = readBytes(cursor, length, datas);
-			cursor += length;
-			account.setTrPubkeys(new byte[][] {trPubkey1, trPubkey2});
-			*/
-            account.setTrPubkeys(new byte[][] {trPubkey1});
-
-            //主体
-            length = (int) Utils.readUint32(datas, cursor);
-            cursor += 4;
-            try {
-                account.setBody(new AccountBody(readBytes(cursor, length, datas)));
-            }catch (ContentErrorExcetption e){
-                log.info("account "+account.getAddress()+" accountBody内容格式错误");
-            }
-            cursor += length;
-
-            //签名
-            length = datas[cursor] & 0xff;
-            cursor ++;
-            byte[] sign1 = readBytes(cursor, length, datas);
-            cursor += length;
-
-            length = datas[cursor] & 0xff;
-            cursor ++;
-            byte[] sign2 = readBytes(cursor, length, datas);
-            cursor += length;
-
-            account.setSigns(new byte[][] {sign1, sign2});
-
-
+        } else {
+            account.setPriSeed(new byte[0]);
         }
+
+        //公匙
+        length = datas[cursor] & 0xff;
+        cursor++;
+        byte[] pubkey = readBytes(cursor, length, datas);
+        cursor += length;
+        account.setMgPubkeys(new byte[][]{pubkey});
+
+        //主体
+        cursor += 4;
+
+        //签名
+        length = datas[cursor] & 0xff;
+        cursor++;
+        byte[] sign1 = readBytes(cursor, length, datas);
+        cursor += length;
+
+        account.setSigns(new byte[][]{sign1});
+
+        //eckey
+//            account.resetKey();
+
         return account;
     }
 
     public void resetKey() {
-        if(isCertAccount()) {
+        if (isCertAccount()) {
             mgEckeys = null;
             trEckeys = null;
         } else {
@@ -307,22 +235,22 @@ public class Account extends  Message{
     }
 
     public void resetKey(String password) {
-        if(accountType != network.getSystemAccountVersion()) {
+        if (accountType == network.getCertAccountVersion()) {
             return;
         }
         byte[] pubkey = mgPubkeys[0];
-        if(!isEncrypted()) {
+        if (!isEncrypted()) {
             //未加密的账户
             setEcKey(ECKey.fromPrivate(new BigInteger(getPriSeed())));
         } else {
             byte[] iv = null;
-            if(password == null) {
+            if (password == null) {
                 iv = Arrays.copyOf(Sha256Hash.hash(pubkey), 16);
             } else {
                 iv = Arrays.copyOf(AccountTool.genPrivKey1(pubkey, password.getBytes()).toByteArray(), 16);
             }
             //加密账户
-            if(ecKey == null || ecKey.getEncryptedPrivateKey() == null) {
+            if (ecKey == null || ecKey.getEncryptedPrivateKey() == null) {
                 setEcKey(ECKey.fromEncrypted(new EncryptedData(iv, getPriSeed()), pubkey));
             } else {
                 EncryptedData encryptData = ecKey.getEncryptedPrivateKey();
@@ -340,29 +268,30 @@ public class Account extends  Message{
 
     /**
      * 帐户信息大小
+     *
      * @return int
      */
     public final int size() {
-        int size = 1+1+20; //状态+类型+hash160
+        int size = 1 + 1 + 20; //状态+类型+hash160
         if (priSeed == null)
-            size+=1;
+            size += 1;
         else
             size += priSeed.length + 1;
 
-        if(trPubkeys != null) {
+        if (trPubkeys != null) {
             for (byte[] mgPubkey : mgPubkeys) {
                 size += mgPubkey.length + 1;
             }
         }
-        if(trPubkeys != null) {
+        if (trPubkeys != null) {
             for (byte[] trPubkey : trPubkeys) {
                 size += trPubkey.length + 1;
             }
         }
 
-        size += body == null? 4:body.serialize().length + 4;
+        size += body == null ? 4 : body.serialize().length + 4;
 
-        if(signs != null) {
+        if (signs != null) {
             for (byte[] sign : signs) {
                 size += sign.length + 1;
             }
@@ -372,6 +301,7 @@ public class Account extends  Message{
 
     /**
      * 签名交易
+     *
      * @return Script
      */
     public Script signTreade(String pwd) {
@@ -381,10 +311,11 @@ public class Account extends  Message{
 
     /**
      * 签名账户
+     *
      * @throws IOException
      */
     public void signAccount() throws IOException {
-        if(isCertAccount()) {
+        if (isCertAccount()) {
             signAccount(mgEckeys[0], mgEckeys[1]);
         } else {
             signAccount(ecKey, null);
@@ -393,22 +324,23 @@ public class Account extends  Message{
 
     /**
      * 签名账户
+     *
      * @param mgkey1
      * @param mgkey2
      * @throws IOException
      */
     public byte[][] signAccount(ECKey mgkey1, ECKey mgkey2) throws IOException {
         signs = null;
-        if(mgkey1 == null && mgkey2 == null) {
+        if (mgkey1 == null && mgkey2 == null) {
             return signs;
-        } else if(mgkey1 != null && mgkey2 == null) {
+        } else if (mgkey1 != null && mgkey2 == null) {
             //用户帐户管理私匙签名
             Sha256Hash hash = Sha256Hash.of(serialize());
             ECDSASignature signature1 = mgkey1.sign(hash);
             //签名结果
             byte[] signbs1 = signature1.encodeToDER();
-            signs = new byte[][] {signbs1};
-        } else if(mgkey1 != null && mgkey2 != null) {
+            signs = new byte[][]{signbs1};
+        } else if (mgkey1 != null && mgkey2 != null) {
             //用户帐户管理私匙签名
             Sha256Hash hash = Sha256Hash.of(serialize());
             ECDSASignature signature1 = mgkey1.sign(hash);
@@ -417,13 +349,14 @@ public class Account extends  Message{
             ECDSASignature signature2 = mgkey2.sign(hash);
             //签名结果
             byte[] signbs2 = signature2.encodeToDER();
-            signs = new byte[][] {signbs1, signbs2};
+            signs = new byte[][]{signbs1, signbs2};
         }
         return signs;
     }
 
     /**
      * 验证帐户的签名是否合法
+     *
      * @throws IOException
      */
     public void verify() throws IOException {
@@ -435,7 +368,7 @@ public class Account extends  Message{
             byte[] sign = tempSigns[i];
             ECKey key1 = ECKey.fromPublicOnly(mgPubkeys[i]);
             byte[] hash = Sha256Hash.of(serialize()).getBytes();
-            if(!key1.verify(hash, sign)) {
+            if (!key1.verify(hash, sign)) {
                 throw new VerificationException("account verify fail");
             }
         }
@@ -444,6 +377,7 @@ public class Account extends  Message{
 
     /**
      * 解密管理私钥
+     *
      * @return ECKey[]
      */
     public ECKey[] decryptionMg(String mgPw) {
@@ -457,8 +391,8 @@ public class Account extends  Message{
         ECKey mgkey2 = ECKey.fromPrivate(mgPri2);
 
         //验证密码是否正确
-        if(Arrays.equals(mgkey1.getPubKey(true), mgPubkeys[0]) && Arrays.equals(mgkey2.getPubKey(true), mgPubkeys[1])) {
-            mgEckeys = new ECKey[] {mgkey1, mgkey2};
+        if (Arrays.equals(mgkey1.getPubKey(true), mgPubkeys[0]) && Arrays.equals(mgkey2.getPubKey(true), mgPubkeys[1])) {
+            mgEckeys = new ECKey[]{mgkey1, mgkey2};
             return mgEckeys;
         } else {
             log.error("解密管理私钥时出错，密码不正确");
@@ -468,6 +402,7 @@ public class Account extends  Message{
 
     /**
      * 解密交易私钥
+     *
      * @return ECKey[]
      */
     public ECKey[] decryptionTr(String trPw) {
@@ -480,15 +415,15 @@ public class Account extends  Message{
         ECKey trkey1 = ECKey.fromPrivate(trPri1);
         ECKey trkey2 = ECKey.fromPrivate(trPri2);
 
-        if(trPubkeys.length==2){
+        if (trPubkeys.length == 2) {
             //验证密码是否正确
-            if(Arrays.equals(trkey1.getPubKey(true), trPubkeys[0]) && Arrays.equals(trkey2.getPubKey(true), trPubkeys[1])) {
+            if (Arrays.equals(trkey1.getPubKey(true), trPubkeys[0]) && Arrays.equals(trkey2.getPubKey(true), trPubkeys[1])) {
                 trEckeys = new ECKey[]{trkey1, trkey2};
                 return trEckeys;
             }
         }
-        if(trPubkeys.length==1){
-            if(Arrays.equals(trkey1.getPubKey(true), trPubkeys[0])) {
+        if (trPubkeys.length == 1) {
+            if (Arrays.equals(trkey1.getPubKey(true), trPubkeys[0])) {
                 trEckeys = new ECKey[]{trkey1};
                 return trEckeys;
             }
@@ -499,13 +434,14 @@ public class Account extends  Message{
 
     /**
      * 账户是否已加密
+     *
      * @return boolean
      */
     public boolean isEncrypted() {
-        if(accountType == network.getSystemAccountVersion()) {
+        if (accountType == network.getSystemAccountVersion()||accountType == network.getMainAccountVersion()) {
             //普通账户
             //没有私钥也代表已加密
-            if(ecKey == null) {
+            if (ecKey == null) {
                 return false;
             }
             try {
@@ -516,7 +452,7 @@ public class Account extends  Message{
             //公钥
             byte[] pubkey = mgPubkeys[0];
             //公钥相同则代表未加密
-            if(Arrays.equals(ecKey.getPubKey(), pubkey)) {
+            if (Arrays.equals(ecKey.getPubKey(), pubkey)) {
                 return false;
             } else {
                 return true;
@@ -529,18 +465,19 @@ public class Account extends  Message{
 
     /**
      * 认证账户管理私钥是否已加密
+     *
      * @return boolean
      */
     public boolean isEncryptedOfMg() {
         Utils.checkState(accountType == network.getCertAccountVersion());
         //认证账户
-        if(mgEckeys == null) {
+        if (mgEckeys == null) {
             return true;
         } else {
             boolean result = false;
             for (int i = 0; i < mgEckeys.length; i++) {
                 ECKey key = mgEckeys[i];
-                if(!Arrays.equals(key.getPubKey(), mgPubkeys[i])) {
+                if (!Arrays.equals(key.getPubKey(), mgPubkeys[i])) {
                     result = true;
                     break;
                 }
@@ -551,18 +488,19 @@ public class Account extends  Message{
 
     /**
      * 认证账户交易私钥是否已加密
+     *
      * @return boolean
      */
     public boolean isEncryptedOfTr() {
         Utils.checkState(accountType == network.getCertAccountVersion());
         //认证账户
-        if(trEckeys == null) {
+        if (trEckeys == null) {
             return true;
         } else {
             boolean result = false;
             for (int i = 0; i < trEckeys.length; i++) {
                 ECKey key = trEckeys[i];
-                if(!Arrays.equals(key.getPubKey(), trPubkeys[i])) {
+                if (!Arrays.equals(key.getPubKey(), trPubkeys[i])) {
                     result = true;
                     break;
                 }
@@ -573,6 +511,7 @@ public class Account extends  Message{
 
     /**
      * 账户是否是认证账户
+     *
      * @return boolean
      */
     public boolean isCertAccount() {
@@ -581,6 +520,7 @@ public class Account extends  Message{
 
     /**
      * 认证账户，获取账户信息最新交易
+     *
      * @return Transaction
      */
     public Transaction getAccountTransaction() {
@@ -589,11 +529,12 @@ public class Account extends  Message{
 
     /**
      * 设置认证账户信息对应最新交易
+     *
      * @param accountTransaction
      */
     public void setAccountTransaction(Transaction accountTransaction) {
         this.accountTransaction = accountTransaction;
-        if(accountTransaction!=null){
+        if (accountTransaction != null) {
             this.txhash = accountTransaction.getHash();
         }
     }
@@ -680,6 +621,7 @@ public class Account extends  Message{
     public NetworkParams getNetwork() {
         return network;
     }
+
     public void setNetwork(NetworkParams network) {
         this.network = network;
     }
@@ -708,19 +650,19 @@ public class Account extends  Message{
         this.txhash = txhash;
     }
 
-    public void setSupervisor(byte[] supervisor){
+    public void setSupervisor(byte[] supervisor) {
         this.supervisor = supervisor;
     }
 
-    public byte[] getSupervisor(){
+    public byte[] getSupervisor() {
         return this.supervisor;
     }
 
-    public void setlevel(int level){
-        this.level=level;
+    public void setlevel(int level) {
+        this.level = level;
     }
 
-    public int getLevel(){
+    public int getLevel() {
         return this.level;
     }
 }
