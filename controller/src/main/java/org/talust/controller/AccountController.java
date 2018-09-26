@@ -148,6 +148,10 @@ public class AccountController {
             resp.put("retCode", "1");
             resp.put("msgCode", "E00004");
             return resp;
+        }catch (Exception e){
+            resp.put("retCode", "1");
+            resp.put("msgCode", "E00003");
+            return resp;
         }
         resp.put("retCode", "0");
         resp.put("msgCode", "S00005");
