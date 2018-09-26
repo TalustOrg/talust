@@ -40,7 +40,10 @@ import org.talust.core.data.DataContainer;
 import org.talust.core.model.*;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.Script;
-import org.talust.core.transaction.*;
+import org.talust.core.transaction.Output;
+import org.talust.core.transaction.Transaction;
+import org.talust.core.transaction.TransactionInput;
+import org.talust.core.transaction.TransactionOutput;
 import org.talust.storage.BaseStoreProvider;
 
 import java.io.IOException;
