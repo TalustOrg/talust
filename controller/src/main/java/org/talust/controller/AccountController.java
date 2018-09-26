@@ -79,7 +79,14 @@ public class AccountController {
     @PostMapping(value = "getAllCoins")
     JSONObject getAllCoins() {
         JSONObject jsonObject = new JSONObject();
-        long localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
+        long localbestheighttime= 0l;
+        try{
+            localbestheighttime   = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
+        }catch (Exception e){
+            jsonObject.put("msgCode", "E00001");
+            return jsonObject;
+        }
+
         long now = NtpTimeService.currentTimeSeconds();
         boolean syncheck =  true ;
         if (now - localbestheighttime > Configure.BLOCK_GEN_TIME) {

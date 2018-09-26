@@ -115,11 +115,12 @@ public class MakeTestNetGengsisBlock {
         gengsisBlock.sign(account);
         gengsisBlock.verifyScript();
         System.out.println("the block hash is: "+ Hex.encode(gengsisBlock.getHash().getBytes()));
-        System.out.println(Hex.encode(gengsisBlock.baseSerialize()));
         Block block = new Block(network, gengsisBlock.baseSerialize());
-        block.buildMerkleHash();
+        Sha256Hash merkleHashRe =  block.buildMerkleHash();
+        System.out.println("the merkle Hash revert is: "+ merkleHashRe);
+        System.out.println("the merkle hash revert is: "+ Hex.encode(block.getHash().getBytes()));
         BlockStore blockStore = new BlockStore(network,block);
-        log.info("genesis : "+ Hex.encode(block.baseSerialize()));
+        log.info("genesis revert is: "+ Hex.encode(block.baseSerialize()));
         blockStorage.saveBlock(blockStore);
     }
 }
