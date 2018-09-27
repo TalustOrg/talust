@@ -28,18 +28,16 @@ package org.talust.core.storage;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.VerificationException;
-import org.talust.common.tools.ArithUtils;
-import org.talust.common.tools.CacheManager;
-import org.talust.common.tools.Configure;
+import org.talust.common.tools.*;
 import lombok.extern.slf4j.Slf4j;
 import org.rocksdb.*;
-import org.talust.common.tools.RandomUtil;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
 import org.talust.core.data.DataContainer;
 import org.talust.core.model.*;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.Script;
+import org.talust.core.server.NtpTimeService;
 import org.talust.core.transaction.Output;
 import org.talust.core.transaction.Transaction;
 import org.talust.core.transaction.TransactionInput;
@@ -120,7 +118,7 @@ public class BlockStorage extends BaseStoreProvider {
             Sha256Hash preHash = block.getPreHash();
             if (preHash == null) {
                 throw new VerificationException("要保存的区块缺少上一区块的引用");
-            } else if (bestBlockHeader == null && Arrays.equals(bestBlockKey, preHash.getBytes()) && block.getHeight() == 0L) {
+            } else if (block.getHeight() == 0L) {
                 //创世块则通过
             } else if (bestBlockHeader != null && bestBlockHeader.getBlockHeader().getHash().equals(preHash) &&
                     bestBlockHeader.getBlockHeader().getHeight() + 1 == block.getHeight()) {
@@ -155,6 +153,7 @@ public class BlockStorage extends BaseStoreProvider {
 
             //更新最新区块
             db.put(bestBlockKey, hash.getBytes());
+            CacheManager.get().put("net_best_time",DateUtil.getTimeSecond());
             bestHashCacher = hash.getBytes();
 
             //更新上一区块的指针

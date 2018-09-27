@@ -292,6 +292,9 @@ public class AccountStorage {
      * 文件导入账户
      */
     public boolean importAccountFile(Account account, JSONObject fileJson) {
+        if(accountMap.containsKey(account.getAddress().getBase58())){
+            return false;
+        }
         accountMap.put(account.getAddress().getBase58(), account);
         //回写到钱包文件
         try {
@@ -373,8 +376,19 @@ public class AccountStorage {
     public boolean reloadCoin() {
         List<byte[]> hash160s = getAccountHash160s();
         boolean ending = false;
-        if (maybeReLoadTransaction(hash160s)) {
+        if (maybeReLoadTransaction(hash160s)||maybeAccountCoinZero()) {
             ending = loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
+        }
+        return ending;
+    }
+
+    private boolean maybeAccountCoinZero(){
+        boolean ending = false;
+        Collection<Account> accountList = accountMap.values();
+        for(Account account  :accountList){
+            if(account.getAddress().getBalance().isZero()){
+                ending =true;
+            }
         }
         return ending;
     }

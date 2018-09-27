@@ -144,7 +144,11 @@ public class AccountController {
                 }else{
                     account.resetKey();
                 }
-                AccountStorage.get().importAccountFile(account,fileJson);
+                if(!AccountStorage.get().importAccountFile(account,fileJson)){
+                    resp.put("retCode", "1");
+                    resp.put("msgCode", "E00003");
+                    return resp;
+                }
             } catch (Exception e) {
                 log.warn("导入{}时出错", account.getAddress().getBase58(), e);
                 resp.put("retCode", "1");

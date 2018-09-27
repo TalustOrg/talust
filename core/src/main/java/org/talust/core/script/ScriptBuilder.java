@@ -283,7 +283,7 @@ public class ScriptBuilder {
     public static Script createInputScript(TransactionSignature signature, ECKey pubKey,byte[] nodeMessage) {
         byte[] pubkeyBytes = pubKey.getPubKey();
         byte[] sigBytes = signature != null ? signature.encode() : new byte[]{};
-        Script script = new ScriptBuilder().data(sigBytes).data(pubkeyBytes).data(nodeMessage).build();
+        Script script = new ScriptBuilder().data(sigBytes).data(pubkeyBytes).data(nodeMessage).op(OP_CONS).build();
         return script;
     }
 

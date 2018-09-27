@@ -77,15 +77,15 @@ public class BlockArrivedValidator implements MessageValidator {
             }
             Sha256Hash prevBlock = block.getPreHash();//前一区块hash
             byte[] preBlockBytes = storageService.get(prevBlock.getBytes());
-            if (preBlockBytes != null) {
+            if (block.getHeight() == 0) {
+                return true;
+            }else if (preBlockBytes != null) {
                 BlockHeader blockHeader = new BlockHeader(MainNetworkParams.get(), preBlockBytes);
                 long preHeight = blockHeader.getHeight();
                 if ((height - preHeight) == 1) {
                     result = true;
                 }
-            } else if (block.getHeight() == 0) {
-                return true;
-            } else {
+            }  else {
                 log.info("获取上一个区块的内容失败，且区块高度不为0!,需要重新同步！");
 
             }

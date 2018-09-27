@@ -55,6 +55,7 @@ public final class ScriptOpCodes {
     public static final int OP_15 = 0x5f;
     public static final int OP_16 = 0x60;
 
+
     // control
     public static final int OP_NOP = 0x61;
     public static final int OP_VER = 0x62;
@@ -170,7 +171,8 @@ public final class ScriptOpCodes {
     public static final int OP_VERTR = 0xc2;
     //根据栈顶元素的交易hash获取公匙和hash160
     public static final int OP_PUBKEY = 0xc3;
-    
+    //tx
+    public static final int OP_CONS = 0xc4;
     public static final int OP_INVALIDOPCODE = 0xff;
 
     private static final Map<Integer, String> opCodeMap = new HashMap<Integer, String>();
@@ -293,7 +295,8 @@ public final class ScriptOpCodes {
         opCodeMap.put(OP_VERMG, "VERMG");
         opCodeMap.put(OP_VERTR, "VERTR");
         opCodeMap.put(OP_PUBKEY, "PUBKEY");
-        
+        opCodeMap.put(OP_CONS, "CONS");
+
         opCodeNameMap.put("0", OP_0);
         opCodeNameMap.put("PUSHDATA1", OP_PUSHDATA1);
         opCodeNameMap.put("PUSHDATA2", OP_PUSHDATA2);
@@ -410,6 +413,7 @@ public final class ScriptOpCodes {
         opCodeNameMap.put("VERMG", OP_VERMG);
         opCodeNameMap.put("VERTR", OP_VERTR);
         opCodeNameMap.put("PUBKEY", OP_PUBKEY);
+        opCodeNameMap.put("CONS", OP_CONS);
     }
 
     /**

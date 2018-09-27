@@ -80,6 +80,7 @@ public class ChannelContain {
             }
         }
         MyChannel myChannel = new MyChannel();
+        log.info("channel mac :{}",sc.id().asLongText());
         myChannel.setChannel(sc);
         myChannel.setPassive(isPassive);
         myChannel.setRemoteIp(remoteIp);

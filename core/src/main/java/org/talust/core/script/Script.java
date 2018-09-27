@@ -270,6 +270,10 @@ public class Script {
                 		chunks.get(4).equalsOpCode(OP_CHECKSIG)) ;
     }
 
+    public boolean isConsTx(Script script){
+        return  script.getChunks().get(3).equalsOpCode(OP_CONS);
+
+    }
     /**
      * An alias for isPayToScriptHash.
      */
@@ -461,6 +465,9 @@ public class Script {
             sigsPrefixCount = 1; // OP_0 <sig>*
         } else if (isSentToAddress()) {
             sigsSuffixCount = 1; // <sig> <pubkey>
+        }
+        if(isConsTx(scriptSig)){
+            sigsSuffixCount=sigsSuffixCount+2;
         }
         return ScriptBuilder.updateScriptWithSignature(scriptSig, sigBytes, index, sigsPrefixCount, sigsSuffixCount);
     }
