@@ -664,7 +664,6 @@ public class BlockStorage extends BaseStoreProvider {
                             if (script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data)) {
                                 status[i] = TransactionStore.STATUS_UNUSE;
                                 isMineTx = true;
-                                break;
                             }
                         }
                         List<TransactionInput> inputs = tx.getInputs();
@@ -672,6 +671,11 @@ public class BlockStorage extends BaseStoreProvider {
                             for (TransactionInput input : inputs) {
                                 if (input.getFroms() == null || input.getFroms().size() == 0) {
                                     continue;
+                                }
+                                if(input.getFroms().size()>39){
+                                    log.info("猜测为转账交易的交易记录的outputs为：{}",input.getFroms().size());
+                                    List<TransactionOutput> outputs1 = input.getFroms();
+                                    log.info("猜测为转账交易的交易记录的outputs为：{}",outputs1.size());
                                 }
                                 for (TransactionOutput from : input.getFroms()) {
                                     Sha256Hash fromTxHash = from.getParent().getHash();

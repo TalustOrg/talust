@@ -361,7 +361,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         }
         locker.lock();
         try {
-            if (money.compareTo("10") < 0) {
+            if (money.compareTo("10000") < 0) {
                 resp.put("retCode", "1");
                 resp.put("msgCode", "E00025");
                 return resp;

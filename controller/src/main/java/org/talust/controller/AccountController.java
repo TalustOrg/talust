@@ -146,7 +146,7 @@ public class AccountController {
                 }
                 if(!AccountStorage.get().importAccountFile(account,fileJson)){
                     resp.put("retCode", "1");
-                    resp.put("msgCode", "E00003");
+                    resp.put("msgCode", "E00005");
                     return resp;
                 }
             } catch (Exception e) {

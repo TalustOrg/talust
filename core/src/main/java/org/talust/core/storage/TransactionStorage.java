@@ -178,7 +178,7 @@ public class TransactionStorage extends BaseStoreProvider {
         if(bestBlockHeight < localBestBlockHeight) {
             bestBlockHeight = localBestBlockHeight;
         }
-
+        log.error("账户地址hash160为：{} 的未消费交易数据长度为：{}",hash160,unspendTxList.size());
         for (TransactionStore transactionStore : unspendTxList) {
             //获取转入交易转入的多少钱
             Transaction tx = transactionStore.getTransaction();
@@ -455,6 +455,11 @@ public class TransactionStorage extends BaseStoreProvider {
                 byte[] status = txs.getStatus();
                 List<TransactionOutput> outputs = tx.getOutputs();
                 for (int i = 0; i < outputs.size(); i++) {
+                    if(i==1){
+                        if(status[1] == TransactionStore.STATUS_UNUSE){
+
+                        }
+                    }
                     TransactionOutput output = outputs.get(i);
                     Script script = output.getScript();
                     if(status == null || status.length < i || status[i] != TransactionStore.STATUS_UNUSE || unspendTxList.contains(txs)) {

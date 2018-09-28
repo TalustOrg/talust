@@ -1,6 +1,9 @@
 package org.talust.consensus;
 
 import lombok.extern.slf4j.Slf4j;
+import org.talust.common.model.Message;
+import org.talust.common.model.MessageChannel;
+import org.talust.common.model.MessageType;
 import org.talust.common.model.SuperNode;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
@@ -10,6 +13,7 @@ import org.talust.core.network.MainNetworkParams;
 import org.talust.core.server.NtpTimeService;
 import org.talust.network.netty.ChannelContain;
 import org.talust.network.netty.ConnectionManager;
+import org.talust.network.netty.SynRequest;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -86,10 +90,26 @@ public class ConsensusService {
                         int ct = CacheManager.get().get("net_best_time");
                         log.info("出块节点检查，最新接块时间：{}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
                         if (ct > 0) {
-                            if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME*2 + checkSecond+NtpTimeService.getTimeOffset()/1000)) {//未收到区块响应
-                                log.info("因出块检查失败，变更出块节点。");
-                                conference.changeMaster();
+                            if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME*2 + checkSecond+NtpTimeService.getTimeOffset()/1000)) {
+                                //未收到区块响应
+                                //首先尝试同步区块
+                                if(!SynBlock.get().isSync()){
+                                    SynBlock.get().startSynBlock();
+                                }
+
                             }
+                        }
+                        while (!SynBlock.get().isSync()){
+                            nowSecond = DateUtil.getTimeSecond();
+                            ct = CacheManager.get().get("net_best_time");
+                            log.info("二次同步后，出块节点检查，最新接块时间：{}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
+                            if (ct > 0) {
+                                if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME*2 + checkSecond+NtpTimeService.getTimeOffset()/1000)) {
+                                    log.info("二次同步后，因出块检查失败，变更出块节点。");
+                                    conference.changeMaster();
+                                }
+                            }
+                            break;
                         }
                     } catch (Throwable e) {
                         log.error("error:", e);
