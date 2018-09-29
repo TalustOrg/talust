@@ -387,11 +387,13 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                 }
             }
             //当前余额可用余额
-            long balance = account.getAddress().getBalance().value;
-            if (ArithUtils.compareStr(balance + "", ArithUtils.mul(money, "100000000", 0)) < 0) {
-                resp.put("retCode", "1");
-                resp.put("msgCode", "E00027");
-                return resp;
+            if(AccountStorage.get().reloadCoin()){
+                long balance = account.getAddress().getBalance().value;
+                if (ArithUtils.compareStr(balance + "", ArithUtils.mul(money, "100000000", 0)) < 0) {
+                    resp.put("retCode", "1");
+                    resp.put("msgCode", "E00027");
+                    return resp;
+                }
             }
             Address nodeAddr = Address.fromBase58(network, nodeAddress);
             Deposits deposits = getDeposits(nodeAddr.getHash160());
@@ -528,26 +530,17 @@ public class TransferAccountServiceImpl implements TransferAccountService {
         List<TxMine> txMines = new ArrayList<>();
         for (TransactionInput input : allInput) {
             List<TransactionOutput> transactionOutputList = input.getParent().getOutputs();
+            Coin totalCoin = Coin.ZERO;
             for (TransactionOutput transactionOutput : transactionOutputList) {
-                if (!Arrays.equals(transactionOutput.getScript().getChunks().get(2).data, addr.getHash160())) {
-                    String toAddress = Address.fromP2PKHash(MainNetworkParams.get(), MainNetworkParams.get().getSystemAccountVersion(), transactionOutput.getScript().getChunks().get(2).data).getBase58();
-                    TxMine txMine = new TxMine();
-                    txMine.setType(input.getParent().getType());
-                    txMine.setAsCode(1);
-                    txMine.setTime(input.getParent().getTime());
-                    txMine.setMoney(transactionOutput.getValue() / 100000000);
-                    txMine.setAddress(toAddress);
-                    txMines.add(txMine);
-                }else if(input.getParent().getType()==Definition.TYPE_REG_CONSENSUS||input.getParent().getType()==Definition.TYPE_REM_CONSENSUS){
-                    TxMine txMine = new TxMine();
-                    txMine.setType(input.getParent().getType());
-                    txMine.setAsCode(1);
-                    txMine.setTime(input.getParent().getTime());
-                    txMine.setMoney(transactionOutput.getValue() / 100000000);
-                    txMine.setAddress(address);
-                    txMines.add(txMine);
-                }
+                totalCoin = Coin.valueOf(totalCoin.value+transactionOutput.getValue());
             }
+            TxMine txMine = new TxMine();
+            txMine.setType(input.getParent().getType());
+            txMine.setAsCode(1);
+            txMine.setTime(input.getParent().getTime());
+            txMine.setMoney(totalCoin.getValue() / 100000000);
+            txMine.setAddress(address);
+            txMines.add(txMine);
         }
         for (TransactionOutput output : allOutput) {
             Sha256Hash fromId =  output.getParent().getInputs().get(0).getFroms().get(0).getParent().getHash();
@@ -676,9 +669,9 @@ public class TransferAccountServiceImpl implements TransferAccountService {
             if (null != depositAccountList && depositAccountList.size() > 0) {
                 Coin totalCoin = Coin.ZERO;
                 for (DepositAccount depositAccount : depositAccountList) {
-                    totalCoin = totalCoin.add(depositAccount.getAmount());
                     if (Arrays.equals(depositAccount.getAddress(), addr.getHash160())) {
                         joinDepos = depositAccount;
+                        totalCoin = totalCoin.add(depositAccount.getAmount());
                     }
                 }
                 if (joinDepos != null) {

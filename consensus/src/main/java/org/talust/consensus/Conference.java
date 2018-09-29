@@ -108,8 +108,10 @@ public class Conference {
                     Integer value = next.getValue();
                     if("NO_MASTER".equals(next.getKey())){
                         needOkNumber = (superSize-value) / 2;
+                        log.info("NO_MASTER 数据数量为：{},需要确认的节点IP数量为:{}",value,needOkNumber);
                        continue;
                     }
+                    log.info("数据数量为：{},需要确认的节点IP数量为:{}",value,needOkNumber);
                     if (value > needOkNumber) {
                         log.info("reqNetMaster 认定节点IP为：{}",next.getKey());
                         master = ConnectionManager.get().getSuperNodeByIp(next.getKey());
@@ -121,7 +123,6 @@ public class Conference {
                         }else{
                             ConsensusService.get().stopGenBlock();
                         }
-                        return master;
                     }
                 }
             } else {
@@ -136,13 +137,13 @@ public class Conference {
                     }else{
                         ConsensusService.get().stopGenBlock();
                     }
-                    return master;
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        log.info("认定后的出块节点是否已经出现，若未出现3S后循环继续。");
+        return master;
     }
 
     /**

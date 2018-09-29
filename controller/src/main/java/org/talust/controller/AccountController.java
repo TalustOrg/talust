@@ -79,37 +79,26 @@ public class AccountController {
     @PostMapping(value = "getAllCoins")
     JSONObject getAllCoins() {
         JSONObject jsonObject = new JSONObject();
-        long localbestheighttime= 0l;
-        try{
-            localbestheighttime   = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
-        }catch (Exception e){
+        long localbestheighttime = 0l;
+        try {
+            localbestheighttime = BlockStorage.get().getBestBlockHeader().getBlockHeader().getTime();
+        } catch (Exception e) {
             jsonObject.put("msgCode", "E00001");
             return jsonObject;
         }
-
-        long now = NtpTimeService.currentTimeSeconds();
-        boolean syncheck =  true ;
-        if (now - localbestheighttime > Configure.BLOCK_GEN_TIME) {
-            syncheck =false;
-        }
-        Collection<Account> accountList =  AccountStorage.get().getAccountMap().values();
+        Collection<Account> accountList = AccountStorage.get().getAccountMap().values();
         if (null != accountList) {
             JSONArray accounts = new JSONArray();
             for (Account account : accountList) {
                 JSONObject data = new JSONObject();
-                if(syncheck){
-                    if (AccountStorage.get().reloadCoin()) {
-                        data.put("value", ArithUtils.div(account.getAddress().getBalance() + "", "100000000", 8));
-                        data.put("lockValue", ArithUtils.div(account.getAddress().getUnconfirmedBalance() + "", "100000000", 8));
-                    }
-                }else{
-                    data.put("value", "0");
-                    data.put("lockValue", "0");
+                if (AccountStorage.get().reloadCoin()) {
+                    data.put("value", ArithUtils.div(account.getAddress().getBalance() + "", "100000000", 8));
+                    data.put("lockValue", ArithUtils.div(account.getAddress().getUnconfirmedBalance() + "", "100000000", 8));
                 }
-                data.put("address",account.getAddress().getBase58());
+                data.put("address", account.getAddress().getBase58());
                 accounts.add(data);
             }
-            jsonObject.put("data",accounts);
+            jsonObject.put("data", accounts);
         } else {
             jsonObject.put("msgCode", "E00001");
         }
@@ -137,14 +126,14 @@ public class AccountController {
             JSONObject fileJson = JSONObject.parseObject(content);
             Account account = Account.parse(fileJson.getBytes("data"), 0, MainNetworkParams.get());
             try {
-                if(fileJson.getBoolean("isEncrypted")){
-                    EncryptedData encryptedData =new EncryptedData(fileJson.getBytes("vector"),fileJson.getBytes("privateKey"));
-                    ECKey ecKey = ECKey.fromEncrypted(encryptedData,fileJson.getBytes("publicKey"));
+                if (fileJson.getBoolean("isEncrypted")) {
+                    EncryptedData encryptedData = new EncryptedData(fileJson.getBytes("vector"), fileJson.getBytes("privateKey"));
+                    ECKey ecKey = ECKey.fromEncrypted(encryptedData, fileJson.getBytes("publicKey"));
                     account.setEcKey(ecKey);
-                }else{
+                } else {
                     account.resetKey();
                 }
-                if(!AccountStorage.get().importAccountFile(account,fileJson)){
+                if (!AccountStorage.get().importAccountFile(account, fileJson)) {
                     resp.put("retCode", "1");
                     resp.put("msgCode", "E00005");
                     return resp;
@@ -159,7 +148,7 @@ public class AccountController {
             resp.put("retCode", "1");
             resp.put("msgCode", "E00004");
             return resp;
-        }catch (Exception e){
+        } catch (Exception e) {
             resp.put("retCode", "1");
             resp.put("msgCode", "E00003");
             return resp;
@@ -175,7 +164,7 @@ public class AccountController {
     JSONObject outPutAccountFile(@RequestParam String path, @RequestParam String address) {
         JSONObject resp = new JSONObject();
         try {
-            File file = new File(path+ File.separator + address);
+            File file = new File(path + File.separator + address);
             if (!file.exists()) {
                 file.createNewFile();
             }
@@ -215,17 +204,17 @@ public class AccountController {
 
     @ApiOperation(value = "查询同步状态", notes = "查询同步状态")
     @PostMapping(value = "searchSyncStatus")
-    JSONObject searchSyncStatus(){
-        boolean isSync =  SynBlock.get().isSync();
+    JSONObject searchSyncStatus() {
+        boolean isSync = SynBlock.get().isSync();
         long maxHeight = SynBlock.get().getMaxHeight();
         long nowHeight = MainNetworkParams.get().getBestHeight();
-        JSONObject resp =  new JSONObject();
-        resp.put("syncStatus",isSync);
-        resp.put("nowHeight",nowHeight);
-        if(maxHeight<nowHeight){
+        JSONObject resp = new JSONObject();
+        resp.put("syncStatus", isSync);
+        resp.put("nowHeight", nowHeight);
+        if (maxHeight < nowHeight) {
             maxHeight = nowHeight;
         }
-        resp.put("maxHeight",maxHeight);
+        resp.put("maxHeight", maxHeight);
         return resp;
     }
 }

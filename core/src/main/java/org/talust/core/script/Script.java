@@ -271,8 +271,10 @@ public class Script {
     }
 
     public boolean isConsTx(Script script){
-        return  script.getChunks().get(3).equalsOpCode(OP_CONS);
-
+        if(script.getChunks().size()>2){
+            return  script.getChunks().get(3).equalsOpCode(OP_CONS);
+        }
+        return false;
     }
     /**
      * An alias for isPayToScriptHash.

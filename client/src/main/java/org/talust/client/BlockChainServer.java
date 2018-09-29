@@ -32,6 +32,8 @@ import org.talust.client.validator.BlockArrivedValidator;
 import org.talust.client.validator.NodeExitValidator;
 import org.talust.client.validator.TransactionValidator;
 import org.talust.common.model.MessageType;
+import org.talust.common.tools.CacheManager;
+import org.talust.common.tools.DateUtil;
 import org.talust.consensus.ConsensusService;
 import org.talust.consensus.handler.MasterReqHandler;
 import org.talust.consensus.handler.MasterRespHandler;
@@ -70,6 +72,7 @@ public class BlockChainServer {
         log.info("初始化消息处理器...");
         initValidators();
         initHandlers();
+        CacheManager.get().put("net_best_time",0);
         MessageQueueHolder.get().start();
         NodeConsole nc = new NodeConsole();
         nc.start();//启动网络的收发

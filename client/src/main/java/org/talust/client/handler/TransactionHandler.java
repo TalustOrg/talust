@@ -28,22 +28,14 @@ package org.talust.client.handler;
 import lombok.extern.slf4j.Slf4j;
 
 import org.talust.common.model.MessageChannel;
-import org.talust.common.model.SuperNode;
 import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.Configure;
 import org.talust.common.tools.SerializationUtil;
-import org.talust.consensus.Conference;
-import org.talust.consensus.ConsensusService;
-import org.talust.core.core.Definition;
 import org.talust.core.data.DataContainer;
-import org.talust.core.data.TransactionCache;
 import org.talust.core.transaction.Transaction;
 import org.talust.network.MessageHandler;
-import org.talust.core.storage.BlockStorage;
-import org.talust.core.storage.ChainStateStorage;
 import org.talust.network.netty.ConnectionManager;
 
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * 交易数据处理
@@ -53,16 +45,18 @@ public class TransactionHandler implements MessageHandler {
     @Override
     public boolean handle(MessageChannel message) {
         Transaction transaction = SerializationUtil.deserializer(message.getMessage().getContent(), Transaction.class);
-        log.info("接收到节点IP：{}的漫游交易传输，交易类型{}", message.getFromIp(), transaction.getType());
+        log.info("！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！接收到节点IP：{}的漫游交易传输，交易类型{}", message.getFromIp(), transaction.getType());
         boolean checkRepeat = CacheManager.get().checkRepeat(("tx_hash:" + transaction.getHash().toString()), Configure.BLOCK_GEN_TIME);
         if (!checkRepeat) {
+            log.info("出块节点IP：{} ",ConnectionManager.get().getMasterIp());
+            log.info(" 自身节点IP：{}",ConnectionManager.get().getSelfIp());
             if (!ConnectionManager.get().getMasterIp().equals(ConnectionManager.get().getSelfIp())) {
                 ConnectionManager.get().TXMessageSend(message.getMessage());
             }else{
                 DataContainer.get().addRecord(transaction);
             }
         }else{
-            log.info("接收到节点IP：{}的漫游交易传输已经接收过。", message.getFromIp());
+            log.info("！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！接收到节点IP：{}的漫游交易传输已经接收过。", message.getFromIp());
         }
         return checkRepeat;
     }

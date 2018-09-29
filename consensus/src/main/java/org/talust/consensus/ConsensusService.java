@@ -45,11 +45,19 @@ public class ConsensusService {
             log.info("当前节点是超级节点,启动参与共识....");
             checkSecond = Configure.BLOCK_GEN_TIME / 3;
             genBlock();
-            SuperNode master = conference.reqNetMaster();
-            if (master != null) {
-                log.info("获取会议master ip:{}", master.getIp());
-                if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {
-                    startGenBlock();
+            SuperNode master = null;
+            while (master==null){
+                master = conference.reqNetMaster();
+                if (master != null) {
+                    log.info("获取会议master ip:{}", master.getIp());
+                    if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {
+                        startGenBlock();
+                    }
+                }
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -90,7 +98,7 @@ public class ConsensusService {
                         int ct = CacheManager.get().get("net_best_time");
                         log.info("出块节点检查，最新接块时间：{}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
                         if (ct > 0) {
-                            if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME*2 + checkSecond+NtpTimeService.getTimeOffset()/1000)) {
+                            if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {
                                 //未收到区块响应
                                 //首先尝试同步区块
                                 if(!SynBlock.get().isSync()){
@@ -104,7 +112,7 @@ public class ConsensusService {
                             ct = CacheManager.get().get("net_best_time");
                             log.info("二次同步后，出块节点检查，最新接块时间：{}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
                             if (ct > 0) {
-                                if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME*2 + checkSecond+NtpTimeService.getTimeOffset()/1000)) {
+                                if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {
                                     log.info("二次同步后，因出块检查失败，变更出块节点。");
                                     conference.changeMaster();
                                 }
