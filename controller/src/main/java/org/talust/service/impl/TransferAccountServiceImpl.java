@@ -672,6 +672,7 @@ public class TransferAccountServiceImpl implements TransferAccountService {
                     if (Arrays.equals(depositAccount.getAddress(), addr.getHash160())) {
                         joinDepos = depositAccount;
                         totalCoin = totalCoin.add(depositAccount.getAmount());
+                        log.error("测试用ERROR日志，本账户共识金额为：{}，共识节点地址为：{}",depositAccount.getAmount(),superNode.getAddress());
                     }
                 }
                 if (joinDepos != null) {
