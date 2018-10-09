@@ -45,8 +45,10 @@ import org.talust.core.transaction.TransactionOutput;
 import org.talust.storage.BaseStoreProvider;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -142,7 +144,9 @@ public class BlockStorage extends BaseStoreProvider {
                 db.put(tx.getHash().getBytes(), txs.baseSerialize());
                 saveChainstate(block, txs);
             }
-            log.info("保存区块高度为：{}的区块", blockStore.getBlock().getHeight());
+            Date date = new Date(blockStore.getBlock().getTime()*1000);
+            SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            log.info("保存区块高度为：{},打包时间为：{}的区块", blockStore.getBlock().getHeight(),sdf.format(date));
             //保存块头
             byte[] blockHeaderBytes = blockStore.serializeHeaderToBytes();
             db.put(hash.getBytes(), blockHeaderBytes);
@@ -660,7 +664,6 @@ public class BlockStorage extends BaseStoreProvider {
                         for (int i = 0; i < outputs.size(); i++) {
                             Output output = outputs.get(i);
                             Script script = output.getScript();
-
                             if (script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data)) {
                                 status[i] = TransactionStore.STATUS_UNUSE;
                                 isMineTx = true;

@@ -127,22 +127,25 @@ public class MessageQueueHolder {
     public void broadMessage(MessageChannel message) {
         String fromChannel = message.getFromIp();
         String selfIp = cm.getSelfIp();
-        //分别向其他各个节点发送消息
-        Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
-        log.info("向网络节点广播消息,当前本节点所连接的网络节点数为:{},消息类型:{}", allChannel.size(), message.getMessage().getType());
-        for (MyChannel channel : allChannel) {//主要是考虑为了提升效率
-            if (!selfIp.equals(channel.getRemoteIp())) {
-                if (StringUtils.isNotEmpty(fromChannel) && fromChannel.equals(channel.getRemoteIp())) {
-                    //不需要给发送过来的通道再发回去
-                    continue;
+        boolean isSuper =  cm.superNode;
+        if(isSuper){
+            //分别向其他各个节点发送消息
+            Collection<MyChannel> allChannel = ChannelContain.get().getMyChannels();
+            log.info("向网络节点广播消息,当前本节点所连接的网络节点数为:{},消息类型:{}", allChannel.size(), message.getMessage().getType());
+            for (MyChannel channel : allChannel) {//主要是考虑为了提升效率
+                if (!selfIp.equals(channel.getRemoteIp())) {
+                    if (StringUtils.isNotEmpty(fromChannel) && fromChannel.equals(channel.getRemoteIp())) {
+                        //不需要给发送过来的通道再发回去
+                        continue;
+                    }
+                    log.info("------------向ip:{} 广播消息:{}", channel.getRemoteIp(), message.getMessage().getType());
+                    MessageChannel mc = new MessageChannel();
+                    mc.setMessage(message.getMessage());
+                    mc.setToIp(channel.getRemoteIp());
+                    mc.setFromIp(selfIp);
+                    mc.setChannelId(channel.getChannel().id().asShortText());
+                    mq.addMessage(mc);
                 }
-                log.info("------------向ip:{} 广播消息:{}", channel.getRemoteIp(), message.getMessage().getType());
-                MessageChannel mc = new MessageChannel();
-                mc.setMessage(message.getMessage());
-                mc.setToIp(channel.getRemoteIp());
-                mc.setFromIp(selfIp);
-                mc.setChannelId(channel.getChannel().id().asShortText());
-                mq.addMessage(mc);
             }
         }
     }
