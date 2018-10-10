@@ -87,7 +87,6 @@ public class BlockArrivedValidator implements MessageValidator {
                 }
             }  else {
                 log.info("获取上一个区块的内容失败，且区块高度不为0!,需要重新同步！");
-
             }
             if (result) {//继续校验区块里面的每一条数据
                 block.verify();
@@ -110,7 +109,9 @@ public class BlockArrivedValidator implements MessageValidator {
             }
         } else if((height - nowHeight) > 1 ) {
             log.info("接受到的区块高度不一致！");
-            SynBlock.get().startSynBlock();
+            if(!SynBlock.get().isSync()){
+                SynBlock.get().startSynBlock();
+            }
             return false;
         }else{
             log.info("接受到的区块,已存储过！");
@@ -178,7 +179,7 @@ public class BlockArrivedValidator implements MessageValidator {
 
                     ByteHash byteHash = new ByteHash(statusKey);
                     if (outputIndexHashArray.contains(byteHash)) {
-                        log.warn("存在双花交易");
+                        log.warn("区块高度：{}存在双花交易",block.getHeight());
                         return false;
                     } else {
                         outputIndexHashArray.add(byteHash);

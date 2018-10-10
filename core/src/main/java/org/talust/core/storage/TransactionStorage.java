@@ -106,7 +106,7 @@ public class TransactionStorage extends BaseStoreProvider {
 
     public List<TransactionOutput> getNotSpentTransactionOutputs(byte[] hash160) {
 
-        List<TransactionOutput> txs = new ArrayList<TransactionOutput>();
+        List<TransactionOutput> txs = new CopyOnWriteArrayList<TransactionOutput>();
 
         //查询当前区块最新高度
         long bestBlockHeight = network.getBestHeight();
@@ -248,7 +248,7 @@ public class TransactionStorage extends BaseStoreProvider {
         for(int j=0;j<hash160s.size();j++){
             byte[] hash160 = hash160s.get(j);
             //log.info("find user"+ Hex.encode(hash160));
-            ArrayList<TransactionOutput> unSpentOutputs= new ArrayList<TransactionOutput>();
+            List<TransactionOutput> unSpentOutputs= new CopyOnWriteArrayList<TransactionOutput>();
             for (TransactionStore transactionStore : unspendTxList){
                 //交易状态
 
@@ -448,6 +448,7 @@ public class TransactionStorage extends BaseStoreProvider {
         unspendTxList = new CopyOnWriteArrayList<>();
 
         for (TransactionStore txs : myTxList) {
+            txLock.lock();
             put(txs.getTransaction().getHash().getBytes(), txs.baseSerialize());
             //是否未花费的交易
             Transaction tx = txs.getTransaction();
@@ -455,11 +456,6 @@ public class TransactionStorage extends BaseStoreProvider {
                 byte[] status = txs.getStatus();
                 List<TransactionOutput> outputs = tx.getOutputs();
                 for (int i = 0; i < outputs.size(); i++) {
-                    if(i==1){
-                        if(status[1] == TransactionStore.STATUS_UNUSE){
-
-                        }
-                    }
                     TransactionOutput output = outputs.get(i);
                     Script script = output.getScript();
                     if(status == null || status.length < i || status[i] != TransactionStore.STATUS_UNUSE || unspendTxList.contains(txs)) {
@@ -472,6 +468,7 @@ public class TransactionStorage extends BaseStoreProvider {
                     }
                 }
             }
+            txLock.unlock();
         }
         return true;
     }

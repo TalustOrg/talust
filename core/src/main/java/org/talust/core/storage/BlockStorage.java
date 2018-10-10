@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
@@ -633,7 +634,7 @@ public class BlockStorage extends BaseStoreProvider {
             BlockStore blockStore = network.getGengsisBlock();
             Sha256Hash nextHash = blockStore.getBlock().getHash();
 
-            List<TransactionStore> mineTxs = new ArrayList<TransactionStore>();
+            List<TransactionStore> mineTxs = new CopyOnWriteArrayList<TransactionStore>();
             while (!nextHash.equals(Sha256Hash.ZERO_HASH)) {
                 BlockStore nextBlockStore = getBlock(nextHash.getBytes());
 

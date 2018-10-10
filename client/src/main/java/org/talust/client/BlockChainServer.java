@@ -27,6 +27,7 @@ package org.talust.client;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.talust.block.MakeTestNetGengsisBlock;
 import org.talust.client.handler.*;
 import org.talust.client.validator.BlockArrivedValidator;
 import org.talust.client.validator.NodeExitValidator;
@@ -142,8 +143,6 @@ public class BlockChainServer {
         PeersManager.get().initPeers();
         AccountStorage.get();
         TransactionStorage.get().init();
-
-//        MakeTestNetGengsisBlock.main(null   );
 
         BlockChainServer.get().start();
 

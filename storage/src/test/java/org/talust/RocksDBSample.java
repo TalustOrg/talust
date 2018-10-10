@@ -1,12 +1,18 @@
-package org.talust;
-
-import org.rocksdb.RocksDB;
-
-public class RocksDBSample {
-    static {
-        RocksDB.loadLibrary();
-    }
-
+//package org.talust;
+//
+//import org.rocksdb.*;
+//import org.rocksdb.util.SizeUnit;
+//
+//import java.util.ArrayList;
+//import java.util.Arrays;
+//import java.util.List;
+//import java.util.Map;
+//
+//public class RocksDBSample {
+//    static {
+//        RocksDB.loadLibrary();
+//    }
+//
 //    public static void main(final String[] args) {
 //        if (args.length < 1) {
 //            System.out.println("usage: RocksDBSample db_path");
@@ -32,7 +38,7 @@ public class RocksDBSample {
 //
 //            try {
 //                options.setCreateIfMissing(true)
-//                        .setStatistics(stats)
+////                        .setStatistics(stats)
 //                        .setWriteBufferSize(8 * SizeUnit.KB)
 //                        .setMaxWriteBufferNumber(3)
 //                        .setMaxBackgroundCompactions(10)
@@ -210,9 +216,9 @@ public class RocksDBSample {
 //
 //                try {
 //                    for (final TickerType statsType : TickerType.values()) {
-//                        if (statsType != TickerType.TICKER_ENUM_MAX) {
-//                            stats.getTickerCount(statsType);
-//                        }
+////                        if (statsType != TickerType.TICKER_ENUM_MAX) {
+////                            stats.getTickerCount(statsType);
+////                        }
 //                    }
 //                    System.out.println("getTickerCount() passed.");
 //                } catch (final Exception e) {
@@ -222,9 +228,9 @@ public class RocksDBSample {
 //
 //                try {
 //                    for (final HistogramType histogramType : HistogramType.values()) {
-//                        if (histogramType != HistogramType.HISTOGRAM_ENUM_MAX) {
-//                            HistogramData data = stats.getHistogramData(histogramType);
-//                        }
+////                        if (histogramType != HistogramType.HISTOGRAM_ENUM_MAX) {
+////                            HistogramData data = stats.getHistogramData(histogramType);
+////                        }
 //                    }
 //                    System.out.println("getHistogramData() passed.");
 //                } catch (final Exception e) {
@@ -290,4 +296,4 @@ public class RocksDBSample {
 //            }
 //        }
 //    }
-}
+//}

@@ -382,6 +382,22 @@ public class AccountStorage {
         return ending;
     }
 
+    public boolean reloadCoinForce() {
+        List<byte[]> hash160s = getAccountHash160s();
+        boolean ending = false;
+        if (maybeReLoadTransactionForce(hash160s)||maybeAccountCoinZero()) {
+            ending = loadBalanceFromChainstateAndUnconfirmedTransaction(hash160s);
+        }
+        return ending;
+    }
+
+    //是否重新加载账户交易
+    private boolean maybeReLoadTransactionForce(List<byte[]> hash160s) {
+        List<byte[]> hash160sStore = TransactionStorage.get().getAddresses();
+        return TransactionStorage.get().reloadTransaction(hash160s);
+    }
+
+
     private boolean maybeAccountCoinZero(){
         boolean ending = false;
         Collection<Account> accountList = accountMap.values();

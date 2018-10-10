@@ -55,7 +55,7 @@ public class Transaction extends Message {
 	public static final int LOCKTIME_THRESHOLD = 500000000;
     public static final BigInteger LOCKTIME_THRESHOLD_BIG = BigInteger.valueOf(LOCKTIME_THRESHOLD);
     //允许的交易最大值
-    public static final int MAX_STANDARD_TX_SIZE = 100000;
+    public static final int MAX_STANDARD_TX_SIZE = 1000000000;
     
     //tx hash
     protected Sha256Hash hash;

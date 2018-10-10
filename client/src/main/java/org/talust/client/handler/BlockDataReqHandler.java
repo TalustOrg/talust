@@ -51,7 +51,6 @@ public class BlockDataReqHandler implements MessageHandler {
         mc.setToIp(message.getFromIp());
         Message nodeMessage = new Message();
         nodeMessage.setMsgCount(message.getMessage().getMsgCount());
-        mc.setMessage(nodeMessage);
         mc.setChannelId(message.getChannelId());
         byte[] content = message.getMessage().getContent();
         String num = new String(content);//区块高度
@@ -74,9 +73,10 @@ public class BlockDataReqHandler implements MessageHandler {
             } else {
                 nodeMessage.setContent(content);
                 nodeMessage.setType(MessageType.ERROR_MESSAGE.getType());
-                log.info("向远端ip:{} 返回错误消息,当前节点无此区块:{} 数据",message.getFromIp(), num);
+                log.error("向远端ip:{} 返回错误消息,当前节点无此区块:{} 数据",message.getFromIp(), num);
             }
         }
+        mc.setMessage(nodeMessage);
         mq.addMessage(mc);
 //        log.info("向channelId :{} ， ip :{} 的节点发送消息.",message.getChannelId(),message.getFromIp());
         return true;

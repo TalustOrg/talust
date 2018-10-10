@@ -54,52 +54,52 @@ public class TransferAccountsController {
     @Autowired
     private TransferAccountService transferAccountService;
 
-//    @ApiOperation(value = "发起转账", notes = "帐户信息已经存在的情况下,转账")
-//    @PostMapping(value = "transfer")
-//    JSONObject transfer(@RequestParam String toAddress, @RequestParam String money, @RequestParam String address, @RequestParam String password) {
-//        JSONObject resp = new JSONObject();
-//        if (StringUtil.isNullOrEmpty(toAddress) || StringUtil.isNullOrEmpty(money)) {
-//            resp.put("retCode", "1");
-//            resp.put("msgCode", "E00008");
-//            return resp;
-//        }
-//        try {
-//            money = ArithUtils.mul(money, "1", 8);
-//        } catch (Exception e) {
-//            resp.put("retCode", "1");
-//            resp.put("msgCode", "E00009");
-//            return resp;
-//        }
-//        Account account = transferAccountService.getAccountByAddress(address);
-//        if (null == account) {
-//            resp.put("retCode", "1");
-//            resp.put("msgCode", "E00010");
-//            return resp;
-//        }
-//        try {
-//            Base58.decodeChecked(toAddress);
-//        } catch (Exception e) {
-//            resp.put("retCode", "1");
-//            resp.put("msgCode", "E00011");
-//            return resp;
-//        }
-//        if (account.isEncrypted()) {
-//            if (StringUtil.isNullOrEmpty(password)) {
-//                resp.put("retCode", "1");
-//                resp.put("msgCode", "E00012");
-//                return resp;
-//            } else {
-//                boolean pswCorrect = transferAccountService.decryptAccount(password, account);
-//                if (!pswCorrect) {
-//                    resp.put("retCode", "1");
-//                    resp.put("msgCode", "E00013");
-//                    return resp;
-//                }
-//            }
-//        }
-//        JSONObject isOk = transferAccountService.transfer(toAddress, money, address, password);
-//        return isOk;
-//    }
+    @ApiOperation(value = "发起转账", notes = "帐户信息已经存在的情况下,转账")
+    @PostMapping(value = "transfer")
+    JSONObject transfer(@RequestParam String toAddress, @RequestParam String money, @RequestParam String address, @RequestParam String password) {
+        JSONObject resp = new JSONObject();
+        if (StringUtil.isNullOrEmpty(toAddress) || StringUtil.isNullOrEmpty(money)) {
+            resp.put("retCode", "1");
+            resp.put("msgCode", "E00008");
+            return resp;
+        }
+        try {
+            money = ArithUtils.mul(money, "1", 8);
+        } catch (Exception e) {
+            resp.put("retCode", "1");
+            resp.put("msgCode", "E00009");
+            return resp;
+        }
+        Account account = transferAccountService.getAccountByAddress(address);
+        if (null == account) {
+            resp.put("retCode", "1");
+            resp.put("msgCode", "E00010");
+            return resp;
+        }
+        try {
+            Base58.decodeChecked(toAddress);
+        } catch (Exception e) {
+            resp.put("retCode", "1");
+            resp.put("msgCode", "E00011");
+            return resp;
+        }
+        if (account.isEncrypted()) {
+            if (StringUtil.isNullOrEmpty(password)) {
+                resp.put("retCode", "1");
+                resp.put("msgCode", "E00012");
+                return resp;
+            } else {
+                boolean pswCorrect = transferAccountService.decryptAccount(password, account);
+                if (!pswCorrect) {
+                    resp.put("retCode", "1");
+                    resp.put("msgCode", "E00013");
+                    return resp;
+                }
+            }
+        }
+        JSONObject isOk = transferAccountService.transfer(toAddress, money, address, password);
+        return isOk;
+    }
 
     @ApiOperation(value = "查询储蓄状态", notes = "查询某一个节点的储蓄状态")
     @PostMapping(value = "searchOneSuperNodeDeposite")

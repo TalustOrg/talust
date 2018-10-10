@@ -199,7 +199,7 @@ public class ConnectionManager {
                 }
             }
         }
-        if(null!=unusedIps&&unusedIps.size()>0){
+        if (null != unusedIps && unusedIps.size() > 0) {
             PeersManager.get().removePeerList(unusedIps);
         }
         if (cc.getActiveConnectionCount() < Configure.MAX_ACTIVE_CONNECT_COUNT) {
@@ -260,7 +260,7 @@ public class ConnectionManager {
             if (peers.containsKey(selfIp)) {
                 peers.remove(selfIp);
             }
-            if(null!=peers){
+            if (null != peers) {
                 PeersManager.get().addPeer(peers);
             }
 
@@ -302,8 +302,8 @@ public class ConnectionManager {
                         log.info("本节点连接超级节点目标ip地址:{}", ip);
                         NodeClient tmpnc = new NodeClient();
                         Channel connect = tmpnc.connect(ip, Constant.PORT);
-                        if(connect.isActive()){
-                            log.info("连接超级节点目标ip地址:{}情况为：{}", ip,connect.isActive());
+                        if (connect.isActive()) {
+                            log.info("连接超级节点目标ip地址:{}情况为：{}", ip, connect.isActive());
                             cc.addChannel(connect, false);
                             InetSocketAddress insocket = (InetSocketAddress) connect.localAddress();
                             getPeersOnline(ip);

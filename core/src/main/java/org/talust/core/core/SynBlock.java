@@ -33,6 +33,7 @@ import org.talust.common.tools.CacheManager;
 import org.talust.common.tools.SerializationUtil;
 import org.talust.common.tools.ThreadPool;
 import org.talust.core.model.Block;
+import org.talust.core.model.BlockHeader;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.server.NtpTimeService;
 import org.talust.core.storage.AccountStorage;
@@ -171,7 +172,7 @@ public class SynBlock {
             List<BlockStore> blocks = new ArrayList<>();
             Map<Long, MessageChannel> mapHeightData = new HashMap<>();
             while (true) {//始终要保证每一轮下载完成该下的任务
-                if (blocks.size() >= needBlockCount) {
+                if (blocks.size() > needBlockCount) {
                     break;
                 }
                 for (long idx = start+1; idx <= end; idx++) {//依次去取当前节点需要的每一个块,idx表示的是要取哪个块
@@ -217,8 +218,11 @@ public class SynBlock {
                             nodeMessage.setType(MessageType.BLOCK_REQ.getType());
                             nodeMessage.setContent(Long.toString(selectBlockHeight).getBytes());//所请求的块的高度
                             log.info("向网络节点:{} 请求区块高度为:{}的区块...", selectIp, selectBlockHeight);
-                            MessageChannel message = SynRequest.get().synReq(nodeMessage, selectIp, finalMyChannel);
-                            log.info("获得向IP：{}，请求高度：{}的区块内容，{}",selectIp,selectBlockHeight,null!=message);
+                            MessageChannel message = null;
+                            while (message==null){
+                                 message = SynRequest.get().synReq(nodeMessage, selectIp, finalMyChannel);
+                                log.info("获得向IP：{}，请求高度：{}的区块内容，{}",selectIp,selectBlockHeight,null!=message);
+                            }
                             return message;
                         });
                         results.add(submit);
@@ -258,12 +262,13 @@ public class SynBlock {
                             blockArrivedHandler.handle(messageChannel);
                         }else{
                             log.info("区块验证失败,重新同步");
-                            BlockStorage.get().revokedNewestBlock();
                             CacheManager.get().clearAll();
-                            synBlock();
+                            break;
                         }
                     } catch (Exception e) {
+                        e.printStackTrace();
                         log.info("区块高度{}的区块数据异常 :{}", block.getBlock().getBlockHeader().getHeight(), e.getMessage());
+                        break;
                     }
                 } else {
                     log.error("未获取到区块高度:{} 对应的数据内容...", block.getBlock().getBlockHeader().getHeight());

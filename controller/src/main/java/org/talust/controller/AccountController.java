@@ -87,11 +87,39 @@ public class AccountController {
             return jsonObject;
         }
         Collection<Account> accountList = AccountStorage.get().getAccountMap().values();
+        try{
+            if (null != accountList) {
+                JSONArray accounts = new JSONArray();
+                for (Account account : accountList) {
+                    JSONObject data = new JSONObject();
+                    if (AccountStorage.get().reloadCoin()) {
+                        data.put("value", ArithUtils.div(account.getAddress().getBalance() + "", "100000000", 8));
+                        data.put("lockValue", ArithUtils.div(account.getAddress().getUnconfirmedBalance() + "", "100000000", 8));
+                    }
+                    data.put("address", account.getAddress().getBase58());
+                    accounts.add(data);
+                }
+                jsonObject.put("data", accounts);
+            } else {
+                jsonObject.put("msgCode", "E00001");
+            }
+        }catch (Exception e ){
+
+        }
+        return jsonObject;
+    }
+
+
+    @ApiOperation(value = "查询全部地址拥有的代币", notes = "查询拥有的代币")
+    @PostMapping(value = "getAllCoinsForce")
+    JSONObject getAllCoinsForce() {
+        JSONObject jsonObject = new JSONObject();
+        Collection<Account> accountList = AccountStorage.get().getAccountMap().values();
         if (null != accountList) {
             JSONArray accounts = new JSONArray();
             for (Account account : accountList) {
                 JSONObject data = new JSONObject();
-                if (AccountStorage.get().reloadCoin()) {
+                if (AccountStorage.get().reloadCoinForce()) {
                     data.put("value", ArithUtils.div(account.getAddress().getBalance() + "", "100000000", 8));
                     data.put("lockValue", ArithUtils.div(account.getAddress().getUnconfirmedBalance() + "", "100000000", 8));
                 }
@@ -104,6 +132,8 @@ public class AccountController {
         }
         return jsonObject;
     }
+
+
 
     @ApiOperation(value = "导入账户", notes = "导入账户")
     @PostMapping(value = "importAccountFile")
