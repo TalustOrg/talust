@@ -23,11 +23,11 @@ public abstract class BaseStoreProvider implements StoreProvider {
     protected RocksDB db;
     final Options options = new Options()
             .setCreateIfMissing(true)
-            .setWriteBufferSize(8 * SizeUnit.KB)
-            .setMaxWriteBufferNumber(3)
+            .setWriteBufferSize(512 * SizeUnit.MB)
+            .setMaxWriteBufferNumber(5)
             .setMaxOpenFiles(-1)
             .setParanoidFileChecks(true)
-            .setMaxBackgroundCompactions(10);
+            .setMaxBackgroundCompactions(100);
 
 
     static {

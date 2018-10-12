@@ -150,6 +150,7 @@ public class BlockStorage extends BaseStoreProvider {
             log.info("保存区块高度为：{},打包时间为：{}的区块", blockStore.getBlock().getHeight(),sdf.format(date));
             //保存块头
             byte[] blockHeaderBytes = blockStore.serializeHeaderToBytes();
+            log.info("保存区块：{}", blockHeaderBytes.length);
             db.put(hash.getBytes(), blockHeaderBytes);
 
             byte[] heightBytes = new byte[4];
