@@ -40,7 +40,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-dependencies</artifactId>
-            <version>1.5.12.RELEASE</version>
+            <version>${spring.boot.version}</version>
             <type>pom</type>
             <scope>provided</scope>
             <exclusions>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>1.5.12.RELEASE</version>
+            <version>${spring.boot.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>

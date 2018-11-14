@@ -143,8 +143,7 @@ public class BlockChainServer {
         PeersManager.get().initPeers();
         AccountStorage.get();
         TransactionStorage.get().init();
-
+//        MakeTestNetGengsisBlock.main(null);
         BlockChainServer.get().start();
-
     }
 }

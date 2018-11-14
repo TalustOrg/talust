@@ -19,6 +19,3 @@ spring:
     encoding.charset: UTF-8
     encoding.enable: true
     encoding.force: true
-    multipart:
-      max-file-size: 5MB
-      max-request-size: 5MB

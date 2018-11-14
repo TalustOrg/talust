@@ -26,6 +26,7 @@ package org.talust.core.model;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.annotation.Transient;
 import org.talust.core.core.ECKey;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
@@ -66,9 +67,11 @@ public class BlockHeader extends Message {
     //交易数
     protected long txCount;
     //签名脚本，包含共识打包人信息和签名，签名是对以上信息的签名
+    @Transient
     protected byte[] scriptBytes;
+    @Transient
     protected Script scriptSig;
-
+    @Transient
     protected List<Sha256Hash> txHashs;
 
     public BlockHeader(NetworkParams network) {

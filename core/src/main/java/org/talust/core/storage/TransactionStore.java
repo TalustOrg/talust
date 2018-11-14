@@ -25,6 +25,8 @@
 package org.talust.core.storage;
 
 import org.spongycastle.util.Arrays;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.ProtocolException;
 import org.talust.core.core.NetworkParams;
@@ -33,13 +35,15 @@ import org.talust.core.transaction.Transaction;
 import java.io.IOException;
 import java.io.OutputStream;
 
+@Document(collection = "transactionStore")
 public class TransactionStore extends Store {
 	
 	//未花费
 	public final static int STATUS_UNUSE = 1;
 	//已花费
 	public final static int STATUS_USED = 2;
-	
+
+	@Transient
 	private byte[] key;
 	//交易内容
 	private Transaction transaction;

@@ -25,6 +25,10 @@
 
 package org.talust.core.storage;
 
+import com.mongodb.MongoClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Service;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.VerificationException;
@@ -37,7 +41,6 @@ import org.talust.core.data.DataContainer;
 import org.talust.core.model.*;
 import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.Script;
-import org.talust.core.server.NtpTimeService;
 import org.talust.core.transaction.Output;
 import org.talust.core.transaction.Transaction;
 import org.talust.core.transaction.TransactionInput;
@@ -60,11 +63,14 @@ import org.talust.core.filter.BloomFilter;
 
 //区块存储
 @Slf4j
+@Service
 public class BlockStorage extends BaseStoreProvider {
 
     private final static Lock blockLock = new ReentrantLock();
     private static BlockStorage instance = new BlockStorage();
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private MongoClient mongoClient =  new MongoClient("192.168.0.15:27017");
+    private MongoTemplate mongoTemplate = new MongoTemplate(mongoClient,"talust_blockchain");
 
     private ChainStateStorage chainStateStorage = ChainStateStorage.get();
 
@@ -168,7 +174,7 @@ public class BlockStorage extends BaseStoreProvider {
                 preBlockHeader.setNextHash(block.getHash());
                 db.put(preBlockHeader.getBlockHeader().getHash().getBytes(), preBlockHeader.baseSerialize());
             }
-
+            mongoTemplate.save(blockStore);
         } catch (Exception e) {
             log.info("保存区块出错：", e);
             this.revokedBlock(blockStore.getBlock());
@@ -853,5 +859,4 @@ public class BlockStorage extends BaseStoreProvider {
         Account store = new Account(network, accountBytes);
         return store;
     }
-
 }

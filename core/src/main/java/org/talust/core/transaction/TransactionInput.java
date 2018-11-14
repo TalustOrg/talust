@@ -24,6 +24,8 @@
  */
 package org.talust.core.transaction;
 
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.talust.common.crypto.Utils;
 import org.talust.common.crypto.VarInt;
 import org.talust.common.exception.ProtocolException;
@@ -39,16 +41,21 @@ import java.util.List;
 /**
  * 交易输入，本次的输入是上次的输出
  */
+@Document(collection = "transactionInput")
 public class TransactionInput extends Message implements Input {
 
 	public static final long NO_SEQUENCE = 0xFFFFFFFFL;
-	
+
+	@Transient
 	private Transaction parent;
 	//上次的输出
 	private List<TransactionOutput> froms;
 
+	@Transient
 	private long sequence;
+	@Transient
 	private byte[] scriptBytes;
+	@Transient
 	private Script scriptSig;
 
 	public TransactionInput() {

@@ -126,11 +126,6 @@ public class ConsensusService {
             }
         }, delay, Configure.BLOCK_GEN_TIME, TimeUnit.SECONDS);
         log.info("启动定时任务检查出块节点区块,延时:{}...", delay);
-
-
-        new Thread(() -> {
-
-        }).start();
     }
 
     /**

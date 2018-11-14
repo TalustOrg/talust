@@ -25,12 +25,13 @@
 
 package org.talust.web.app;
 
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.talust.client.BlockChainServer;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -38,11 +39,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * 应用程序入口
  */
 @ComponentScan(basePackages = {
-        "org.talust.**.configuration",
-        "org.talust.**.**",
-        "org.talust.**.swagger2"})
+        "org.talust.**.**"
+        })
 @EnableAutoConfiguration
 @EnableConfigurationProperties
+@EnableMongoRepositories(basePackages = "org.talust.core.storage")
 @SpringBootApplication
 @EnableScheduling
 public class Application extends SpringBootServletInitializer {

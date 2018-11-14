@@ -25,16 +25,15 @@
 
 package org.talust.core.model;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
 import org.talust.common.exception.ProtocolException;
 import org.talust.common.exception.VerificationException;
-import org.talust.common.model.Coin;
 import org.talust.core.core.Definition;
 import org.talust.core.core.NetworkParams;
-import org.talust.core.data.ConsensusCalculationUtil;
 import org.talust.core.script.Script;
 import org.talust.core.transaction.Transaction;
 
@@ -47,6 +46,7 @@ import java.util.List;
  * 区块消息
 
  */
+
 public class Block extends BlockHeader {
 
 	private static final Logger log = LoggerFactory.getLogger(Block.class);

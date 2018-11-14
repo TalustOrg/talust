@@ -25,6 +25,8 @@
 package org.talust.core.transaction;
 
 
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.talust.core.core.ECKey;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.Utils;
@@ -35,6 +37,7 @@ import org.talust.core.model.Address;
 import org.talust.common.model.Coin;
 import org.talust.core.model.Message;
 import org.talust.core.model.RedeemData;
+import org.talust.core.network.MainNetworkParams;
 import org.talust.core.script.Script;
 import org.talust.core.script.ScriptBuilder;
 import org.talust.core.script.ScriptException;
@@ -45,20 +48,25 @@ import java.io.OutputStream;
 /**
  * 交易输出，本次的输出是下次花费时的输入
  */
+@Document(collection = "transactionOutput")
 public class TransactionOutput extends Message implements Output {
 
+	@Transient
 	private Transaction parent;
 	//下次的花费
+	@Transient
 	private TransactionInput spentBy;
 	//交易金额
 	private long value;
 	//锁定时间
 	private long lockTime;
-	
+
     private byte[] scriptBytes;
-    
+
     private Script script;
     //交易输出的索引
+
+	@Transient
     private int index;
 
     public TransactionOutput() {
@@ -193,5 +201,4 @@ public class TransactionOutput extends Message implements Output {
 		return "TransactionOutput [index=" + index + ", value=" + value + ", lockTime=" + lockTime + ", script="
 				+ script + "]";
 	}
-	
 }

@@ -1,7 +1,10 @@
 server:
   port: 12581
 
-
+spring:
+  data:
+    mongodb:
+      uri: mongodb://talust:talust@192.168.0.15:27017/talust_blockchain
 logging:
   config: classpath:logback-spring.xml
   path: ./logs

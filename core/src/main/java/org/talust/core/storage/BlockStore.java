@@ -25,6 +25,7 @@
 package org.talust.core.storage;
 
 
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.talust.common.crypto.Sha256Hash;
 import org.talust.common.crypto.UnsafeByteArrayOutputStream;
 import org.talust.common.crypto.Utils;
@@ -41,6 +42,7 @@ import java.io.OutputStream;
 /**
  * 区块完整信息
  */
+@Document(collection = "blockStore")
 public class BlockStore extends Store {
 
 	//下一区块hash

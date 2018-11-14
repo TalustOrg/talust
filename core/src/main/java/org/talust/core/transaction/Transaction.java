@@ -26,6 +26,8 @@ package org.talust.core.transaction;
 
 
 
+//import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.talust.common.crypto.*;
 import org.talust.common.exception.ProtocolException;
 import org.talust.common.exception.VerificationException;
@@ -49,6 +51,7 @@ import java.util.List;
 /**
  * 交易
  */
+@Document(collection = "transaction")
 public class Transaction extends Message {
 
 	//锁定时间标识，小于该数表示为块数，大于则为秒级时间戳

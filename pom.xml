@@ -28,12 +28,11 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <project.build.jdk>${java.version}</project.build.jdk>
         <project.build.locales>zh_CN</project.build.locales>
-        <spring.boot.version>1.5.12.RELEASE</spring.boot.version>
+        <spring.boot.version>2.0.1.RELEASE</spring.boot.version>
         <spring.loaded.version>1.2.8.RELEASE</spring.loaded.version>
         <spring.boot.mybatis.version>1.3.2</spring.boot.mybatis.version>
         <guava.version>23.0</guava.version>
         <fastjson.version>1.2.47</fastjson.version>
-        <swagger2.version>2.8.0</swagger2.version>
         <codehaus.mojo.version>2.5</codehaus.mojo.version>
         <maven.antrun.plugin>1.8</maven.antrun.plugin>
         <maven.clean.plugin>2.5</maven.clean.plugin>

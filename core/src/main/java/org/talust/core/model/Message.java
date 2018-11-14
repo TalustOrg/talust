@@ -26,6 +26,8 @@ package org.talust.core.model;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.talust.common.crypto.*;
 import org.talust.common.exception.ProtocolException;
 import org.talust.core.core.NetworkParams;
@@ -51,20 +53,25 @@ public abstract class Message {
 
     // Useful to ensure serialize/deserialize are consistent with each other.
     private static final boolean SELF_CHECK = false;
-
+    @Transient
     protected int length = UNKNOWN_LENGTH;
     // The offset is how many bytes into the provided byte array this message payload starts at.
+    @Transient
     protected int offset;
     // The cursor keeps track of where we are in the byte array as we parse it.
     // Note that it's relative to the start of the array NOT the start of the message payload.
+    @Transient
     protected int cursor;
 
+    @Transient
     protected MessageSerializer serializer;
 
     // The raw message payload bytes themselves.
+    @Transient
     protected byte[] payload;
+    @Transient
     protected int protocolVersion;
-
+    @Transient
     protected NetworkParams network;
 
     protected Message() {

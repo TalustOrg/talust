@@ -109,6 +109,7 @@ public class ConnectionManager {
     private void initSuperIps() {
         myIps.addAll(IpUtil.getOutIps());
         log.info("本地外网IP抓取为：" + myIps.toString());
+        myIps.add("192.168.0.52");
         JSONObject ips = getJsonFile(Configure.NODE_SERVER_ADDR);
         List<String> minings = new ArrayList<>();
         for (Object map : ips.entrySet()) {
@@ -263,7 +264,6 @@ public class ConnectionManager {
             if (null != peers) {
                 PeersManager.get().addPeer(peers);
             }
-
         }
         if (!isConnected) {
             ChannelContain.get().removeChannelNoBroad(channel);
