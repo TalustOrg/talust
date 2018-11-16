@@ -36,7 +36,7 @@ public class AccountKeyValue extends KeyValue {
 		this.code = code;
 		this.name = name;
 	}
-	
+
 	public AccountKeyValue(String code, String name, byte[] value) {
 		this.code = code;
 		this.name = name;
