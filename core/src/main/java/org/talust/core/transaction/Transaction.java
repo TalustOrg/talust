@@ -348,7 +348,7 @@ public class Transaction extends Message {
 	 */
 	public TransactionSignature calculateSignature(int inputIndex, ECKey key, byte[] redeemScript, SigHash hashType) {
 		Sha256Hash hash = hashForSignature(inputIndex, redeemScript, hashType);
-		return new TransactionSignature(key.sign(hash), hashType);
+		return new TransactionSignature(key . sign(hash), hashType);
 	}
 	
 	/**
