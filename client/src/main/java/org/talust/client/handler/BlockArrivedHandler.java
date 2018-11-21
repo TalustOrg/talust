@@ -47,6 +47,7 @@ public class BlockArrivedHandler implements MessageHandler {
     public boolean handle(MessageChannel messageChannel) {
         log.info("接收到远端ip:{} 发送过来的区块数据", messageChannel.getFromIp());
         try {
+
              saveBlock(messageChannel);
         } catch (Throwable e) {
             e.printStackTrace();
