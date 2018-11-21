@@ -35,6 +35,7 @@ public enum AccountType {
     ADMIN(5),//业务方即企业方管理员
     HR(6),//企业方HR
     USER(7)//普通用户
+
     ;
 
 
@@ -54,6 +55,7 @@ public enum AccountType {
     public static AccountType getAccountType(int type) {
         for (AccountType b : AccountType.values()) {
             if (b.getType() == type) {
+
                 return b;
             }
         }
