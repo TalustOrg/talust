@@ -51,7 +51,7 @@ public class RemConsensusTransaction extends BaseCommonlyTransaction {
 	}
 	
 	public RemConsensusTransaction(NetworkParams network, byte[] payloadBytes, int offset) {
-		super(network, payloadBytes, offset);
+		 super(network, payloadBytes, offset);
 	}
 
 	/**

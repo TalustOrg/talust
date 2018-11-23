@@ -28,7 +28,7 @@ public class TxMine {
     private int asCode;
     private long money;
     private long time;
-    private String address;
+    private String  address;
 
 
     public int getType() {

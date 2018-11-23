@@ -47,7 +47,7 @@ public class TransactionCreator {
     public Transaction createRegConsensus(String money, Account account, byte[] nodeHash160) {
         //根据交易金额获取当前交易地址下所有的未花费交易
 
-        Transaction tx = new Transaction(MainNetworkParams.get());
+         Transaction tx = new Transaction(MainNetworkParams.get());
         tx.setVersion(Definition.VERSION);
         tx.setType(Definition.TYPE_REG_CONSENSUS);
         Coin totalInputCoin = Coin.ZERO;
@@ -93,7 +93,7 @@ public class TransactionCreator {
         remTx.setVersion(Definition.VERSION);
         remTx.setType(Definition.TYPE_REM_CONSENSUS);
         Coin totalInputCoin = Coin.ZERO;
-        List<Sha256Hash> txhashs = depositAccount.getTxHash();
+         List<Sha256Hash> txhashs = depositAccount.getTxHash();
 
         TransactionInput input = new TransactionInput();
         for (Sha256Hash txhash : txhashs) {

@@ -75,7 +75,7 @@ public class AccountController {
         return AccountStorage.get().encryptWallet(password, address);
     }
 
-    @ApiOperation(value = "查询全部地址拥有的代币", notes = "查询拥有的代币")
+    @ApiOperation(value = "查询全部地址拥 有的代币", notes = "查询拥有的代币")
     @PostMapping(value = "getAllCoins")
     JSONObject getAllCoins() {
         JSONObject jsonObject = new JSONObject();
