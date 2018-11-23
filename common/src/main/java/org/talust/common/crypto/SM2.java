@@ -72,7 +72,7 @@ public class SM2 {
     public final ECDomainParameters ecc_bc_spec;
     public final ECKeyPairGenerator ecc_key_pair_generator;
     public final ECFieldElement ecc_gx_fieldelement;
-    public final ECFieldElement ecc_gy_fieldelement;
+    public   final ECFieldElement ecc_gy_fieldelement;
 
     public SM2() {
         this.ecc_p = new BigInteger(ECC_PARAM[0], 16);
