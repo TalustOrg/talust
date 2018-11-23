@@ -9,7 +9,7 @@ import org.talust.network.netty.SynRequest;
 public class MasterRespHandler implements MessageHandler {
     @Override
     public boolean handle(MessageChannel message) {
-        log.info("远端ip:{} 远端返回的master响应数据...", message.getFromIp());
+        log.info("远端ip:{} 远端返回的maste r响应数据...", message.getFromIp());
         SynRequest.get().synResp(message);
         return true;
     }

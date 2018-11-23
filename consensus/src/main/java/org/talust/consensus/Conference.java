@@ -59,7 +59,7 @@ public class Conference {
                         if (nm != null) {
                             byte[] content = nm.getMessage().getContent();
                             if (content != null) {//ip
-                                log.info("reqNetMaster 节点返回master节点IP为：{},来源于", new String(content), nm.getFromIp());
+                                log.info("reqNetMaster 节点返回master 节点IP为：{},来源于", new String(content), nm.getFromIp());
                                 return new String(content);
                             }
                         }

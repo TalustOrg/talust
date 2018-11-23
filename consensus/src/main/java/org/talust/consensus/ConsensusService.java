@@ -110,7 +110,7 @@ public class ConsensusService {
                         while (!SynBlock.get().isSync()){
                             nowSecond = DateUtil.getTimeSecond();
                             ct = CacheManager.get().get("net_best_time");
-                            log.info("二次同步后，出块节点检查，最新接块时间：{}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
+                            log.info("二次同步后，出块节点检查，最新接块时间： {}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
                             if (ct > 0) {
                                 if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {
                                     log.info("二次同步后，因出块检查失败，变更出块节点。");
