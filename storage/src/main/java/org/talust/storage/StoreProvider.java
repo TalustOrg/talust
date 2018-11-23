@@ -38,7 +38,7 @@ public interface StoreProvider {
 
     byte[] get(byte[] key) throws RocksDBException;
 
-    void delete(byte[] key) throws RocksDBException;
+      void delete(byte[] key) throws RocksDBException;
 
     void close() throws IOException;
 }

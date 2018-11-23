@@ -31,5 +31,5 @@ import org.talust.common.model.MessageChannel;
  * 处理器
  */
 public interface MessageHandler {
-    boolean handle(MessageChannel messageChannel);
+       boolean handle(MessageChannel messageChannel);
 }

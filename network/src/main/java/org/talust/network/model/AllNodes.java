@@ -35,7 +35,7 @@ public class AllNodes {
     @Tag(1)
     private List<String> nodes = new ArrayList<>();
 
-    public List<String> getNodes() {
+       public List<String> getNodes() {
         return nodes;
     }
 

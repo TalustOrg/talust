@@ -17,7 +17,7 @@ public abstract class AbstractTimeoutHandler {
     }
 
     public synchronized final void setSocketTimeout(int timeoutMillis) {
-        this.timeoutMillis = timeoutMillis;
+          this.timeoutMillis = timeoutMillis;
         resetTimeout();
     }
 
