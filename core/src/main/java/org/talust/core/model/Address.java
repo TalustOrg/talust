@@ -75,7 +75,7 @@ public class Address {
      */
     public Address(NetworkParams network, int version, byte[] hash160) throws WrongNetworkException {
         Utils.checkNotNull(network);
-        Utils.checkState(hash160.length == LENGTH, "地址的hash160不正确，必须是20位");
+        Utils.checkState(hash160.length == LENGTH , "地址的hash160不正确，必须是20位");
         if (!isAcceptableVersion(network, version))
             throw new WrongNetworkException(version, network.getAcceptableAddressCodes());
         this.version = version;

@@ -64,7 +64,7 @@ public class AccountTest {
     //部分参数名称需要自己改动
     private void  gen(){
         //non Root account create Test
-        ECKey rootKey = new ECKey();
+        ECKey rootKey =  new ECKey();
         Address rootAddr = Address.fromP2PKHash(networkParams, networkParams.getSystemAccountVersion(), Utils.sha256hash160(rootKey.getPubKey(false)));
         rootAddr.setBalance(Coin.ZERO);
         rootAddr.setUnconfirmedBalance(Coin.ZERO);
