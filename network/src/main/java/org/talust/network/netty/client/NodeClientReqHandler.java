@@ -48,7 +48,6 @@ public class NodeClientReqHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
-//        LOGGER.info("有连接端接入:{}", ctx.channel().id());
         //本节点主动连接远端成功
         cc.addChannel(ctx.channel(), false);
     }
@@ -56,7 +55,6 @@ public class NodeClientReqHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-//        LOGGER.info("有连接端断开:{}", ctx.channel().id());
         cc.removeChannel(ctx.channel());
     }
 

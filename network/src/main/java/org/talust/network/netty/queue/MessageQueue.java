@@ -51,7 +51,6 @@ public class MessageQueue {
         if (message.getMessage() != null) {
             message.getMessage().setTime(System.currentTimeMillis()/1000);
         }
-//        log.info("发送一个channelId为：{}，來源于：{}，发往：{}的数据",message.getChannelId(),message.getFromIp(),message.getToIp());
         this.queue.add(message);
     }
 

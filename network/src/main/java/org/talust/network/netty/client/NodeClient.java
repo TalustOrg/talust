@@ -52,7 +52,7 @@ public class NodeClient {
             return channel;
         } catch (Exception e) {
             group.shutdownGracefully(10,15,TimeUnit.SECONDS);
-            throw new Exception("网络连接失败...");
+            throw new Exception("网络连接失败......");
         }
     }
 
@@ -69,24 +69,4 @@ public class NodeClient {
         }
 
     }
-
-//    public static void main(String[] args) {
-//        try {
-//            Channel ch = new NodeClient().connect("192.168.16.129", 9999);
-//            // 控制台输入
-//            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-//            for (; ; ) {
-//                String line = in.readLine();
-//                if (line == null) {
-//                    continue;
-//                }
-//                Message msg = new Message();
-//                msg.setType(MessageType.NODES_REQ.getType());
-//                msg.setContent(line.getBytes());
-//                ch.writeAndFlush(msg);
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
 }
