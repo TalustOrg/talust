@@ -52,7 +52,7 @@ public class NodeServer {
                     .childHandler(new ChildChannelHandler());
 
             ChannelFuture f = b.bind(port).sync();
-            log.info("本地网络服务开启,打开端口 : {}", port);
+            log.info("本地网络服务开启,打开端口:{}", port);
             f.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();

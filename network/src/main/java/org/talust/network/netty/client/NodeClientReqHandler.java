@@ -61,7 +61,7 @@ public class NodeClientReqHandler extends SimpleChannelInboundHandler<Message> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) {
         if (msg.getType() == MessageType.HEARTBEAT_RESP.getType()) {
-            log.debug("收到心跳消息回复...");
+            log.debug("收到心跳消息回复.....");
             ReferenceCountUtil.release(msg);
         } else {
             InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
