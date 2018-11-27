@@ -30,7 +30,7 @@ import java.util.List;
 
 public class Deposits {
     @Tag(1)//帐户地址
-  private List<DepositAccount> depositAccounts;
+  private List<DepositAccount>  depositAccounts;
 
     public List<DepositAccount> getDepositAccounts() {
         return depositAccounts;

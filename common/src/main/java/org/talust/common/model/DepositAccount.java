@@ -33,11 +33,11 @@ import java.util.List;
 //储蓄帐户,与挖矿有关
 public class DepositAccount {
     @Tag(1)//帐户地址
-    private byte[] address;
+    private byte[]  address;
     @Tag(2)//储蓄数量
-    private Coin amount;
+    private Coin  amount;
     @Tag(3)//储蓄交易hash
-    private List<Sha256Hash> txHash;
+    private List<Sha256Hash>  txHash;
 
     public byte[] getAddress() {
         return address;
