@@ -49,7 +49,6 @@ public class Conference {
                 int needOkNumber = superSize / 2;//需要回应的数量
                 //向每一个超级节点请求加入结果
                 log.info("当前节点ip:{} 向各个超级节点请求当前master节点,其他超级节点数量为:{}", ConnectionManager.get().getSelfIp(), superSize);
-
                 List<Future<String>> results = new ArrayList<>();
                 for (final MyChannel superChannel : superChannels) {
                     Future<String> submit = threadPool.submit(() -> {
@@ -76,17 +75,17 @@ public class Conference {
                             boolean done = result.isDone();
                             if (done) {
                                 String conferenceMemeber = result.get();
-                                    Integer number = rc.get(conferenceMemeber);
-                                    if (number == null) {
-                                        number = 0;
-                                    }
-                                    number++;
-                                    rc.put(conferenceMemeber, number);
-                                    if (number > needOkNumber) {
-                                        isOk = true;
-                                    }
-                                    results.remove(result);
-                                    break;
+                                Integer number = rc.get(conferenceMemeber);
+                                if (number == null) {
+                                    number = 0;
+                                }
+                                number++;
+                                rc.put(conferenceMemeber, number);
+                                if (number > needOkNumber) {
+                                    isOk = true;
+                                }
+                                results.remove(result);
+                                break;
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -106,21 +105,21 @@ public class Conference {
                 while (it.hasNext()) {
                     Map.Entry<String, Integer> next = it.next();
                     Integer value = next.getValue();
-                    if("NO_MASTER".equals(next.getKey())){
-                        needOkNumber = (superSize-value) / 2;
-                        log.info("NO_MASTER 数据数量为：{},需要确认的节点IP数量为:{}",value,needOkNumber);
-                       continue;
+                    if ("NO_MASTER".equals(next.getKey())) {
+                        needOkNumber = (superSize - value) / 2;
+                        log.info("NO_MASTER 数据数量为：{},需要确认的节点IP数量为:{}", value, needOkNumber);
+                        continue;
                     }
-                    log.info("数据数量为：{},需要确认的节点IP数量为:{}",value,needOkNumber);
+                    log.info("数据数量为：{},需要确认的节点IP数量为:{}", value, needOkNumber);
                     if (value > needOkNumber) {
-                        log.info("reqNetMaster 认定节点IP为：{}",next.getKey());
+                        log.info("reqNetMaster 认定节点IP为：{}", next.getKey());
                         master = ConnectionManager.get().getSuperNodeByIp(next.getKey());
                         log.info("reqNetMaster 当前出块节点IP 为：{}", master.getIp());
                         ConnectionManager.get().setMasterIp(master.getIp());
                         CacheManager.get().setCurrentBlockGenIp(master.getIp());
                         if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
                             ConsensusService.get().startGenBlock();
-                        }else{
+                        } else {
                             ConsensusService.get().stopGenBlock();
                         }
                     }
@@ -134,7 +133,7 @@ public class Conference {
                     CacheManager.get().setCurrentBlockGenIp(master.getIp());
                     if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
                         ConsensusService.get().startGenBlock();
-                    }else{
+                    } else {
                         ConsensusService.get().stopGenBlock();
                     }
                 }
@@ -154,7 +153,7 @@ public class Conference {
         lock.writeLock().lock();
         try {
             String currentBlockGenIp = CacheManager.get().getCurrentBlockGenIp();
-            if(null!=master){
+            if (null != master) {
                 if (this.master.getIp().equals(currentBlockGenIp)) {//说明需要改变master节点
                     Collection<SuperNode> superNodes = ConnectionManager.get().getSuperNodes();
                     List<SuperNode> sns = new ArrayList<>();
@@ -179,11 +178,11 @@ public class Conference {
                     ConnectionManager.get().setMasterIp(master.getIp());
                     if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
                         ConsensusService.get().startGenBlock();
-                    }else{
+                    } else {
                         ConsensusService.get().stopGenBlock();
                     }
                 }
-            }else{
+            } else {
                 //说明暂时无法更新master节点,需要强制更新自身缓存
                 reqNetMaster();
             }
@@ -237,7 +236,7 @@ public class Conference {
                     ConnectionManager.get().setMasterIp(newMasterIp);
                     if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
                         ConsensusService.get().startGenBlock();
-                    }else{
+                    } else {
                         ConsensusService.get().stopGenBlock();
                     }
                     return true;
@@ -249,7 +248,7 @@ public class Conference {
                     ConnectionManager.get().setMasterIp(newMasterIp);
                     if (master.getIp().equals(ConnectionManager.get().getSelfIp())) {//如果是自己,则开始生成块
                         ConsensusService.get().startGenBlock();
-                    }else{
+                    } else {
                         ConsensusService.get().stopGenBlock();
                     }
                     return true;
