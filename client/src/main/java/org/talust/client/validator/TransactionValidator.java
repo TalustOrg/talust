@@ -90,7 +90,7 @@ public class TransactionValidator implements MessageValidator {
         //交易的txid不能和区块里面的交易重复
         TransactionStore verifyTX = blockStorage.getTransaction(tx.getHash().getBytes());
         if (verifyTX != null) {
-            log.info("交易id和区块里面的交易重复");
+            log.info("交易id和区块里面的交易重复...");
             return false;
         }
         //如果是转帐交易
@@ -108,7 +108,7 @@ public class TransactionValidator implements MessageValidator {
                 scriptBytes = null;
                 List<TransactionOutput> outputs = input.getFroms();
                 if (outputs == null || outputs.size() == 0) {
-                    throw new VerificationException("交易没有引用输入");
+                    throw new VerificationException("交易没有引用输入..");
                 }
                 for (TransactionOutput output : outputs) {
                     //对上一交易的引用以及索引值

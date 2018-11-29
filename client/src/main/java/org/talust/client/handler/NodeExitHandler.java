@@ -41,7 +41,7 @@ public class NodeExitHandler implements MessageHandler {
     @Override
     public boolean handle(MessageChannel message) {
         String ip = new String(message.getMessage().getContent());
-        log.info("接收到节点ip:{} 退出的消息...", ip);
+        log.info("接收到节点ip:{} 退出的消息......", ip);
         String time = message.getMessage().getTime().toString();
         String identifier = (ip + time);
         boolean checkRepeat = CacheManager.get().checkRepeat(identifier, Configure.BLOCK_GEN_TIME);

@@ -42,7 +42,8 @@ public class NodeExitValidator implements MessageValidator {
         String time = messageChannel.getMessage().getTime().toString();
         String identifier = ip + time;
         boolean checkRepeat = CacheManager.get().checkRepeat(identifier, Configure.BLOCK_GEN_TIME);
-        if (!checkRepeat) {//消息无重复
+        if (!checkRepeat) {
+            //消息无重复
             return true;
         }
         return false;

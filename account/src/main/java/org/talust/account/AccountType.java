@@ -35,7 +35,6 @@ public enum AccountType {
     ADMIN(5),//业务方即企业方管理员
     HR(6),//企业方HR
     USER(7)//普通用户
-
     ;
 
 
