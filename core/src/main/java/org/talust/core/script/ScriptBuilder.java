@@ -578,7 +578,7 @@ public class ScriptBuilder {
      * @return Script
      */
 	public static Script createCoinbaseInputScript(byte[] data) {
-		ScriptBuilder builder = new ScriptBuilder();
+		ScriptBuilder builder =  new ScriptBuilder();
 
         builder.data(data);
 
