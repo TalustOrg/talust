@@ -69,8 +69,8 @@ public class BlockStorage extends BaseStoreProvider {
     private final static Lock blockLock = new ReentrantLock();
     private static BlockStorage instance = new BlockStorage();
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private MongoClient mongoClient =  new MongoClient("192.168.0.15:27017");
-    private MongoTemplate mongoTemplate = new MongoTemplate(mongoClient,"talust_blockchain");
+    private MongoClient mongoClient = new MongoClient("192.168.0.15:27017");
+    private MongoTemplate mongoTemplate = new MongoTemplate(mongoClient, "talust_blockchain");
 
     private ChainStateStorage chainStateStorage = ChainStateStorage.get();
 
@@ -151,9 +151,9 @@ public class BlockStorage extends BaseStoreProvider {
                 db.put(tx.getHash().getBytes(), txs.baseSerialize());
                 saveChainstate(block, txs);
             }
-            Date date = new Date(blockStore.getBlock().getTime()*1000);
-            SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            log.info("保存区块高度为：{},打包时间为：{}的区块", blockStore.getBlock().getHeight(),sdf.format(date));
+            Date date = new Date(blockStore.getBlock().getTime() * 1000);
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            log.info("保存区块高度为：{},打包时间为：{}的区块", blockStore.getBlock().getHeight(), sdf.format(date));
             //保存块头
             byte[] blockHeaderBytes = blockStore.serializeHeaderToBytes();
             log.info("保存区块：{}", blockHeaderBytes.length);
@@ -165,7 +165,7 @@ public class BlockStorage extends BaseStoreProvider {
 
             //更新最新区块
             db.put(bestBlockKey, hash.getBytes());
-            CacheManager.get().put("net_best_time",DateUtil.getTimeSecond());
+            CacheManager.get().put("net_best_time", DateUtil.getTimeSecond());
             bestHashCacher = hash.getBytes();
 
             //更新上一区块的指针
@@ -357,7 +357,7 @@ public class BlockStorage extends BaseStoreProvider {
         try {
             log.info("最新区块可能有问题，进行回滚");
             Block bestBlock = getBestBlock().getBlock();
-            if(bestBlock.getHash().equals(network.getGengsisBlock().getBlock().getHash())) {
+            if (bestBlock.getHash().equals(network.getGengsisBlock().getBlock().getHash())) {
                 //创世块，禁止
                 return null;
             }
@@ -372,7 +372,7 @@ public class BlockStorage extends BaseStoreProvider {
             bestHashCacher = bestBlockHashBytes;
             log.info("最新区块回滚完成，需要重新同步");
             return bestBlock;
-        }  finally {
+        } finally {
             blockLock.unlock();
         }
     }
@@ -636,39 +636,24 @@ public class BlockStorage extends BaseStoreProvider {
             for (byte[] hash160 : hash160s) {
                 accountFilter.insert(hash160);
             }
-
-            //从创始快开始遍历所有区块
-            BlockStore blockStore = network.getGengsisBlock();
+            BlockStore blockStore = network.getGengsisBlock();  //从创始快开始遍历所有区块
             Sha256Hash nextHash = blockStore.getBlock().getHash();
-
             List<TransactionStore> mineTxs = new CopyOnWriteArrayList<TransactionStore>();
             while (!nextHash.equals(Sha256Hash.ZERO_HASH)) {
                 BlockStore nextBlockStore = getBlock(nextHash.getBytes());
-
                 Block block = nextBlockStore.getBlock();
-
                 List<Transaction> txs = block.getTxs();
-
                 for (Transaction tx : txs) {
-
-                    //普通交易
-                    if (tx.isPaymentTransaction()) {
-                        //获取转入交易转入的多少钱
-                        List<TransactionOutput> outputs = tx.getOutputs();
-
+                    if (tx.isPaymentTransaction()) {    //普通交易
+                        List<TransactionOutput> outputs = tx.getOutputs(); //获取转入交易转入的多少钱
                         if (outputs == null) {
                             continue;
                         }
-                        //过滤掉coinbase里的0交易
-                        if (tx.getType() == Definition.TYPE_COINBASE && outputs.get(0).getValue() == 0l) {
+                        if (tx.getType() == Definition.TYPE_COINBASE && outputs.get(0).getValue() == 0l) { //过滤掉coinbase里的0交易
                             continue;
                         }
-
-                        //交易状态
-                        byte[] status = new byte[outputs.size()];
-                        //交易是否跟我有关
-                        boolean isMineTx = false;
-
+                        byte[] status = new byte[outputs.size()];  //交易状态
+                        boolean isMineTx = false;  //交易是否跟我有关
                         for (int i = 0; i < outputs.size(); i++) {
                             Output output = outputs.get(i);
                             Script script = output.getScript();
@@ -685,12 +670,10 @@ public class BlockStorage extends BaseStoreProvider {
                                 }
                                 for (TransactionOutput from : input.getFroms()) {
                                     Sha256Hash fromTxHash = from.getParent().getHash();
-
                                     for (TransactionStore transactionStore : mineTxs) {
                                         Transaction mineTx = transactionStore.getTransaction();
                                         if (mineTx.getHash().equals(fromTxHash)) {
-                                            //对上一交易的引用以及索引值
-                                            TransactionOutput output = (TransactionOutput) mineTx.getOutput(from.getIndex());
+                                            TransactionOutput output = (TransactionOutput) mineTx.getOutput(from.getIndex());//对上一交易的引用以及索引值
                                             Script script = output.getScript();
                                             if (script.isSentToAddress() && accountFilter.contains(script.getChunks().get(2).data)) {
                                                 transactionStore.getStatus()[from.getIndex()] = TransactionStore.STATUS_USED;
@@ -702,13 +685,10 @@ public class BlockStorage extends BaseStoreProvider {
                                 }
                             }
                         }
-
-                        //除单纯的转账交易外，还有可能有业务逻辑附带代币交易的
                         if (!isMineTx && tx.getType() != Definition.TYPE_PAY &&
-                                tx.getType() != Definition.TYPE_COINBASE) {
+                                tx.getType() != Definition.TYPE_COINBASE) {   //除单纯的转账交易外，还有可能有业务逻辑附带代币交易的
                             isMineTx = checkTxIsMine(tx);
                         }
-
                         if (isMineTx) {
                             mineTxs.add(new TransactionStore(network, tx, block.getHeight(), status));
                         }
@@ -721,7 +701,6 @@ public class BlockStorage extends BaseStoreProvider {
                 }
                 nextHash = nextBlockStore.getNextHash();
             }
-
             return mineTxs;
         } finally {
             blockLock.unlock();

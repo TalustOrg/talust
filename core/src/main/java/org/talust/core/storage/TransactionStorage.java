@@ -433,20 +433,16 @@ public class TransactionStorage extends BaseStoreProvider {
     }
 
     public boolean reloadTransaction(List<byte[]> hash160s) {
-        clean();
-        //写入新列表
+        clean();//写入新列表
         byte[] addressesBytes = new byte[hash160s.size() * Address.LENGTH];
         for (int i = 0; i < hash160s.size(); i++) {
             System.arraycopy(hash160s.get(i), 0, addressesBytes, i * Address.LENGTH, Address.LENGTH);
         }
         put(ADDRESSES_KEY, addressesBytes);
-
         this.addresses = hash160s;
-
         //遍历区块写入相关交易
         myTxList = blockStorage.loadRelatedTransactions(hash160s);
         unspendTxList = new CopyOnWriteArrayList<>();
-
         for (TransactionStore txs : myTxList) {
             txLock.lock();
             put(txs.getTransaction().getHash().getBytes(), txs.baseSerialize());

@@ -75,57 +75,57 @@ public class ConsensusService {
             }
         }
 
-        service.scheduleAtFixedRate(() -> {
-            if (genRunning.get()) {
-                log.info("打包ip:{}", ConnectionManager.get().masterIp);
-                long packageTime = NtpTimeService.currentTimeSeconds();
-                packBlockTool.pack(packageTime);//打包
-            }
-        }, delay, Configure.BLOCK_GEN_TIME, TimeUnit.SECONDS);
-        log.info("启动定时任务生成区块,延时:{}...", delay);
+//        service.scheduleAtFixedRate(() -> {
+//            if (genRunning.get()) {
+//                log.info("打包ip:{}", ConnectionManager.get().masterIp);
+//                long packageTime = NtpTimeService.currentTimeSeconds();
+//                packBlockTool.pack(packageTime);//打包
+//            }
+//        }, delay, Configure.BLOCK_GEN_TIME, TimeUnit.SECONDS);
+//        log.info("启动定时任务生成区块,延时:{}...", delay);
 
-        blockService.scheduleAtFixedRate(() -> {
-            log.info("出块节点检查，当前连接节点数：{}，同步状态：{}", ChannelContain.get().getSuperChannels().size(), SynBlock.get().getSyning().get());
-            if (ChannelContain.get().getSuperChannels().size() > 0) {
-                if (!SynBlock.get().getSyning().get()) {
-                    try {
-                        TimeUnit.SECONDS.sleep(checkSecond);
-                    } catch (InterruptedException e) {
-                    }
-                    try {
-                        //检测master是否正常,通过块判断
-                        int nowSecond = DateUtil.getTimeSecond();
-                        int ct = CacheManager.get().get("net_best_time");
-                        log.info("出块节点检查，最新接块时间：{}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
-                        if (ct > 0) {
-                            if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {
-                                //未收到区块响应
-                                //首先尝试同步区块
-                                if(!SynBlock.get().isSync()){
-                                    SynBlock.get().startSynBlock();
-                                }
-
-                            }
-                        }
-                        while (!SynBlock.get().isSync()){
-                            nowSecond = DateUtil.getTimeSecond();
-                            ct = CacheManager.get().get("net_best_time");
-                            log.info("二次同步后，出块节点检查，最新接块时间： {}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
-                            if (ct > 0) {
-                                if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {
-                                    log.info("二次同步后，因出块检查失败，变更出块节点。");
-                                    conference.changeMaster();
-                                }
-                            }
-                            break;
-                        }
-                    } catch (Throwable e) {
-                        log.error("error:", e);
-                    }
-                }
-            }
-        }, delay, Configure.BLOCK_GEN_TIME, TimeUnit.SECONDS);
-        log.info("启动定时任务检查出块节点区块,延时:{}...", delay);
+//        blockService.scheduleAtFixedRate(() -> {
+//            log.info("出块节点检查，当前连接节点数：{}，同步状态：{}", ChannelContain.get().getSuperChannels().size(), SynBlock.get().getSyning().get());
+//            if (ChannelContain.get().getSuperChannels().size() > 0) {
+//                if (!SynBlock.get().getSyning().get()) {
+//                    try {
+//                        TimeUnit.SECONDS.sleep(checkSecond);
+//                    } catch (InterruptedException e) {
+//                    }
+//                    try {
+//                        //检测master是否正常,通过块判断
+//                        int nowSecond = DateUtil.getTimeSecond();
+//                        int ct = CacheManager.get().get("net_best_time");
+//                        log.info("出块节点检查，最新接块时间：{}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
+//                        if (ct > 0) {
+//                            if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {
+//                                //未收到区块响应
+//                                //首先尝试同步区块
+//                                if(!SynBlock.get().isSync()){
+//                                    SynBlock.get().startSynBlock();
+//                                }
+//
+//                            }
+//                        }
+//                        while (!SynBlock.get().isSync()){
+//                            nowSecond = DateUtil.getTimeSecond();
+//                            ct = CacheManager.get().get("net_best_time");
+//                            log.info("二次同步后，出块节点检查，最新接块时间： {}，当前时间：{},偏移时间：{}", ct, nowSecond,NtpTimeService.getTimeOffset()/1000);
+//                            if (ct > 0) {
+//                                if ((nowSecond - ct) >= (Configure.BLOCK_GEN_TIME + checkSecond)) {
+//                                    log.info("二次同步后，因出块检查失败，变更出块节点。");
+//                                    conference.changeMaster();
+//                                }
+//                            }
+//                            break;
+//                        }
+//                    } catch (Throwable e) {
+//                        log.error("error:", e);
+//                    }
+//                }
+//            }
+//        }, delay, Configure.BLOCK_GEN_TIME, TimeUnit.SECONDS);
+//        log.info("启动定时任务检查出块节点区块,延时:{}...", delay);
     }
 
     /**

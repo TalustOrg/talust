@@ -44,19 +44,19 @@ import java.net.InetSocketAddress;
 @Slf4j
 public class NodeServerRespHandler extends SimpleChannelInboundHandler<Message> {
     private MessageQueue mq = MessageQueue.get();
-    private ChannelContain cc = ChannelContain.get();
+    private ChannelContain channelContain = ChannelContain.get();
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         //远端主动连接本节点,本节点是被动的连接
-        cc.addChannel(ctx.channel(), true);
+        channelContain.addChannel(ctx.channel(), true);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
-        cc.removeChannel(ctx.channel());
+        channelContain.removeChannel(ctx.channel());
     }
 
     @Override
@@ -87,7 +87,7 @@ public class NodeServerRespHandler extends SimpleChannelInboundHandler<Message> 
                 InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
                 String remoteIp = insocket.getAddress().getHostAddress();
                 log.error("对方ip:{}掉线了", remoteIp);
-                cc.removeChannel(ctx.channel());
+                channelContain.removeChannel(ctx.channel());
                 ctx.disconnect();
             }
         }
@@ -96,7 +96,7 @@ public class NodeServerRespHandler extends SimpleChannelInboundHandler<Message> 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         Channel channel = ctx.channel();
-        cc.removeChannel(ctx.channel());
+        channelContain.removeChannel(ctx.channel());
         if (channel.isActive()){
             ctx.close();
         }
