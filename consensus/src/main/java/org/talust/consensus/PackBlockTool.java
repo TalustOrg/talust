@@ -36,45 +36,24 @@ public class PackBlockTool {
     private NetworkParams networkParams = MainNetworkParams.get();
     private  TransactionCreator transactionCreator = new TransactionCreator();
     //打包
+    //TODO  针对所有的交易进行验证， 中心验证共识交易是否出现极限情况。
+    /**
+     * 迭代缓存交易，取出所有的共识交易，按节点形成LIST，而后根据节点地址进行判定，是否满足全部放入的情况，
+     * 如果剩余位置满足则不对交易数据进行操作，如果剩余位置不满足则根据加入金额大小进行判定
+     * 整体list中踢出加入金额最小的那个。
+     */
     public void  pack(long packageTime) {
         try {
-            Account account = AccountStorage.get().getAccount();
-            //批量获取需要打包的数据
+            Account account = AccountStorage.get().getAccount();  //批量获取需要打包的数据
             List<Transaction> transactionList = new ArrayList<>();
             long height = blockStorage.getBestBlockHeader().getBlockHeader().getHeight();
             height++;
             Transaction coinBase = getCoinBase(packageTime, height);
             networkParams.setBestHeight(height);
-            if (coinBase != null) {
-                //加入挖矿奖励,挖矿交易生成
+            if (coinBase != null) {  //加入挖矿奖励,挖矿交易生成
                 transactionList.add(coinBase);
             }
-
-            //TODO  针对所有的交易进行验证， 中心验证共识交易是否出现极限情况。
-            /**
-             * 迭代缓存交易，取出所有的共识交易，按节点形成LIST，而后根据节点地址进行判定，是否满足全部放入的情况，
-             * 如果剩余位置满足则不对交易数据进行操作，如果剩余位置不满足则根据加入金额大小进行判定
-             * 整体list中踢出加入金额最小的那个。
-             */
-            log.info("共识交易验证开始：{}",NtpTimeService.currentTimeMillis());
-            List<Transaction> consensusTx = new ArrayList<>();
-            for(Transaction transaction : dataContainer.getValidatorRecord()){
-                if(transaction.getType()==Definition.TYPE_REG_CONSENSUS||transaction.getType()==Definition.TYPE_REM_CONSENSUS){
-                    consensusTx.add(transaction);
-                }
-            }
-            List<TxValidator> txValidators = ChainStateStorage.get().checkConsensus(consensusTx);
-            if(null!=txValidators){
-                for(TxValidator txValidator :txValidators){
-                    if(null!=txValidator.getTransaction()){
-                        dataContainer.removeRecord(txValidator.getTransaction());
-                    }else if(null!=txValidator.getDepositAccount()){
-                        Transaction transaction =transactionCreator.createRemConsensus(txValidator.getDepositAccount(),null,txValidator.getNodeAddress());
-                        dataContainer.addRecord(transaction);
-                    }
-                }
-            }
-            log.info("共识交易验证结束：{}",NtpTimeService.currentTimeMillis());
+            validatorConsensus();
             List<Transaction> dataContain = dataContainer.getBatchRecord();
             dataContain.sort(new Comparator<Transaction>() {
                 @Override
@@ -103,12 +82,10 @@ public class PackBlockTool {
             byte[] sign = account.getEcKey().sign(Sha256Hash.of(data)).encodeToDER();
             Message message = new Message();
             message.setTime(packageTime);
-            //对于接收方来说,是区块到来,因为此消息有明确的接收方
             message.setType(MessageType.BLOCK_ARRIVED.getType());
             message.setContent(data);
             message.setSigner(account.getEcKey().getPubKey());
             message.setSignContent(sign);
-
             MessageChannel mc = new MessageChannel();
             mc.setMessage(message);
             mc.setFromIp(ConnectionManager.get().selfIp);
@@ -116,6 +93,29 @@ public class PackBlockTool {
         } catch (Throwable e) {
             e.printStackTrace();
         }
+    }
+
+
+    private void validatorConsensus(){
+        log.info("共识交易验证开始：{}",NtpTimeService.currentTimeMillis());
+        List<Transaction> consensusTx = new ArrayList<>();
+        for(Transaction transaction : dataContainer.getValidatorRecord()){
+            if(transaction.getType()==Definition.TYPE_REG_CONSENSUS||transaction.getType()==Definition.TYPE_REM_CONSENSUS){
+                consensusTx.add(transaction);
+            }
+        }
+        List<TxValidator> txValidators = ChainStateStorage.get().checkConsensus(consensusTx);
+        if(null!=txValidators){
+            for(TxValidator txValidator :txValidators){
+                if(null!=txValidator.getTransaction()){
+                    dataContainer.removeRecord(txValidator.getTransaction());
+                }else if(null!=txValidator.getDepositAccount()){
+                    Transaction transaction =transactionCreator.createRemConsensus(txValidator.getDepositAccount(),null,txValidator.getNodeAddress());
+                    dataContainer.addRecord(transaction);
+                }
+            }
+        }
+        log.info("共识交易验证结束：{}",NtpTimeService.currentTimeMillis());
     }
 
     /**
