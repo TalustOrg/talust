@@ -69,8 +69,8 @@ public class BlockStorage extends BaseStoreProvider {
     private final static Lock blockLock = new ReentrantLock();
     private static BlockStorage instance = new BlockStorage();
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private MongoClient mongoClient = new MongoClient("192.168.0.15:27017");
-    private MongoTemplate mongoTemplate = new MongoTemplate(mongoClient, "talust_blockchain");
+    private final MongoClient  mongoClient = new MongoClient("192.168.0.15:27017");
+    private final MongoTemplate mongoTemplate = new MongoTemplate(mongoClient, "talust_blockchain");
 
     private ChainStateStorage chainStateStorage = ChainStateStorage.get();
 

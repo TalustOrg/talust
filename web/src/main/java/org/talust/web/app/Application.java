@@ -45,6 +45,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         "org.talust.**.swagger2"})
 @EnableAutoConfiguration
 @EnableConfigurationProperties
+@EnableMongoRepositories(basePackages = "org.talust.core.storage")
 @SpringBootApplication
 @EnableScheduling
 public class Application extends SpringBootServletInitializer {
